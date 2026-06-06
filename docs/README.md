@@ -26,6 +26,10 @@ only and changes no behavior.
   contract.
 - [`PLANNER_SKELETON.md`](PLANNER_SKELETON.md) — the deterministic, non-authoritative
   planner skeleton and its compile-check CLI.
+- `cli/workflow_demo_cli.py` — end-to-end safe operator demo loop (goal →
+  deterministic candidate → compile → safe no-op run → status command) into a
+  self-contained `--run-dir`. No real execution, no tools/connectors, no
+  sandbox/broker; runtime stays safe no-op only.
 
 ## 2. Security / Design Boundaries
 

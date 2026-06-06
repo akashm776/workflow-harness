@@ -38,6 +38,10 @@ class DocsTests(unittest.TestCase):
         self.assertIn("--view", content)
         self.assertIn("render_run_status_text", content)
         self.assertIn("render_run_status_view", content)
+        self.assertIn("workflow_demo_cli", content)
+        self.assertIn("python -m cli.workflow_demo_cli", content)
+        self.assertIn("self-contained safe", content)
+        self.assertIn('execution_status: "blocked"', content)
         self.assertIn("python -m cli.safe_run_cli", content)
         self.assertIn("python -m cli.run_status_cli", content)
         self.assertNotIn("C:\\Users\\", content)
@@ -48,7 +52,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("358 tests", content)
+        self.assertIn("364 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -88,6 +92,10 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn("example/future-only fixture", content)
         self.assertIn("not active governance input", content)
+        # End-to-end safe no-op workflow demo CLI is mentioned.
+        self.assertIn("cli/workflow_demo_cli.py", content)
+        self.assertIn("effective_repo_root", content)
+        self.assertIn('execution_status: "blocked"', content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
@@ -349,6 +357,8 @@ class DocsTests(unittest.TestCase):
         self.assertIn("fixtures/future/", content)
         self.assertIn("SideEffectCatalog.json", content)
         self.assertIn("example/future-only artifacts", content)
+        # Mentions the end-to-end demo CLI.
+        self.assertIn("cli/workflow_demo_cli.py", content)
 
     def test_sandbox_broker_interface_design_doc_exists_and_is_design_only(
         self,

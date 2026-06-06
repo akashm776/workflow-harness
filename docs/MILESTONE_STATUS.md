@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `358 tests` passing
+- `364 tests` passing
 
 ## Major Implemented Layers
 
@@ -149,6 +149,17 @@
     catalog schema validator.
   - it is not active governance input, not a control-plane input, not consumed by
     compile/runtime, and grants no authority.
+- end-to-end safe no-op workflow demo CLI:
+  - `cli/workflow_demo_cli.py` composes the deterministic planner candidate, the
+    compiler, the safe no-op run, and the status-inspection command into one
+    operator demo loop.
+  - it uses a self-contained run directory as the `effective_repo_root` (candidate
+    inputs and a copied `NodeTypeRegistry.json` live under `--run-dir`).
+  - it performs no real execution, calls no tools/connectors, implements no
+    sandbox/broker, does not make planner output authoritative, and keeps runtime
+    safe no-op only.
+  - a blocked no-op outcome (`execution_status: "blocked"`) is expected when
+    review/approval is required and no approval decision is supplied.
 
 ## Explicit Non-Goals
 
@@ -168,10 +179,12 @@ Design- and inspection-first, consistent with the current no-op boundary. Real
 execution and real tools remain out of scope until their design checkpoints are
 complete and reviewed.
 
-1. Authority subsumption: refine per-dimension narrowing rules (design only,
-   building on `AUTHORITY_SUBSUMPTION_DESIGN.md`; no reuse/carryover behavior).
-2. Optional broker contract validators/examples: pure shape validation or
+1. Optional broker contract validators/examples: pure shape validation or
    example payloads for the broker request/decision/result shapes (still no
    broker implementation, no sandbox, no execution).
-3. Documentation drift/link consistency audit: verify the docs index and
+2. Documentation drift/link consistency audit: verify the docs index and
    cross-references stay accurate (docs/tests only; no runtime wiring).
+3. TUI/operator view improvements over existing safe no-op artifacts (rendering
+   only; no real execution).
+4. Deterministic innovation-agent workflow template in safe no-op mode (candidate
+   shape/template only; no real connectors, no execution).

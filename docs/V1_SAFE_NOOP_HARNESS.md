@@ -50,7 +50,7 @@ Current CLI hardening options:
 - No narrowed-authority reuse
 - No leases or lifecycle FSM enforcement
 - No broader staleness logic
-- No TUI
+- No full TUI framework; only dependency-free status view text exists
 
 ## Artifact Flow
 
@@ -121,9 +121,26 @@ Run status inspection in view mode:
 python -m cli.run_status_cli --run-dir runs/simple-approved --view
 ```
 
+End-to-end demo (goal to safe no-op run):
+
+```text
+python -m cli.workflow_demo_cli --goal "generate innovation ideas from program data" --node-type-registry fixtures/valid/simple-workflow/input/NodeTypeRegistry.json --repo-root . --run-dir runs/workflow-demo
+```
+
+`workflow_demo_cli` composes the deterministic planner candidate, the compiler,
+and the safe no-op run into one operator loop. It writes a **self-contained safe
+bundle** under `--run-dir` (candidate inputs under `<run-dir>/candidate` and a
+copied `NodeTypeRegistry.json`), compiles and runs with
+`effective_repo_root == run_dir`, and prints a `python -m cli.run_status_cli
+--run-dir <run-dir> --view` command to inspect the result. It performs **no real
+execution** and may produce `execution_status: "blocked"` when review/approval is
+required and no approval decision is supplied.
+
 ## CLI Modes
 
 - Default mode runs the full safe no-op orchestration path.
+- `cli.workflow_demo_cli` runs the goal -> candidate -> compile -> safe no-op
+  demo loop into a self-contained `--run-dir`; no real execution.
 - `--summary-only` prints a compact operator summary instead of the full nested result.
 - `--dry-run` compiles and summarizes only. It writes nothing.
 - `--check` prints only `{ ok, compilation_status, diagnostics }`. It writes nothing.
