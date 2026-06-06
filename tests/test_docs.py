@@ -47,7 +47,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("304 tests", content)
+        self.assertIn("311 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -67,6 +67,9 @@ class DocsTests(unittest.TestCase):
         self.assertIn("no real tools or connectors", content)
         # Sandbox/broker interface is referenced as a design-only checkpoint.
         self.assertIn("SANDBOX_BROKER_INTERFACE_DESIGN.md", content)
+        # Inspection-only side-effect audit event helpers are mentioned.
+        self.assertIn("audit/side_effect_audit_event.py", content)
+        self.assertIn("pure audit event builders only", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
