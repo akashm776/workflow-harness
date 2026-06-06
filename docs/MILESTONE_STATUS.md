@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `375 tests` passing
+- `387 tests` passing
 
 ## Major Implemented Layers
 
@@ -172,6 +172,18 @@
   - it can show compile status, execution status, review-required,
     blocked-by-review, candidate-dir presence, artifact rows, and a status
     command.
+- deterministic innovation-agent planner template:
+  - `planner/workflow_spec_planner.py` now has `build_innovation_planner_candidate`
+    and `select_planner_candidate`.
+  - innovation-style goals matching whole-word keywords (`innovation`, `idea`,
+    `ideas`, `mvp`) select the innovation template; unrelated goals use the
+    existing stub template.
+  - the innovation template is a deterministic, linear retrieve/synthesize chain
+    that compiles against the existing simple registry.
+  - it uses only proposal artifacts and example-prefixed names.
+  - it calls no real connectors/tools, performs no execution, and planner output
+    remains non-authoritative.
+  - `workflow_demo_cli` reports `planner_template` (`"stub"` or `"innovation"`).
 
 ## Explicit Non-Goals
 

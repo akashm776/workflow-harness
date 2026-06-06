@@ -142,6 +142,11 @@ copied `NodeTypeRegistry.json`), compiles and runs with
 execution** and may produce `execution_status: "blocked"` when review/approval is
 required and no approval decision is supplied.
 
+The summary reports the selected `planner_template`. Innovation/idea/MVP prompts
+(whole-word keyword match) select the deterministic innovation template; other
+goals use the stub template. Both are deterministic proposals only: no LLM
+planning, no real tools/connectors, no sandbox, and no real execution.
+
 ## CLI Modes
 
 - Default mode runs the full safe no-op orchestration path.

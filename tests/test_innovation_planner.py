@@ -1,0 +1,132 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+import shutil
+import tempfile
+import unittest
+
+from compiler.canonical_json import canonical_json_text
+from compiler.compile_run import compile_static_artifacts, summarize_compile_result
+from compiler.authority_value_validator import find_disallowed_authority_values
+from planner.workflow_spec_planner import (
+    CANDIDATE_ARTIFACT_FILES,
+    build_innovation_planner_candidate,
+    select_planner_candidate,
+)
+
+
+ROOT = Path(__file__).resolve().parent.parent
+SIMPLE_NODE_TYPE_REGISTRY = (
+    ROOT / "fixtures" / "valid" / "simple-workflow" / "input" / "NodeTypeRegistry.json"
+)
+
+
+class InnovationPlannerTests(unittest.TestCase):
+    def test_deterministic_for_same_goal(self) -> None:
+        left = build_innovation_planner_candidate("generate innovation ideas")
+        right = build_innovation_planner_candidate("generate innovation ideas")
+        self.assertEqual(canonical_json_text(left), canonical_json_text(right))
+
+    def test_selector_picks_innovation_for_keyword_goals(self) -> None:
+        for goal in (
+            "drive innovation this quarter",
+            "brainstorm a new idea",
+            "collect ideas for Q3",
+            "build an mvp plan",
+            "MVP for the new product",
+        ):
+            with self.subTest(goal=goal):
+                template, _ = select_planner_candidate(goal)
+                self.assertEqual(template, "innovation")
+
+    def test_selector_does_not_match_substring_only_words(self) -> None:
+        # "ideal" contains "idea" but must not select the innovation template.
+        for goal in (
+            "find the ideal candidate",
+            "ideally summarize the report",
+        ):
+            with self.subTest(goal=goal):
+                template, _ = select_planner_candidate(goal)
+                self.assertEqual(template, "stub")
+
+    def test_selector_falls_back_to_stub_for_unrelated_goals(self) -> None:
+        for goal in (
+            "summarize the quarterly report",
+            "process program data",
+            "retrieve evidence",
+        ):
+            with self.subTest(goal=goal):
+                template, _ = select_planner_candidate(goal)
+                self.assertEqual(template, "stub")
+
+    def test_uses_only_retrieve_and_synthesize_node_types(self) -> None:
+        candidate = build_innovation_planner_candidate("innovation ideas")
+        node_types = {
+            node["node_type"]
+            for node in candidate["artifacts"]["WorkflowSpec.json"]["nodes"]
+        }
+        self.assertTrue(node_types.issubset({"retrieve", "synthesize"}))
+
+    def test_graph_is_linear_with_fan_out_at_most_one(self) -> None:
+        spec = build_innovation_planner_candidate("innovation ideas")[
+            "artifacts"
+        ]["WorkflowSpec.json"]
+        from_counts: dict[str, int] = {}
+        for edge in spec["edges"]:
+            from_counts[edge["from_node_id"]] = (
+                from_counts.get(edge["from_node_id"], 0) + 1
+            )
+        self.assertTrue(all(count <= 1 for count in from_counts.values()))
+        # Entry node is retrieve-1.
+        self.assertEqual(spec["nodes"][0]["node_id"], "retrieve-1")
+
+    def test_no_disallowed_authority_values(self) -> None:
+        candidate = build_innovation_planner_candidate("innovation ideas")
+        for artifact in candidate["artifacts"].values():
+            self.assertEqual(find_disallowed_authority_values(artifact), [])
+
+    def test_compiles_against_simple_registry(self) -> None:
+        candidate = build_innovation_planner_candidate("innovation ideas")
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_dir = Path(tmp)
+            for file_name in CANDIDATE_ARTIFACT_FILES:
+                (tmp_dir / file_name).write_text(
+                    json.dumps(candidate["artifacts"][file_name]), encoding="utf-8"
+                )
+            shutil.copy(SIMPLE_NODE_TYPE_REGISTRY, tmp_dir / "NodeTypeRegistry.json")
+
+            result = compile_static_artifacts(
+                tmp_dir / "WorkflowSpec.json",
+                tmp_dir / "NodeTypeRegistry.json",
+                tmp_dir / "RequestedAuth.json",
+                tmp_dir / "ApprovalRequests.json",
+                repo_root=tmp_dir,
+            )
+            summary = summarize_compile_result(result)
+            self.assertTrue(summary["ok"])
+            self.assertEqual(summary["compilation_status"], "compiled")
+
+    def test_goal_text_not_in_candidate_artifacts(self) -> None:
+        goal = "innovation SENTINELZZZ ideas"
+        candidate = build_innovation_planner_candidate(goal)
+        for artifact in candidate["artifacts"].values():
+            self.assertNotIn("SENTINELZZZ", canonical_json_text(artifact))
+
+    def test_requested_auth_example_prefixed_and_proposal_only(self) -> None:
+        requested_auth = build_innovation_planner_candidate("innovation ideas")[
+            "artifacts"
+        ]["RequestedAuth.json"]
+        self.assertEqual(requested_auth["artifact_lifecycle_state"], "proposed")
+        for connector in requested_auth["requested_connectors"]:
+            self.assertTrue(
+                connector["connector_name"].startswith("example-"),
+                connector["connector_name"],
+            )
+            self.assertIsInstance(connector["scope"], str)
+        for tool in requested_auth["requested_tools"]:
+            self.assertTrue(tool["tool_name"].startswith("example-"))
+
+
+if __name__ == "__main__":
+    unittest.main()

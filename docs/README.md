@@ -25,7 +25,9 @@ only and changes no behavior.
 - [`CANONICAL_JSON_V1.md`](CANONICAL_JSON_V1.md) — the implemented canonical JSON
   contract.
 - [`PLANNER_SKELETON.md`](PLANNER_SKELETON.md) — the deterministic, non-authoritative
-  planner skeleton and its compile-check CLI.
+  planner skeleton and its compile-check CLI, including the deterministic
+  innovation-agent template and the whole-word keyword selector (`planner_template`
+  reported by the demo). No LLM planning, no real execution.
 - `cli/workflow_demo_cli.py` — end-to-end safe operator demo loop (goal →
   deterministic candidate → compile → safe no-op run → status command) into a
   self-contained `--run-dir`. No real execution, no tools/connectors, no
