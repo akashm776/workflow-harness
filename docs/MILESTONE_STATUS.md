@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `304 tests` passing
+- `311 tests` passing
 
 ## Major Implemented Layers
 
@@ -107,6 +107,17 @@
     bundle, leaving nothing on disk (no candidate-dir, no artifacts) and never
     exposing the temporary path; output adds `"dry_run": true`.
   - documented in `PLANNER_SKELETON.md`.
+- side-effect audit event helpers are inspection-only pure builders:
+  - `audit/side_effect_audit_event.py` provides `side_effect_proposed`,
+    `side_effect_permitted`, `side_effect_denied`, and `side_effect_failed`,
+    delegating to `make_audit_event` and packing domain fields into `details`
+    (`side_effect_class`, optional tool/connector/scope/checked-authority/
+    correlation/artifact/node-revision fields, and `reason_code` for
+    denied/failed).
+  - these are pure audit event builders only: no execution, no tools/connectors,
+    no broker/sandbox, no side-effect catalog enforcement, no authority
+    subsumption, no approval carryover, and no file writes; they authorize
+    nothing and the compiler remains the sole authority boundary.
 
 ## Explicit Non-Goals
 
@@ -126,11 +137,13 @@ Design- and inspection-first, consistent with the current no-op boundary. Real
 execution and real tools remain out of scope until their design checkpoints are
 complete and reviewed.
 
-1. Audit characterization: pin deterministic audit-event shape for proposed,
-   permitted, denied, and failed side-effect attempts (inspection/tests only).
-2. Authority subsumption: refine per-dimension narrowing rules (design only,
+1. Authority subsumption: refine per-dimension narrowing rules (design only,
    building on `AUTHORITY_SUBSUMPTION_DESIGN.md`; no reuse/carryover behavior).
-3. Docs/index cleanup: cross-link and index the design checkpoints
+2. Docs/index cleanup: cross-link and index the design checkpoints
    (`SECURITY_ASSUMPTIONS_AND_LIMITS.md`, `AUTHORITY_SUBSUMPTION_DESIGN.md`,
    `REAL_EXECUTION_THREAT_MODEL.md`, `SIDE_EFFECT_CATALOG_DESIGN.md`,
    `SANDBOX_BROKER_INTERFACE_DESIGN.md`).
+3. Side-effect catalog schema validator: pure schema-shape validation of catalog
+   entries (design or validation only; no catalog enforcement and no execution).
+4. Sandbox/broker request, decision, and result schema types: pure data-shape
+   definitions only (no broker, no sandbox, no execution).
