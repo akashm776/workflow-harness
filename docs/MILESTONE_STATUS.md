@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `303 tests` passing
+- `304 tests` passing
 
 ## Major Implemented Layers
 
@@ -47,6 +47,13 @@
   local write, external write, network call, export, deletion/destructive). It
   does not implement tools, connectors, sandbox/broker, side effects, authority
   subsumption, or approval carryover.
+- `SANDBOX_BROKER_INTERFACE_DESIGN.md` is a design-only checkpoint and is not
+  implemented; V1 remains no-op only. It defines the future interface between the
+  harness and an isolated execution broker/sandbox — isolation requirements and
+  the broker input, decision, and result contracts, with sandbox attestation and
+  fail-closed behavior. It does not implement a sandbox, broker, tools,
+  connectors, a side-effect channel, authority subsumption, or approval
+  carryover.
 - `CANONICAL_JSON_V1.md` documents the currently implemented canonical JSON
   contract.
 - canonical JSON characterization tests pin the current serializer and hashing
@@ -119,13 +126,11 @@ Design- and inspection-first, consistent with the current no-op boundary. Real
 execution and real tools remain out of scope until their design checkpoints are
 complete and reviewed.
 
-1. Sandbox/broker execution interface: design the broker contract and
-   verification requirements (design only, building on
-   `REAL_EXECUTION_THREAT_MODEL.md`; no sandbox implementation).
-2. Audit characterization: pin deterministic audit-event shape for proposed and
-   denied side effects (inspection/tests only).
-3. Authority subsumption: refine per-dimension narrowing rules (design only,
+1. Audit characterization: pin deterministic audit-event shape for proposed,
+   permitted, denied, and failed side-effect attempts (inspection/tests only).
+2. Authority subsumption: refine per-dimension narrowing rules (design only,
    building on `AUTHORITY_SUBSUMPTION_DESIGN.md`; no reuse/carryover behavior).
-4. Docs/index cleanup: cross-link and index the design checkpoints
+3. Docs/index cleanup: cross-link and index the design checkpoints
    (`SECURITY_ASSUMPTIONS_AND_LIMITS.md`, `AUTHORITY_SUBSUMPTION_DESIGN.md`,
-   `REAL_EXECUTION_THREAT_MODEL.md`, `SIDE_EFFECT_CATALOG_DESIGN.md`).
+   `REAL_EXECUTION_THREAT_MODEL.md`, `SIDE_EFFECT_CATALOG_DESIGN.md`,
+   `SANDBOX_BROKER_INTERFACE_DESIGN.md`).

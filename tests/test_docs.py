@@ -13,6 +13,7 @@ PLANNER_SKELETON_PATH = ROOT / "docs" / "PLANNER_SKELETON.md"
 AUTHORITY_SUBSUMPTION_PATH = ROOT / "docs" / "AUTHORITY_SUBSUMPTION_DESIGN.md"
 REAL_EXECUTION_THREAT_MODEL_PATH = ROOT / "docs" / "REAL_EXECUTION_THREAT_MODEL.md"
 SIDE_EFFECT_CATALOG_PATH = ROOT / "docs" / "SIDE_EFFECT_CATALOG_DESIGN.md"
+SANDBOX_BROKER_INTERFACE_PATH = ROOT / "docs" / "SANDBOX_BROKER_INTERFACE_DESIGN.md"
 
 
 class DocsTests(unittest.TestCase):
@@ -46,7 +47,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("303 tests", content)
+        self.assertIn("304 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -64,6 +65,8 @@ class DocsTests(unittest.TestCase):
         # Side-effect catalog is referenced as a design-only checkpoint.
         self.assertIn("SIDE_EFFECT_CATALOG_DESIGN.md", content)
         self.assertIn("no real tools or connectors", content)
+        # Sandbox/broker interface is referenced as a design-only checkpoint.
+        self.assertIn("SANDBOX_BROKER_INTERFACE_DESIGN.md", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
@@ -276,6 +279,57 @@ class DocsTests(unittest.TestCase):
         # Relationships to the other design checkpoints.
         self.assertIn("REAL_EXECUTION_THREAT_MODEL.md", content)
         self.assertIn("AUTHORITY_SUBSUMPTION_DESIGN.md", content)
+
+        # Non-goals.
+        self.assertIn("Non-Goals", content)
+
+    def test_sandbox_broker_interface_design_doc_exists_and_is_design_only(
+        self,
+    ) -> None:
+        self.assertTrue(SANDBOX_BROKER_INTERFACE_PATH.exists())
+        content = SANDBOX_BROKER_INTERFACE_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        # Design-only / not implemented; V1 remains no-op only.
+        self.assertIn("design only", lowered)
+        self.assertIn("not implemented", lowered)
+        self.assertIn("no-op only", lowered)
+
+        # Trust boundary: planner untrusted, compiler sole authority boundary.
+        self.assertIn("planner remains untrusted", content)
+        self.assertIn("compiler remains the sole authority boundary", content)
+
+        # Isolation requirements.
+        self.assertIn("Isolation Requirements", content)
+        for isolation_property in (
+            "no inherited environment secrets",
+            "no inherited shell",
+            "restricted filesystem",
+            "restricted network",
+            "run-local storage only",
+        ):
+            self.assertIn(isolation_property, content)
+
+        # Broker input / decision / result contracts.
+        self.assertIn("Broker Input Contract", content)
+        self.assertIn("Broker Decision Contract", content)
+        self.assertIn("Broker Result Contract", content)
+        self.assertIn("execution bindings", content)
+        self.assertIn("reason code", content)
+        self.assertIn("no hidden authority expansion", content)
+
+        # Attestation / sandbox verification.
+        self.assertIn("attestation", lowered)
+        self.assertIn("verify sandbox state", content)
+
+        # References to the other design checkpoints.
+        self.assertIn("REAL_EXECUTION_THREAT_MODEL.md", content)
+        self.assertIn("SIDE_EFFECT_CATALOG_DESIGN.md", content)
+        self.assertIn("AUTHORITY_SUBSUMPTION_DESIGN.md", content)
+
+        # Deterministic audit and fail-closed behavior.
+        self.assertIn("deterministically auditable", content)
+        self.assertIn("fails closed", lowered)
 
         # Non-goals.
         self.assertIn("Non-Goals", content)
