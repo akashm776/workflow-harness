@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `301 tests` passing
+- `302 tests` passing
 
 ## Major Implemented Layers
 
@@ -36,6 +36,10 @@
   future partial-order model that would be required before approval carryover or
   narrowed-authority reuse. Authority subsumption is design-only and is not
   implemented; exact-match approval remains the current behavior.
+- `REAL_EXECUTION_THREAT_MODEL.md` is a design-only checkpoint and is not
+  implemented; V1 remains no-op only. Real execution remains blocked behind
+  sandbox/broker isolation, connector/tool allowlists, a side-effect policy,
+  post-retrieval re-gating, deterministic audit, and fail-closed requirements.
 - `CANONICAL_JSON_V1.md` documents the currently implemented canonical JSON
   contract.
 - canonical JSON characterization tests pin the current serializer and hashing
@@ -97,12 +101,24 @@
 - no authority subsumption
 - no approval carryover
 - no full TUI framework (a dependency-free status view and loop already exist)
-- no planner
+- no LLM-backed planner and no authoritative planner output (the deterministic
+  planner skeleton exists, but its output stays non-authoritative until compiler
+  validation)
 - no real policy evaluation
 
 ## Recommended Next Milestone Options
 
-1. CLI hardening
-2. TUI status viewer
-3. prompt-to-WorkflowSpec planner
-4. first real but sandboxed local tool
+Design- and inspection-first, consistent with the current no-op boundary. Real
+execution and real tools remain out of scope until their design checkpoints are
+complete and reviewed.
+
+1. Authority subsumption: refine per-dimension narrowing rules (design only,
+   building on `AUTHORITY_SUBSUMPTION_DESIGN.md`; no reuse/carryover behavior).
+2. Sandbox/broker execution interface: design the broker contract and
+   verification requirements (design only, building on
+   `REAL_EXECUTION_THREAT_MODEL.md`; no sandbox implementation).
+3. Connector/tool allowlist and side-effect classification: design the governed
+   catalog schema (declared, scoped, versioned, compiler-approved) without
+   implementing any tool or connector.
+4. Audit characterization: pin deterministic audit-event shape for proposed and
+   denied side effects (inspection/tests only).

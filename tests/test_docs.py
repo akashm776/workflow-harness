@@ -11,6 +11,7 @@ SECURITY_LIMITS_PATH = ROOT / "docs" / "SECURITY_ASSUMPTIONS_AND_LIMITS.md"
 CANONICAL_JSON_PATH = ROOT / "docs" / "CANONICAL_JSON_V1.md"
 PLANNER_SKELETON_PATH = ROOT / "docs" / "PLANNER_SKELETON.md"
 AUTHORITY_SUBSUMPTION_PATH = ROOT / "docs" / "AUTHORITY_SUBSUMPTION_DESIGN.md"
+REAL_EXECUTION_THREAT_MODEL_PATH = ROOT / "docs" / "REAL_EXECUTION_THREAT_MODEL.md"
 
 
 class DocsTests(unittest.TestCase):
@@ -44,7 +45,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("301 tests", content)
+        self.assertIn("302 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -54,7 +55,11 @@ class DocsTests(unittest.TestCase):
         self.assertIn("no authority subsumption", content)
         self.assertIn("no approval carryover", content)
         self.assertIn("no full TUI framework", content)
-        self.assertIn("prompt-to-WorkflowSpec planner", content)
+        self.assertIn("no LLM-backed planner", content)
+        # Real execution threat model is referenced as a design-only checkpoint.
+        self.assertIn("REAL_EXECUTION_THREAT_MODEL.md", content)
+        self.assertIn("design-only checkpoint and is not", content)
+        self.assertIn("V1 remains no-op only", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
@@ -176,6 +181,60 @@ class DocsTests(unittest.TestCase):
         self.assertIn("equal or strictly narrower", content)
         self.assertIn("fails closed", content)
         self.assertIn("new approval is required", content)
+
+    def test_real_execution_threat_model_doc_exists_and_is_design_only(self) -> None:
+        self.assertTrue(REAL_EXECUTION_THREAT_MODEL_PATH.exists())
+        content = REAL_EXECUTION_THREAT_MODEL_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        # Design-only / not implemented; V1 remains no-op only.
+        self.assertIn("design only", lowered)
+        self.assertIn("not implemented", lowered)
+        self.assertIn("no-op only", lowered)
+
+        # Trust boundary: planner untrusted, compiler sole authority boundary.
+        self.assertIn("planner remains untrusted", content)
+        self.assertIn("compiler remains the sole authority boundary", content)
+
+        # Ambient authority sources.
+        self.assertIn("ambient authority", lowered)
+        for ambient_source in (
+            "environment variables",
+            "shell",
+            "filesystem",
+            "cloud credentials",
+            "OAuth tokens",
+            "MCP",
+            "connector",
+            "browser sessions",
+        ):
+            self.assertIn(ambient_source, content)
+
+        # Sandbox / broker requirement.
+        self.assertIn("broker/sandbox", content)
+        self.assertIn("isolated", content)
+
+        # Connector / tool allowlist requirement.
+        self.assertIn("allowlist", content)
+        for allowlist_property in ("declared", "scoped", "versioned", "compiler-approved"):
+            self.assertIn(allowlist_property, content)
+
+        # Side-effect classes.
+        for side_effect_class in (
+            "read-only",
+            "local write",
+            "external write",
+            "network call",
+            "export",
+            "deletion",
+        ):
+            self.assertIn(side_effect_class, content)
+
+        # Post-retrieval re-gating, audit, fail-closed, non-goals.
+        self.assertIn("Post-Retrieval Re-Gating", content)
+        self.assertIn("proposed and every denied side effect must be logged", content)
+        self.assertIn("fail closed", lowered)
+        self.assertIn("Non-Goals", content)
 
 
 if __name__ == "__main__":
