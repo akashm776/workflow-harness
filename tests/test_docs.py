@@ -15,6 +15,7 @@ REAL_EXECUTION_THREAT_MODEL_PATH = ROOT / "docs" / "REAL_EXECUTION_THREAT_MODEL.
 SIDE_EFFECT_CATALOG_PATH = ROOT / "docs" / "SIDE_EFFECT_CATALOG_DESIGN.md"
 SANDBOX_BROKER_INTERFACE_PATH = ROOT / "docs" / "SANDBOX_BROKER_INTERFACE_DESIGN.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
+SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
 
 
 class DocsTests(unittest.TestCase):
@@ -58,7 +59,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("387 tests", content)
+        self.assertIn("389 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -343,6 +344,30 @@ class DocsTests(unittest.TestCase):
 
         # Non-goals.
         self.assertIn("Non-Goals", content)
+
+    def test_safe_innovation_demo_doc_exists_and_preserves_safety_claims(
+        self,
+    ) -> None:
+        self.assertTrue(SAFE_INNOVATION_DEMO_PATH.exists())
+        content = SAFE_INNOVATION_DEMO_PATH.read_text(encoding="utf-8")
+
+        # The two-command walkthrough.
+        self.assertIn("python -m cli.workflow_demo_cli", content)
+        self.assertIn("python -m cli.run_status_cli", content)
+        self.assertIn("--summary", content)
+
+        # Expected results.
+        self.assertIn('planner_template: "innovation"', content)
+        self.assertIn("compilation_status: compiled", content)
+        self.assertIn("execution_status: blocked", content)
+        self.assertIn("blocked is expected", content)
+
+        # Preserved safety claims.
+        self.assertIn("no real execution", content)
+        self.assertIn("no tools", content)
+        self.assertIn("no connectors", content)
+        self.assertIn("non-authoritative", content)
+        self.assertIn("sole authority boundary", content)
 
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())
