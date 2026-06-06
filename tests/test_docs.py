@@ -62,7 +62,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("395 tests", content)
+        self.assertIn("396 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -379,6 +379,14 @@ class DocsTests(unittest.TestCase):
         self.assertIn("retrieve-1 [retrieve] Load Program Data", content)
         self.assertIn("synthesize-3 [synthesize] Synthesize MVP Plans", content)
         self.assertIn("display only", content)
+        # Explicit approval-decision path: blocked -> approved -> completed.
+        self.assertIn("ApprovalDecisions.json", content)
+        self.assertIn("safe_run_cli", content)
+        self.assertIn("--approval-decisions", content)
+        self.assertIn("execution_status: completed", content)
+        self.assertIn("completed safe no-op", content)
+        self.assertIn("no approval carryover", content)
+        self.assertIn("no authority subsumption", content)
 
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())

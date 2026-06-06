@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `395 tests` passing
+- `396 tests` passing
 
 ## Major Implemented Layers
 
@@ -198,6 +198,14 @@
     node IDs, node types, display names, and edges.
   - it is read-only, writes nothing, grants no authority, validates nothing, and
     does not change `inspect_run_directory`, default JSON, `--text`, or `--view`.
+- explicit approval-decision demo path (blocked -> approved -> completed):
+  - `tests/test_safe_innovation_approval_demo.py` and the approval section of
+    `SAFE_INNOVATION_DEMO.md` demonstrate carrying the blocked innovation run to a
+    completed safe no-op by supplying an explicit `ApprovalDecisions.json` via the
+    existing `safe_run_cli --approval-decisions`.
+  - approval is explicit and for the current run/request only; it changes no
+    approval matching semantics and implements no carryover, subsumption, or
+    execution. `completed` remains a completed safe no-op (`side_effects == []`).
 
 ## Explicit Non-Goals
 

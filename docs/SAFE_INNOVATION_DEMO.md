@@ -65,3 +65,63 @@ This walkthrough stays inside the safe boundary:
 
 The `--summary` surface is read-only and fail-soft: it parses known local run
 artifacts to report status and writes nothing.
+
+## Explicit Approval Decision Demo
+
+The blocked run above can be carried to a **completed safe no-op** by supplying an
+**explicit** approval decision for this run's request — still with no real
+execution. The flow composes existing commands; nothing is auto-approved.
+
+1. Run the innovation demo (as above). It blocks because review/approval is
+   required and no approval decision was supplied.
+2. Inspect the generated approval request to find the `request_id`:
+
+   ```text
+   cat runs/innovation-demo/candidate/ApprovalRequests.json
+   ```
+
+3. Create an explicit `ApprovalDecisions.json` approving that exact `request_id`
+   (use the `workflow_revision_id` from the same artifact):
+
+   ```text
+   {
+     "schema_version": "m1",
+     "workflow_revision_id": "<from ApprovalRequests.json>",
+     "artifact_lifecycle_state": "completed",
+     "decisions": [
+       {
+         "request_id": "<from ApprovalRequests.json>",
+         "decision": "approved",
+         "approved_by": "operator",
+         "approved_at": "2026-06-06T00:00:00Z"
+       }
+     ]
+   }
+   ```
+
+   Save it as `runs/innovation-demo/ApprovalDecisions.json`.
+
+4. Rerun the safe no-op path over the same candidate, supplying the decision:
+
+   ```text
+   python -m cli.safe_run_cli --workflow-spec runs/innovation-demo/candidate/WorkflowSpec.json --node-type-registry runs/innovation-demo/NodeTypeRegistry.json --requested-auth runs/innovation-demo/candidate/RequestedAuth.json --approval-requests runs/innovation-demo/candidate/ApprovalRequests.json --approval-decisions runs/innovation-demo/ApprovalDecisions.json --repo-root runs/innovation-demo --output-dir runs/innovation-approved --node-id retrieve-1
+   ```
+
+5. Inspect the approved output run:
+
+   ```text
+   python -m cli.run_status_cli --run-dir runs/innovation-approved --summary
+   ```
+
+   The approved run reports `execution_status: completed`.
+
+### What This Demonstrates
+
+- Approval is **explicit** and applies to the **current run/request only**.
+- There is **no approval carryover**, **no authority subsumption**, and **no
+  inferred approval** — the decision must match the request's `request_id`.
+- `completed` here still means a **completed safe no-op** only: no real execution
+  occurs, and no tools/connectors (Jira, Confluence, Bitbucket, MCP, network) are
+  called.
+- The approved `ExecutionResult.json` still has `side_effects == []` and
+  `produced_evidence == []`.
