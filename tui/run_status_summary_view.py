@@ -45,9 +45,48 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
             marker = "[x]" if exists else "[ ]"
             lines.append(f"{marker} {artifact_name}")
 
+    candidate_lines = _candidate_workflow_lines(summary.get("candidate_workflow"))
+    if candidate_lines:
+        lines.append("")
+        lines.extend(candidate_lines)
+
     status_command = summary.get("status_command")
     if status_command:
         lines.append("")
         lines.append(f"status command: {status_command}")
 
     return "\n".join(lines)
+
+
+def _candidate_workflow_lines(candidate_workflow: Any) -> list[str]:
+    if not isinstance(candidate_workflow, Mapping):
+        return []
+    nodes = candidate_workflow.get("nodes")
+    if not isinstance(nodes, list) or not nodes:
+        return []
+
+    edges = candidate_workflow.get("edges")
+    outgoing: dict[str, list[str]] = {}
+    if isinstance(edges, list):
+        for edge in edges:
+            if not isinstance(edge, Mapping):
+                continue
+            from_node_id = edge.get("from_node_id")
+            to_node_id = edge.get("to_node_id")
+            if isinstance(from_node_id, str) and isinstance(to_node_id, str):
+                outgoing.setdefault(from_node_id, []).append(to_node_id)
+
+    lines = ["Candidate Workflow:"]
+    for node in nodes:
+        if not isinstance(node, Mapping):
+            continue
+        node_id = node.get("node_id")
+        node_type = node.get("node_type")
+        if not isinstance(node_id, str) or not isinstance(node_type, str):
+            continue
+        display_name = node.get("display_name")
+        suffix = f" {display_name}" if isinstance(display_name, str) else ""
+        lines.append(f"- {node_id} [{node_type}]{suffix}")
+        for to_node_id in outgoing.get(node_id, []):
+            lines.append(f"  -> {to_node_id}")
+    return lines

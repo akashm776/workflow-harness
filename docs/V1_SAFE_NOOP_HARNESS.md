@@ -164,9 +164,13 @@ planning, no real tools/connectors, no sandbox, and no real execution.
 - `cli.run_status_cli --summary` is a separate opt-in, read-only surface that
   parses known local artifacts fail-soft to show compile/execution status,
   review-required, blocked-by-review, candidate-dir presence, artifact rows, and
-  a status command. It reads only known local artifacts, writes nothing, calls no
-  tools/connectors, performs no execution, and grants no authority. It does not
-  validate artifacts or confer authority.
+  a status command. When `<run-dir>/candidate/WorkflowSpec.json` exists it also
+  shows an optional `Candidate Workflow:` section (node IDs, node types, display
+  names, and edges) read from the local candidate proposal for display only. It
+  reads only known local artifacts, writes nothing, calls no tools/connectors,
+  performs no execution, and grants no authority. It does not validate artifacts
+  or confer authority. The default `cli.run_status_cli` (default JSON, `--text`,
+  `--view`) remains existence-only and unchanged.
 
 ## Exit Codes
 

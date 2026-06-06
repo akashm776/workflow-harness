@@ -35,6 +35,22 @@ python -m cli.run_status_cli --run-dir runs/innovation-demo --summary
   the run is a complete safe no-op run, with the manifest, no-op result, and audit
   log all written, but no work is performed.
 
+The summary also shows the selected candidate workflow graph (read from the local
+candidate proposal for **display only** — not validation and not authority):
+
+```text
+Candidate Workflow:
+- retrieve-1 [retrieve] Load Program Data
+  -> retrieve-2
+- retrieve-2 [retrieve] Gather Example Context
+  -> synthesize-1
+- synthesize-1 [synthesize] Generate Idea Candidates
+  -> synthesize-2
+- synthesize-2 [synthesize] Score Against Rubric
+  -> synthesize-3
+- synthesize-3 [synthesize] Synthesize MVP Plans
+```
+
 ## Safety Boundary
 
 This walkthrough stays inside the safe boundary:
