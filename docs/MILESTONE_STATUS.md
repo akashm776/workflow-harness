@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `311 tests` passing
+- `338 tests` passing
 
 ## Major Implemented Layers
 
@@ -118,6 +118,17 @@
     no broker/sandbox, no side-effect catalog enforcement, no authority
     subsumption, no approval carryover, and no file writes; they authorize
     nothing and the compiler remains the sole authority boundary.
+- side-effect catalog schema-shape validator is a pure standalone inspection
+  helper:
+  - `compiler/side_effect_catalog_schema_validator.py` provides
+    `validate_side_effect_catalog_schema`, a pure standalone `SideEffectCatalog.json`
+    schema-shape validator returning the existing `INVALID_ARTIFACT_SCHEMA`
+    diagnostic convention.
+  - it is not wired into `validate_static_inputs`, and `SideEffectCatalog.json` is
+    not a control-plane input yet.
+  - it grants no authority, enforces no runtime behavior, calls no
+    tools/connectors, implements no sandbox/broker, and changes no canonical JSON
+    or hashing.
 
 ## Explicit Non-Goals
 
@@ -137,13 +148,13 @@ Design- and inspection-first, consistent with the current no-op boundary. Real
 execution and real tools remain out of scope until their design checkpoints are
 complete and reviewed.
 
-1. Authority subsumption: refine per-dimension narrowing rules (design only,
+1. Sandbox/broker request, decision, and result schema types: pure data-shape
+   definitions only (no broker, no sandbox, no execution).
+2. Authority subsumption: refine per-dimension narrowing rules (design only,
    building on `AUTHORITY_SUBSUMPTION_DESIGN.md`; no reuse/carryover behavior).
-2. Docs/index cleanup: cross-link and index the design checkpoints
+3. Docs/index cleanup: cross-link and index the design checkpoints
    (`SECURITY_ASSUMPTIONS_AND_LIMITS.md`, `AUTHORITY_SUBSUMPTION_DESIGN.md`,
    `REAL_EXECUTION_THREAT_MODEL.md`, `SIDE_EFFECT_CATALOG_DESIGN.md`,
    `SANDBOX_BROKER_INTERFACE_DESIGN.md`).
-3. Side-effect catalog schema validator: pure schema-shape validation of catalog
-   entries (design or validation only; no catalog enforcement and no execution).
-4. Sandbox/broker request, decision, and result schema types: pure data-shape
-   definitions only (no broker, no sandbox, no execution).
+4. Future catalog fixture/docs example: a committed `SideEffectCatalog.json`
+   example for the schema-shape validator (docs/fixture only; no runtime wiring).
