@@ -121,6 +121,12 @@ Run status inspection in view mode:
 python -m cli.run_status_cli --run-dir runs/simple-approved --view
 ```
 
+Run status inspection in opt-in summary mode:
+
+```text
+python -m cli.run_status_cli --run-dir runs/simple-approved --summary
+```
+
 End-to-end demo (goal to safe no-op run):
 
 ```text
@@ -148,6 +154,14 @@ required and no approval decision is supplied.
 - Default `cli.run_status_cli` output is canonical JSON.
 - `cli.run_status_cli --text` emits simple human-readable status.
 - `cli.run_status_cli --view` emits future TUI-shaped screen text.
+- The default `inspect_run_directory(...)`, default `cli.run_status_cli`,
+  `--text`, and `--view` remain existence-only and unchanged.
+- `cli.run_status_cli --summary` is a separate opt-in, read-only surface that
+  parses known local artifacts fail-soft to show compile/execution status,
+  review-required, blocked-by-review, candidate-dir presence, artifact rows, and
+  a status command. It reads only known local artifacts, writes nothing, calls no
+  tools/connectors, performs no execution, and grants no authority. It does not
+  validate artifacts or confer authority.
 
 ## Exit Codes
 
@@ -193,6 +207,9 @@ Failed compile emits:
 - No policy evaluation beyond the current skeleton
 - Runtime start depends on compiled artifacts only
 - `--dry-run` and `--check` do not write compile bundles, audit logs, manifests, or execution results
-- `inspect_run_directory(...)` and `cli.run_status_cli` do not read or validate JSON contents
+- `inspect_run_directory(...)` and the default `cli.run_status_cli` (default JSON,
+  `--text`, `--view`) do not read or validate JSON contents (existence-only)
+- `cli.run_status_cli --summary` is the only status path that reads JSON; it is
+  read-only and fail-soft, writes nothing, and validates nothing
 - `render_run_status_text(...)` is a pure renderer and does not mutate the status input
 - `render_run_status_view(...)` is a pure renderer and does not mutate the status input

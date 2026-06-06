@@ -30,6 +30,11 @@ only and changes no behavior.
   deterministic candidate → compile → safe no-op run → status command) into a
   self-contained `--run-dir`. No real execution, no tools/connectors, no
   sandbox/broker; runtime stays safe no-op only.
+- `cli.run_status_cli --summary` (`runtime/run_status_summary.py`,
+  `tui/run_status_summary_view.py`) — an opt-in, read-only, fail-soft summary over
+  known local safe-run artifacts. The default existence-only status path is
+  unchanged. It reads only local artifacts, writes nothing, calls no
+  tools/connectors, performs no execution, and grants no authority.
 
 ## 2. Security / Design Boundaries
 
