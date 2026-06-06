@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `271 tests` passing
+- `300 tests` passing
 
 ## Major Implemented Layers
 
@@ -69,6 +69,22 @@
     2. schema validation (Phase 2 now validates all five control-plane input
        shapes)
     3. interpretation validation (graph, scope, approval semantics)
+- planner skeleton produces non-authoritative candidate proposals only:
+  - `planner/workflow_spec_planner.py` builds a deterministic stub candidate
+    (`WorkflowSpec.json`, `RequestedAuth.json`, `ApprovalRequests.json`) from a
+    plain-text goal; the goal is carried as non-authoritative metadata only.
+  - planner output is non-authoritative until compiler validation; the compiler
+    remains the sole authority boundary.
+  - no LLM call, no real authority inference, no execution, no compiled or
+    runtime artifacts are written by the planner.
+  - `cli/planner_check_cli.py` turns a `--goal` into a candidate and runs the
+    compiler validate/compile check against a provided `NodeTypeRegistry.json`,
+    writing only candidate input files (no compiled, audit, or runtime
+    artifacts); exits 0 on compile ok, 1 on failure.
+  - `planner_check_cli --dry-run` runs the same check via a temporary candidate
+    bundle, leaving nothing on disk (no candidate-dir, no artifacts) and never
+    exposing the temporary path; output adds `"dry_run": true`.
+  - documented in `PLANNER_SKELETON.md`.
 
 ## Explicit Non-Goals
 
