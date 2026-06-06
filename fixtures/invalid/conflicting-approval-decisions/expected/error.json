@@ -1,0 +1,6 @@
+{
+  "expected_error_code": "CONFLICTING_APPROVAL_DECISIONS",
+  "expected_component": "approval_validator",
+  "expected_artifact": "ApprovalDecisions.json",
+  "expected_message_fragment": "conflicting approval decisions"
+}

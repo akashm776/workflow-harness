@@ -1,0 +1,6 @@
+{
+  "expected_error_code": "APPROVAL_SUBJECT_HASH_MISMATCH",
+  "expected_component": "approval_classifier",
+  "expected_artifact": "ApprovalDecisions.json",
+  "expected_message_fragment": "approval subject"
+}

@@ -1,0 +1,6 @@
+{
+  "expected_error_code": "STALE_COMPILED_ARTIFACT",
+  "expected_component": "runtime_verifier",
+  "expected_artifact": "CompiledArtifactIndex.json",
+  "expected_message_fragment": "stale"
+}

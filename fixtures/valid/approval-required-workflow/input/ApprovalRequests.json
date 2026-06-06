@@ -1,0 +1,13 @@
+{
+  "schema_version": "m1",
+  "workflow_revision_id": "workflow-rev-approval-001",
+  "artifact_lifecycle_state": "approval_pending",
+  "requests": [
+    {
+      "request_id": "approval-request-approval-001",
+      "node_id": "execute-1",
+      "approval_subject_hash": "approval-subject-approval-001",
+      "reason": "Fixture approval request for the authority-bearing execute node."
+    }
+  ]
+}

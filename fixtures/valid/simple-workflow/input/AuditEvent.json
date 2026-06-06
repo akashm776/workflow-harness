@@ -1,0 +1,11 @@
+{
+  "schema_version": "m1",
+  "event_id": "audit-event-001",
+  "timestamp": "2026-06-05T10:05:00Z",
+  "event_type": "fixture.created",
+  "actor": "fixture-author",
+  "artifact_path": "fixtures/valid/simple-workflow/input/CompiledArtifactIndex.json",
+  "details": {
+    "note": "Hand-authored M1 fixture artifact."
+  }
+}

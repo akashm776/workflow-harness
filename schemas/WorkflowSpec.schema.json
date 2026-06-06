@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WorkflowSpec",
+  "type": "object",
+  "required": [
+    "workflow_id",
+    "graph_revision_id",
+    "workflow_revision_id",
+    "policy_bundle_digest",
+    "artifact_lifecycle_state",
+    "nodes",
+    "edges"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string"
+    },
+    "graph_revision_id": {
+      "type": "string"
+    },
+    "workflow_revision_id": {
+      "type": "string"
+    },
+    "policy_bundle_digest": {
+      "type": "string"
+    },
+    "artifact_lifecycle_state": {
+      "type": "string"
+    },
+    "executable_run_context": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "node_id",
+          "node_type"
+        ],
+        "properties": {
+          "node_id": {
+            "type": "string"
+          },
+          "node_type": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "task": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "from_node_id",
+          "to_node_id"
+        ],
+        "properties": {
+          "from_node_id": {
+            "type": "string"
+          },
+          "to_node_id": {
+            "type": "string"
+          },
+          "edge_type": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

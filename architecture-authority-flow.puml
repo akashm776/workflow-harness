@@ -1,0 +1,178 @@
+@startuml
+title Authority Flow: Deterministic Dynamic Workflow Harness
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+skinparam ArrowColor #4A4A4A
+skinparam PackageBorderColor #666666
+skinparam ComponentBorderColor #666666
+skinparam NoteBorderColor #888888
+skinparam NoteBackgroundColor #FFF8D9
+skinparam DefaultFontName Courier
+
+actor User
+actor Reviewer
+
+package "Proposal Layer" {
+  component "Prompt Intake" as PromptIntake
+  component "Workflow Planner\nproposal only" as Planner
+  file "WorkflowSpec.json" as WorkflowSpec
+  file "AgentCard.json" as AgentCard
+  file "Task.json" as TaskJson
+  file "RequestedAuth.json" as RequestedAuth
+}
+
+rectangle "PROPOSAL BOUNDARY\nUntrusted proposals stop here" as ProposalBoundary
+
+package "Static Governance Inputs" {
+  file "NodeTypeRegistry.json" as NodeRegistry
+  file "global-policy.json" as GlobalPolicy
+  file "connector-policy/*.json" as ConnectorPolicy
+  file "tool-policy.json" as ToolPolicy
+  file "data-classification-policy.json" as DataPolicy
+  file "workflow-shape-policy.json" as ShapePolicy
+}
+
+package "Run-Scoped Governance Inputs" {
+  file "NodeReviewConfig.json" as NodeReviewConfig
+  file "NodeChangeRequest.json" as NodeChangeRequest
+  file "ApprovalDecisions.json" as ApprovalDecisions
+}
+
+package "Deterministic Compiler" {
+  component "Schema Validator" as SchemaValidator
+  component "Graph Validator" as GraphValidator
+  component "Scope Validator" as ScopeValidator
+  component "Policy Compiler" as PolicyCompiler
+  component "Approval Classifier" as ApprovalClassifier
+  component "Bindings Generator" as BindingsGenerator
+  component "Compilation Reporter" as CompilationReporter
+  file "ApprovalRequests.json" as ApprovalRequests
+  file "EffectivePolicy.json" as EffectivePolicy
+  file "ExecutionBindings.json" as ExecutionBindings
+  file "CompilationReport.json" as CompilationReport
+  file "CompiledArtifactIndex.json" as CompiledIndex
+}
+
+rectangle "EXECUTION AUTHORITY BOUNDARY\nOnly compiled authority crosses here" as ExecBoundary
+
+package "Human Governance Surface" {
+  component "Review TUI" as ReviewTUI
+}
+
+package "Execution Control" {
+  component "Runtime Integrity Verifier" as IntegrityVerifier
+  component "Runtime Launcher" as RuntimeLauncher
+  component "Local Node Runner" as NodeRunner
+}
+
+rectangle "EXTERNAL DATA ACCESS BOUNDARY\nBindings-scoped connector access only" as ConnectorBoundary
+
+package "Connector Surface" {
+  component "Connector Adapters" as Connectors
+}
+
+User --> PromptIntake
+PromptIntake --> Planner
+Planner --> WorkflowSpec
+Planner --> AgentCard
+Planner --> TaskJson
+Planner --> RequestedAuth
+
+WorkflowSpec --> ProposalBoundary
+AgentCard --> ProposalBoundary
+TaskJson --> ProposalBoundary
+RequestedAuth --> ProposalBoundary
+
+ProposalBoundary --> SchemaValidator
+ProposalBoundary --> GraphValidator
+ProposalBoundary --> ScopeValidator
+ProposalBoundary --> PolicyCompiler
+
+NodeRegistry --> GraphValidator
+ShapePolicy --> GraphValidator
+ConnectorPolicy --> ScopeValidator
+ToolPolicy --> ScopeValidator
+
+GlobalPolicy --> PolicyCompiler
+ConnectorPolicy --> PolicyCompiler
+ToolPolicy --> PolicyCompiler
+DataPolicy --> PolicyCompiler
+NodeRegistry --> PolicyCompiler
+ShapePolicy --> PolicyCompiler
+WorkflowSpec --> PolicyCompiler
+AgentCard --> PolicyCompiler
+TaskJson --> PolicyCompiler
+RequestedAuth --> PolicyCompiler
+NodeReviewConfig --> PolicyCompiler
+NodeChangeRequest --> PolicyCompiler
+ApprovalDecisions --> PolicyCompiler
+
+PolicyCompiler --> ApprovalClassifier
+ApprovalClassifier --> ApprovalRequests
+PolicyCompiler --> EffectivePolicy
+PolicyCompiler --> BindingsGenerator
+BindingsGenerator --> ExecutionBindings
+CompilationReporter --> CompilationReport
+PolicyCompiler --> CompiledIndex
+
+Reviewer --> ReviewTUI
+ReviewTUI --> NodeReviewConfig : write
+ReviewTUI --> NodeChangeRequest : write
+ReviewTUI --> ApprovalDecisions : write
+ApprovalRequests --> ReviewTUI : inspect
+CompilationReport --> ReviewTUI : inspect
+EffectivePolicy --> ReviewTUI : inspect
+ExecutionBindings --> ReviewTUI : inspect
+
+ApprovalRequests --> ReviewTUI
+ReviewTUI --> ApprovalDecisions
+ApprovalDecisions --> PolicyCompiler
+
+EffectivePolicy --> ExecBoundary
+ExecutionBindings --> ExecBoundary
+CompiledIndex --> ExecBoundary
+
+ExecBoundary --> IntegrityVerifier
+IntegrityVerifier --> EffectivePolicy : verify hash + revision
+IntegrityVerifier --> ExecutionBindings : verify hash + revision
+IntegrityVerifier --> CompiledIndex : verify dependency chain
+IntegrityVerifier --> RuntimeLauncher
+RuntimeLauncher --> NodeRunner
+
+NodeRunner --> ConnectorBoundary
+ConnectorBoundary --> Connectors : bindings only
+
+note right of ProposalBoundary
+Proposal artifacts may describe workflow shape, tasks,
+requested permissions, requested scopes,
+requested review hints, and requested runtime needs.
+They cannot grant authority.
+They cannot be consumed by runtime for authority decisions.
+end note
+
+note right of PolicyCompiler
+Compiler decisions are deterministic.
+Inputs are structured artifacts plus policy.
+Outputs are compiled authority artifacts only.
+end note
+
+note right of ReviewTUI
+The TUI may inspect compiled artifacts.
+It may write only run-scoped governance artifacts.
+All authority changes return to the compiler.
+end note
+
+note right of IntegrityVerifier
+Runtime rejects stale or mismatched compiled artifacts.
+Execution requires verified revision and hash continuity.
+end note
+
+note right of ConnectorBoundary
+External connector access is gated by compiled bindings only.
+Undeclared connector visibility is a runtime failure.
+end note
+
+@enduml

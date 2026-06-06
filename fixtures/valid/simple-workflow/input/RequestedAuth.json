@@ -1,0 +1,24 @@
+{
+  "schema_version": "m1",
+  "node_id": "retrieve-1",
+  "workflow_revision_id": "workflow-rev-simple-001",
+  "artifact_lifecycle_state": "validated",
+  "requested_tools": [
+    {
+      "tool_name": "local-file-reader",
+      "access_mode": "read"
+    }
+  ],
+  "requested_connectors": [
+    {
+      "connector_name": "fixture-catalog",
+      "scope": "read:fixtures/simple"
+    }
+  ],
+  "requested_permissions": [
+    {
+      "permission": "read",
+      "target": "fixtures/valid/simple-workflow/input"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "expected_error_code": "AMBIGUOUS_APPROVAL_SUBJECT",
+  "expected_component": "approval_validator",
+  "expected_artifact": "ApprovalRequests.json",
+  "expected_message_fragment": "ambiguous approval subject"
+}

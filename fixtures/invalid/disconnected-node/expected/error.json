@@ -1,0 +1,6 @@
+{
+  "expected_error_code": "DISCONNECTED_GRAPH",
+  "expected_component": "graph_validator",
+  "expected_artifact": "WorkflowSpec.json",
+  "expected_message_fragment": "disconnected"
+}

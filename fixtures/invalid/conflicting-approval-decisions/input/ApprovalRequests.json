@@ -1,0 +1,13 @@
+{
+  "schema_version": "m1",
+  "workflow_revision_id": "workflow-rev-conflict-001",
+  "artifact_lifecycle_state": "approval_pending",
+  "requests": [
+    {
+      "request_id": "approval-request-conflict-001",
+      "node_id": "retrieve-1",
+      "approval_subject_hash": "approval-subject-conflict-001",
+      "reason": "Fixture conflicting approval request."
+    }
+  ]
+}

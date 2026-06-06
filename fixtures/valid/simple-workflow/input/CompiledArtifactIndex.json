@@ -1,0 +1,34 @@
+{
+  "schema_version": "m1",
+  "graph_revision_id": "graph-rev-simple-001",
+  "workflow_revision_id": "workflow-rev-simple-001",
+  "policy_bundle_digest": "policy-bundle-digest-001",
+  "artifact_lifecycle_state": "ready_to_run",
+  "compiler_version": "m1-fixture",
+  "hash_algorithm": "sha256",
+  "canonicalization_version": "canon-json-v1",
+  "declared_input_dependency_digests": [
+    {
+      "artifact_group": "proposal",
+      "artifact_path": "fixtures/valid/simple-workflow/input/WorkflowSpec.json",
+      "content_digest": "workflow-spec-digest-001",
+      "hash_algorithm": "sha256",
+      "canonicalization_version": "canon-json-v1",
+      "revision_id": "workflow-rev-simple-001"
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_name": "EffectivePolicy",
+      "artifact_path": "fixtures/valid/simple-workflow/input/EffectivePolicy.json",
+      "content_digest": "effective-policy-digest-001",
+      "artifact_revision_id": "workflow-rev-simple-001"
+    },
+    {
+      "artifact_name": "ExecutionBindings",
+      "artifact_path": "fixtures/valid/simple-workflow/input/ExecutionBindings.json",
+      "content_digest": "execution-bindings-digest-001",
+      "artifact_revision_id": "workflow-rev-simple-001"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CompilationReport",
+  "type": "object",
+  "required": [
+    "graph_revision_id",
+    "workflow_revision_id",
+    "policy_bundle_digest",
+    "artifact_lifecycle_state",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "graph_revision_id": {
+      "type": "string"
+    },
+    "workflow_revision_id": {
+      "type": "string"
+    },
+    "policy_bundle_digest": {
+      "type": "string"
+    },
+    "artifact_lifecycle_state": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "artifact": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

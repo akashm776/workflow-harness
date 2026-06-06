@@ -1,0 +1,30 @@
+{
+  "schema_version": "m1",
+  "registry_version": "registry-approval-001",
+  "node_types": [
+    {
+      "node_type": "retrieve",
+      "description": "Fetches source evidence.",
+      "category": "evidence",
+      "max_outgoing_edges": 1
+    },
+    {
+      "node_type": "synthesize",
+      "description": "Produces a grounded synthesis.",
+      "category": "reasoning",
+      "max_outgoing_edges": 1
+    },
+    {
+      "node_type": "approval-gate",
+      "description": "Represents a human approval checkpoint.",
+      "category": "governance",
+      "max_outgoing_edges": 1
+    },
+    {
+      "node_type": "execute",
+      "description": "Represents an execution step after approval.",
+      "category": "execution",
+      "max_outgoing_edges": 0
+    }
+  ]
+}

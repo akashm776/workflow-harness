@@ -1,0 +1,29 @@
+{
+  "schema_version": "m1",
+  "node_id": "retrieve-1",
+  "workflow_revision_id": "workflow-rev-simple-001",
+  "policy_bundle_digest": "policy-bundle-digest-001",
+  "artifact_lifecycle_state": "compiled",
+  "bound_tools": [
+    {
+      "tool_name": "local-file-reader",
+      "access_mode": "read",
+      "binding_type": "builtin"
+    }
+  ],
+  "bound_connectors": [
+    {
+      "connector_name": "fixture-catalog",
+      "scope": "read:fixtures/simple",
+      "binding_ref": "connector-binding:fixture-catalog:read:fixtures/simple"
+    }
+  ],
+  "bound_permissions": [
+    {
+      "permission": "read",
+      "target": "fixtures/valid/simple-workflow/input",
+      "binding_ref": "permission-binding:read:fixtures/valid/simple-workflow/input"
+    }
+  ],
+  "env_bindings": []
+}

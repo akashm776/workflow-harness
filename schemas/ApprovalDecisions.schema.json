@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ApprovalDecisions",
+  "type": "object",
+  "required": [
+    "workflow_revision_id",
+    "artifact_lifecycle_state",
+    "decisions"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "workflow_revision_id": {
+      "type": "string"
+    },
+    "artifact_lifecycle_state": {
+      "type": "string"
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "request_id",
+          "decision"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string"
+          },
+          "decision": {
+            "type": "string"
+          },
+          "approved_by": {
+            "type": "string"
+          },
+          "approved_at": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

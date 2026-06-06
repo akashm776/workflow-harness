@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuditEvent",
+  "type": "object",
+  "required": [
+    "event_id",
+    "timestamp",
+    "event_type",
+    "actor"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "event_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "actor": {
+      "type": "string"
+    },
+    "artifact_path": {
+      "type": "string"
+    },
+    "details": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": "m1",
+  "workflow_id": "approval-required-workflow",
+  "graph_revision_id": "graph-rev-approval-001",
+  "workflow_revision_id": "workflow-rev-approval-001",
+  "policy_bundle_digest": "policy-bundle-digest-approval-001",
+  "artifact_lifecycle_state": "validated",
+  "executable_run_context": {
+    "environment": "fixture"
+  },
+  "nodes": [
+    {
+      "node_id": "retrieve-1",
+      "node_type": "retrieve",
+      "display_name": "Retrieve Evidence",
+      "task": {
+        "summary": "Collect evidence for the approval-gated workflow."
+      }
+    },
+    {
+      "node_id": "synthesize-1",
+      "node_type": "synthesize",
+      "display_name": "Synthesize Findings",
+      "task": {
+        "summary": "Produce a grounded synthesis for review."
+      }
+    },
+    {
+      "node_id": "approval-1",
+      "node_type": "approval-gate",
+      "display_name": "Approval Gate",
+      "task": {
+        "summary": "Represent the human approval checkpoint."
+      }
+    },
+    {
+      "node_id": "execute-1",
+      "node_type": "execute",
+      "display_name": "Execute Approved Action",
+      "task": {
+        "summary": "Represents execution after approval."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from_node_id": "retrieve-1",
+      "to_node_id": "synthesize-1",
+      "edge_type": "data-flow"
+    },
+    {
+      "from_node_id": "synthesize-1",
+      "to_node_id": "approval-1",
+      "edge_type": "approval-flow"
+    },
+    {
+      "from_node_id": "approval-1",
+      "to_node_id": "execute-1",
+      "edge_type": "control-flow"
+    }
+  ]
+}

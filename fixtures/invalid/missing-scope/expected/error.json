@@ -1,0 +1,6 @@
+{
+  "expected_error_code": "MISSING_REQUIRED_SCOPE",
+  "expected_component": "scope_validator",
+  "expected_artifact": "RequestedAuth.json",
+  "expected_message_fragment": "missing required scope"
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version": "m1",
+  "event_id": "audit-event-approval-001",
+  "timestamp": "2026-06-05T11:05:00Z",
+  "event_type": "fixture.created",
+  "actor": "fixture-author",
+  "artifact_path": "fixtures/valid/approval-required-workflow/input/CompiledArtifactIndex.json",
+  "details": {
+    "note": "Hand-authored M1 approval-gated fixture artifact."
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "expected_error_code": "POLICY_BUNDLE_DIGEST_CHANGED",
+  "expected_component": "runtime_verifier",
+  "expected_artifact": "CompiledArtifactIndex.json",
+  "expected_message_fragment": "policy bundle"
+}

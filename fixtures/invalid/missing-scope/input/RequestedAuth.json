@@ -1,0 +1,23 @@
+{
+  "schema_version": "m1",
+  "node_id": "execute-1",
+  "workflow_revision_id": "workflow-rev-missing-scope-001",
+  "artifact_lifecycle_state": "validated",
+  "requested_tools": [
+    {
+      "tool_name": "local-file-reader",
+      "access_mode": "read"
+    }
+  ],
+  "requested_connectors": [
+    {
+      "connector_name": "fixture-catalog"
+    }
+  ],
+  "requested_permissions": [
+    {
+      "permission": "read",
+      "target": "fixtures/invalid/missing-scope/input"
+    }
+  ]
+}

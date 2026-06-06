@@ -1,0 +1,24 @@
+{
+  "schema_version": "m1",
+  "registry_version": "artifact-ownership-001",
+  "artifact_writers": {
+    "WorkflowSpec.json": "planner",
+    "AgentCard.json": "planner",
+    "Task.json": "planner",
+    "RequestedAuth.json": "planner",
+    "NodeReviewConfig.json": "human_governance",
+    "NodeChangeRequest.json": "human_governance",
+    "ApprovalDecisions.json": "human_governance",
+    "ApprovalRequests.json": "compiler",
+    "EffectivePolicy.json": "compiler",
+    "ExecutionBindings.json": "compiler",
+    "CompilationReport.json": "compiler",
+    "CompiledArtifactIndex.json": "compiler",
+    "EvidenceArtifact.json": "runtime",
+    "EvidenceManifest.json": "runtime",
+    "ExecutionManifest.json": "runtime",
+    "SideEffectManifest.json": "runtime",
+    "NodeRerunHistory.json": "runtime",
+    "AuditLog.jsonl": "audit_subsystem"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "expected_error_code": "INVALID_FAN_OUT",
+  "expected_component": "graph_validator",
+  "expected_artifact": "WorkflowSpec.json",
+  "expected_message_fragment": "fan-out"
+}
