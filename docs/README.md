@@ -33,8 +33,10 @@ only and changes no behavior.
   self-contained `--run-dir`. No real execution, no tools/connectors, no
   sandbox/broker; runtime stays safe no-op only.
 - [`SAFE_INNOVATION_DEMO.md`](SAFE_INNOVATION_DEMO.md) — a short two-command safe
-  no-op walkthrough (`workflow_demo_cli` + `run_status_cli --summary`). It is a
-  safe no-op demonstration, not real execution.
+  no-op walkthrough (`workflow_demo_cli` + `run_status_cli --summary`), now
+  including an explicit approval-decision path from blocked to completed safe
+  no-op (`safe_run_cli --approval-decisions`). It is a safe no-op demonstration,
+  not real execution.
 - `cli.run_status_cli --summary` (`runtime/run_status_summary.py`,
   `tui/run_status_summary_view.py`) — an opt-in, read-only, fail-soft summary over
   known local safe-run artifacts, including an optional `Candidate Workflow:`
