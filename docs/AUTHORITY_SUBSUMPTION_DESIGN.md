@@ -89,6 +89,49 @@ do not nest"; `ambiguous` is "we cannot tell." Both are treated the same way for
 the reuse decision (see below), but they are reported distinctly for audit and
 diagnosis.
 
+## Per-Dimension Narrowing Rules
+
+Each dimension defines "narrower" on its own terms. A future model must implement
+these as explicit, governed comparisons — never inferred from arbitrary labels.
+"Narrower" always means less authority or a stricter obligation; the reverse is
+"broader".
+
+- **connector** — narrower is a subset of the approved connector set. A new set
+  that adds any connector is broader. Disjoint sets are incomparable.
+- **scope** — narrower is a structurally contained scope (for example
+  `project/ABC/board/3` is narrower than `project/ABC`). Two scopes where each
+  allows something the other does not are incomparable. Unstructured or
+  unnormalized scope is ambiguous.
+- **tool** — narrower is a subset of the approved tools. Adding a tool is broader.
+- **skill** — narrower is a subset of the visible skills. Adding visibility is
+  broader.
+- **filesystem** — narrower is a subset of the approved paths, and a stricter
+  access mode is narrower (read is narrower than read/write). Paths that overlap
+  only partially are incomparable.
+- **side effect** — side-effect narrowing must follow an
+  explicit governed partial order, not a universal total order. A side-effect
+  class may be treated as narrower **only when the relation is explicitly
+  defined** by that governed order. The classes from
+  `SIDE_EFFECT_CATALOG_DESIGN.md` (read-only,
+  local write, external write, network call, export, deletion / destructive
+  action) are named for reference only; this does **not** imply every pair is
+  safely comparable. Any pair whose relation is not explicitly defined is
+  incomparable or ambiguous and requires new approval.
+- **export** — narrower is less export capability, but only where the governed
+  order defines it (for example "no export" narrower than "redacted export"
+  narrower than "full export"). Undefined or unlabeled export relations are
+  ambiguous.
+- **review** — a stricter review obligation is narrower; less review is broader.
+  More review can be narrower. The ordering must be defined by governed policy,
+  not inferred from arbitrary labels. Ambiguous review labels are never narrower.
+- **approval** — a stricter or additional approval obligation is narrower;
+  removing an approval obligation is broader. As with review, the relation must be
+  defined by governed policy. Ambiguous approval labels are never narrower.
+
+Across every dimension, **ambiguous is never narrower**, and any dimension that
+is broader, incomparable, or ambiguous requires new approval. There is **no
+scoring, no tradeoffs, and no partial credit** between dimensions.
+
 ## The Reuse Rule
 
 Reuse of a prior approval may be *considered* only when **every** dimension
@@ -115,6 +158,36 @@ broader governance model.
 The default for every undecided or non-narrowing case is to require new
 approval. The model never broadens authority, never infers intent, and never
 treats `ambiguous` as `narrower`. When in doubt, re-approve.
+
+## Examples
+
+These are design-only illustrations. They describe how a future model would
+classify a single comparison; nothing here is implemented.
+
+- **equal** — approved scope `project/ABC`, new request `project/ABC`. Identical;
+  treated as the exact-match case generalized.
+- **narrower** — approved scope `project/ABC`, new request
+  `project/ABC/board/3`. The new scope is structurally contained, so this
+  dimension is narrower.
+- **broader** — approved connectors `{wiki}`, new request `{wiki, issue-tracker}`.
+  The new set adds a connector, so this dimension is broader and requires new
+  approval.
+- **incomparable** — approved filesystem path `repo/src`, new request
+  `repo/docs`. Neither contains the other; the relation does not nest, so it is
+  incomparable and requires new approval.
+- **ambiguous** — approved scope `project/ABC`, new request an unstructured
+  string `"the ABC stuff"`. The comparison cannot be decided soundly, so it is
+  ambiguous; ambiguous is never narrower, and it requires new approval.
+
+A compact multi-dimension example: suppose connector is `equal`, scope is
+`narrower`, and review is `narrower`, but side effect is `ambiguous` because the
+governed order does not define the relevant pair. Reuse is only considered when
+every dimension is equal or narrower, so the single ambiguous dimension makes
+the whole comparison fail closed and require new approval — regardless of the
+other dimensions. There is no scoring, no tradeoffs, and no partial credit.
+
+Exact-match approval remains current behavior; none of these examples is
+implemented.
 
 ## Not Implemented
 

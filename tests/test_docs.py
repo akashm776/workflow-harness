@@ -210,6 +210,15 @@ class DocsTests(unittest.TestCase):
         self.assertIn("fails closed", content)
         self.assertIn("new approval is required", content)
 
+        # Refined per-dimension narrowing rules and examples.
+        self.assertIn("Per-Dimension Narrowing Rules", content)
+        self.assertIn("Examples", content)
+        self.assertIn("ambiguous is never narrower", content)
+        self.assertIn("no partial credit", content)
+        self.assertIn("explicit governed partial order", content)
+        self.assertIn("every dimension", content)
+        self.assertIn("exact-match approval remains current behavior", content.lower())
+
     def test_real_execution_threat_model_doc_exists_and_is_design_only(self) -> None:
         self.assertTrue(REAL_EXECUTION_THREAT_MODEL_PATH.exists())
         content = REAL_EXECUTION_THREAT_MODEL_PATH.read_text(encoding="utf-8")
