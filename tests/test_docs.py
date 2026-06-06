@@ -47,7 +47,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("311 tests", content)
+        self.assertIn("338 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -70,6 +70,11 @@ class DocsTests(unittest.TestCase):
         # Inspection-only side-effect audit event helpers are mentioned.
         self.assertIn("audit/side_effect_audit_event.py", content)
         self.assertIn("pure audit event builders only", content)
+        # Pure standalone side-effect catalog schema-shape validator is mentioned.
+        self.assertIn("compiler/side_effect_catalog_schema_validator.py", content)
+        self.assertIn("pure standalone", content)
+        self.assertIn("schema-shape validator", content)
+        self.assertIn("not wired into `validate_static_inputs`", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
