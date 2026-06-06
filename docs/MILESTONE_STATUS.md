@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `302 tests` passing
+- `303 tests` passing
 
 ## Major Implemented Layers
 
@@ -40,6 +40,13 @@
   implemented; V1 remains no-op only. Real execution remains blocked behind
   sandbox/broker isolation, connector/tool allowlists, a side-effect policy,
   post-retrieval re-gating, deterministic audit, and fail-closed requirements.
+- `SIDE_EFFECT_CATALOG_DESIGN.md` is a design-only checkpoint and is not
+  implemented; V1 remains no-op only with no real tools or connectors. It defines
+  the future governed catalog/allowlist for declared, scoped, versioned, and
+  compiler-approved tools/connectors and the side-effect classes (read-only,
+  local write, external write, network call, export, deletion/destructive). It
+  does not implement tools, connectors, sandbox/broker, side effects, authority
+  subsumption, or approval carryover.
 - `CANONICAL_JSON_V1.md` documents the currently implemented canonical JSON
   contract.
 - canonical JSON characterization tests pin the current serializer and hashing
@@ -112,13 +119,13 @@ Design- and inspection-first, consistent with the current no-op boundary. Real
 execution and real tools remain out of scope until their design checkpoints are
 complete and reviewed.
 
-1. Authority subsumption: refine per-dimension narrowing rules (design only,
-   building on `AUTHORITY_SUBSUMPTION_DESIGN.md`; no reuse/carryover behavior).
-2. Sandbox/broker execution interface: design the broker contract and
+1. Sandbox/broker execution interface: design the broker contract and
    verification requirements (design only, building on
    `REAL_EXECUTION_THREAT_MODEL.md`; no sandbox implementation).
-3. Connector/tool allowlist and side-effect classification: design the governed
-   catalog schema (declared, scoped, versioned, compiler-approved) without
-   implementing any tool or connector.
-4. Audit characterization: pin deterministic audit-event shape for proposed and
+2. Audit characterization: pin deterministic audit-event shape for proposed and
    denied side effects (inspection/tests only).
+3. Authority subsumption: refine per-dimension narrowing rules (design only,
+   building on `AUTHORITY_SUBSUMPTION_DESIGN.md`; no reuse/carryover behavior).
+4. Docs/index cleanup: cross-link and index the design checkpoints
+   (`SECURITY_ASSUMPTIONS_AND_LIMITS.md`, `AUTHORITY_SUBSUMPTION_DESIGN.md`,
+   `REAL_EXECUTION_THREAT_MODEL.md`, `SIDE_EFFECT_CATALOG_DESIGN.md`).
