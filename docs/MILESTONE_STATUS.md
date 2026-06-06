@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `389 tests` passing
+- `395 tests` passing
 
 ## Major Implemented Layers
 
@@ -191,6 +191,13 @@
   - it remains safe no-op only and calls no real tools/connectors; the smoke test
     asserts `planner_template: "innovation"`, `compilation_status: compiled`, and
     `execution_status: blocked`.
+- candidate workflow graph visibility in the opt-in run-status summary:
+  - `runtime/run_status_summary.py` now reads `<run-dir>/candidate/WorkflowSpec.json`
+    fail-soft as display-only proposal data (the `candidate_workflow` field).
+  - `tui/run_status_summary_view.py` renders a `Candidate Workflow:` section with
+    node IDs, node types, display names, and edges.
+  - it is read-only, writes nothing, grants no authority, validates nothing, and
+    does not change `inspect_run_directory`, default JSON, `--text`, or `--view`.
 
 ## Explicit Non-Goals
 

@@ -37,9 +37,11 @@ only and changes no behavior.
   safe no-op demonstration, not real execution.
 - `cli.run_status_cli --summary` (`runtime/run_status_summary.py`,
   `tui/run_status_summary_view.py`) — an opt-in, read-only, fail-soft summary over
-  known local safe-run artifacts. The default existence-only status path is
-  unchanged. It reads only local artifacts, writes nothing, calls no
-  tools/connectors, performs no execution, and grants no authority.
+  known local safe-run artifacts, including an optional `Candidate Workflow:`
+  graph section read from the local candidate proposal for display only. The
+  default existence-only status path is unchanged. It reads only local artifacts,
+  writes nothing, calls no tools/connectors, performs no execution, and grants no
+  authority.
 
 ## 2. Security / Design Boundaries
 

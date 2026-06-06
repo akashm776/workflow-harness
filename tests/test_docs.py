@@ -50,6 +50,9 @@ class DocsTests(unittest.TestCase):
         self.assertIn("read-only and fail-soft", content)
         # Planner template selection is surfaced in the demo summary.
         self.assertIn("planner_template", content)
+        # Optional candidate workflow graph section in the summary.
+        self.assertIn("Candidate Workflow", content)
+        self.assertIn("display only", content)
         self.assertIn("python -m cli.run_status_cli", content)
         self.assertNotIn("C:\\Users\\", content)
         self.assertNotIn("```powershell", content)
@@ -59,7 +62,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("389 tests", content)
+        self.assertIn("395 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -112,6 +115,9 @@ class DocsTests(unittest.TestCase):
         self.assertIn("build_innovation_planner_candidate", content)
         self.assertIn("select_planner_candidate", content)
         self.assertIn("planner_template", content)
+        # Candidate workflow graph visibility in the opt-in summary.
+        self.assertIn("Candidate Workflow", content)
+        self.assertIn("display-only proposal data", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
@@ -368,6 +374,11 @@ class DocsTests(unittest.TestCase):
         self.assertIn("no connectors", content)
         self.assertIn("non-authoritative", content)
         self.assertIn("sole authority boundary", content)
+        # Visible candidate workflow graph (display-only).
+        self.assertIn("Candidate Workflow:", content)
+        self.assertIn("retrieve-1 [retrieve] Load Program Data", content)
+        self.assertIn("synthesize-3 [synthesize] Synthesize MVP Plans", content)
+        self.assertIn("display only", content)
 
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())
