@@ -9,6 +9,7 @@ DOC_PATH = ROOT / "docs" / "V1_SAFE_NOOP_HARNESS.md"
 MILESTONE_STATUS_PATH = ROOT / "docs" / "MILESTONE_STATUS.md"
 SECURITY_LIMITS_PATH = ROOT / "docs" / "SECURITY_ASSUMPTIONS_AND_LIMITS.md"
 CANONICAL_JSON_PATH = ROOT / "docs" / "CANONICAL_JSON_V1.md"
+PLANNER_SKELETON_PATH = ROOT / "docs" / "PLANNER_SKELETON.md"
 
 
 class DocsTests(unittest.TestCase):
@@ -42,7 +43,11 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("271 tests", content)
+        self.assertIn("300 tests", content)
+        self.assertIn("planner skeleton", content)
+        self.assertIn("planner/workflow_spec_planner.py", content)
+        self.assertIn("cli/planner_check_cli.py", content)
+        self.assertIn("non-authoritative until compiler validation", content)
         self.assertIn("safe_run_cli", content)
         self.assertIn("no real execution", content)
         self.assertIn("no authority subsumption", content)
@@ -112,6 +117,22 @@ class DocsTests(unittest.TestCase):
         self.assertIn("validation-gated", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
+
+    def test_planner_skeleton_doc_exists_and_marks_output_non_authoritative(
+        self,
+    ) -> None:
+        self.assertTrue(PLANNER_SKELETON_PATH.exists())
+        content = PLANNER_SKELETON_PATH.read_text(encoding="utf-8")
+
+        self.assertIn("Planner Skeleton", content)
+        self.assertIn("planner/workflow_spec_planner.py", content)
+        self.assertIn("build_stub_planner_candidate", content)
+        self.assertIn("write_planner_candidate", content)
+        self.assertIn("non-authoritative until compiler validation", content)
+        self.assertIn("sole authority boundary", content)
+        self.assertIn("does not", content)
+        self.assertIn("cli/planner_check_cli.py", content)
+        self.assertIn("python -m cli.planner_check_cli", content)
 
 
 if __name__ == "__main__":
