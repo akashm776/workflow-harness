@@ -6,7 +6,9 @@ from typing import Sequence
 from compiler.canonical_json import canonical_json_text
 from runtime.run_status import inspect_run_directory
 from runtime.run_status_render import render_run_status_text
+from runtime.run_status_summary import summarize_run_directory
 from tui.run_status_view import render_run_status_view
+from tui.run_status_summary_view import render_run_status_summary_view
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -14,11 +16,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--run-dir", required=True)
     parser.add_argument("--text", action="store_true")
     parser.add_argument("--view", action="store_true")
+    parser.add_argument("--summary", action="store_true")
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.summary:
+        summary = summarize_run_directory(args.run_dir)
+        print(render_run_status_summary_view(summary))
+        return 0 if summary["complete_safe_noop_run"] else 1
+
     result = inspect_run_directory(args.run_dir)
     if args.view:
         print(render_run_status_view(result))

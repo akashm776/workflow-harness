@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `364 tests` passing
+- `375 tests` passing
 
 ## Major Implemented Layers
 
@@ -160,6 +160,18 @@
     safe no-op only.
   - a blocked no-op outcome (`execution_status: "blocked"`) is expected when
     review/approval is required and no approval decision is supplied.
+- opt-in read-only run-status summary surface:
+  - `runtime/run_status_summary.py` (`summarize_run_directory`),
+    `tui/run_status_summary_view.py` (`render_run_status_summary_view`), and
+    `cli.run_status_cli --summary` provide an opt-in, read-only, fail-soft summary
+    over known local safe-run artifacts.
+  - the existing `inspect_run_directory`, default JSON output, `--text`, and
+    `--view` remain existence-only and unchanged.
+  - the summary reads only known local artifacts, writes nothing, calls no
+    tools/connectors, performs no execution, and grants no authority.
+  - it can show compile status, execution status, review-required,
+    blocked-by-review, candidate-dir presence, artifact rows, and a status
+    command.
 
 ## Explicit Non-Goals
 

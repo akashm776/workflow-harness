@@ -268,6 +268,52 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn("complete_safe_noop_run", result)
         self.assertIn("run_dir", result)
 
+    def test_summary_flag_renders_rich_summary_and_exits_zero(self) -> None:
+        output_dir = self._make_output_dir()
+        safe_noop_run(
+            SIMPLE_WORKFLOW / "WorkflowSpec.json",
+            SIMPLE_WORKFLOW / "NodeTypeRegistry.json",
+            SIMPLE_WORKFLOW / "RequestedAuth.json",
+            SIMPLE_WORKFLOW / "ApprovalRequests.json",
+            repo_root=ROOT,
+            output_dir=output_dir,
+            node_id="retrieve-1",
+        )
+
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            exit_code = main(["--run-dir", str(output_dir), "--summary"])
+        rendered = stdout.getvalue()
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("Safe No-Op Run Summary", rendered)
+        self.assertIn("compilation_status: compiled", rendered)
+        self.assertIn("execution_status: completed", rendered)
+        self.assertIn("review_required: false", rendered)
+        self.assertIn("blocked_by_review: false", rendered)
+        self.assertIn("status command: python -m cli.run_status_cli", rendered)
+
+    def test_summary_flag_missing_directory_exits_one_and_is_fail_soft(self) -> None:
+        output_dir = self._make_missing_output_dir()
+
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            exit_code = main(["--run-dir", str(output_dir), "--summary"])
+        rendered = stdout.getvalue()
+
+        self.assertEqual(exit_code, 1)
+        self.assertIn("Safe No-Op Run Summary", rendered)
+        self.assertIn("compilation_status: unknown", rendered)
+        self.assertIn("execution_status: unknown", rendered)
+
+    def test_default_json_does_not_include_summary_fields(self) -> None:
+        output_dir = self._make_missing_output_dir()
+
+        _, result = self._run_cli(["--run-dir", str(output_dir)])
+
+        self.assertNotIn("compilation_status", result)
+        self.assertNotIn("execution_status", result)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -43,6 +43,10 @@ class DocsTests(unittest.TestCase):
         self.assertIn("self-contained safe", content)
         self.assertIn('execution_status: "blocked"', content)
         self.assertIn("python -m cli.safe_run_cli", content)
+        # Opt-in summary surface and the preserved existence-only boundary.
+        self.assertIn("cli.run_status_cli --summary", content)
+        self.assertIn("remain existence-only", content)
+        self.assertIn("read-only and fail-soft", content)
         self.assertIn("python -m cli.run_status_cli", content)
         self.assertNotIn("C:\\Users\\", content)
         self.assertNotIn("```powershell", content)
@@ -52,7 +56,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("364 tests", content)
+        self.assertIn("375 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -96,6 +100,11 @@ class DocsTests(unittest.TestCase):
         self.assertIn("cli/workflow_demo_cli.py", content)
         self.assertIn("effective_repo_root", content)
         self.assertIn('execution_status: "blocked"', content)
+        # Opt-in read-only run-status summary surface is mentioned.
+        self.assertIn("runtime/run_status_summary.py", content)
+        self.assertIn("cli.run_status_cli --summary", content)
+        self.assertIn("read-only, fail-soft summary", content)
+        self.assertIn("remain existence-only and unchanged", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
