@@ -48,7 +48,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("357 tests", content)
+        self.assertIn("358 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -82,6 +82,12 @@ class DocsTests(unittest.TestCase):
         self.assertIn(
             "does not implement a broker, a sandbox, execution", content
         )
+        # Example/future-only side-effect catalog fixture is mentioned.
+        self.assertIn(
+            "fixtures/future/side-effect-catalog/SideEffectCatalog.json", content
+        )
+        self.assertIn("example/future-only fixture", content)
+        self.assertIn("not active governance input", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
@@ -330,6 +336,10 @@ class DocsTests(unittest.TestCase):
         self.assertIn("compiler/side_effect_catalog_schema_validator.py", content)
         self.assertIn("broker/sandbox_broker_contract.py", content)
         self.assertIn("execute nothing", lowered)
+        # Mentions the example/future-only fixtures.
+        self.assertIn("fixtures/future/", content)
+        self.assertIn("SideEffectCatalog.json", content)
+        self.assertIn("example/future-only artifacts", content)
 
     def test_sandbox_broker_interface_design_doc_exists_and_is_design_only(
         self,

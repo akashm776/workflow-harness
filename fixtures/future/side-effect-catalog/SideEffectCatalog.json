@@ -1,0 +1,57 @@
+{
+  "catalog_version": "side-effect-catalog-example-001",
+  "entries": [
+    {
+      "tool_name": "example-local-file-reader",
+      "version": "1.0.0",
+      "side_effect_class": "read-only",
+      "allowed_scopes": [
+        "read:fixtures/simple"
+      ],
+      "authority_dimensions": [
+        "tool",
+        "filesystem"
+      ],
+      "sandbox_requirements": {
+        "network": "none",
+        "filesystem": "run-local-read-only"
+      },
+      "audit_requirements": {
+        "log_proposed": true,
+        "log_permitted": true,
+        "log_denied": true
+      },
+      "review_or_approval_requirements": {
+        "review_mode": "auto",
+        "approval_required": false
+      }
+    },
+    {
+      "connector_name": "example-issue-tracker",
+      "version": "2.3.0",
+      "side_effect_class": "external write",
+      "allowed_scopes": [
+        "issue-tracker.write:project/ABC"
+      ],
+      "authority_dimensions": [
+        "connector",
+        "scope",
+        "side_effect"
+      ],
+      "sandbox_requirements": {
+        "network": "broker-mediated",
+        "filesystem": "run-local"
+      },
+      "audit_requirements": {
+        "log_proposed": true,
+        "log_permitted": true,
+        "log_denied": true,
+        "log_failed": true
+      },
+      "review_or_approval_requirements": {
+        "review_mode": "mandatory-review",
+        "approval_required": true
+      }
+    }
+  ]
+}
