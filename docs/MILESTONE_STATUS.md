@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `387 tests` passing
+- `389 tests` passing
 
 ## Major Implemented Layers
 
@@ -184,6 +184,13 @@
   - it calls no real connectors/tools, performs no execution, and planner output
     remains non-authoritative.
   - `workflow_demo_cli` reports `planner_template` (`"stub"` or `"innovation"`).
+- safe innovation demo walkthrough and smoke test:
+  - `SAFE_INNOVATION_DEMO.md` and `tests/test_safe_innovation_demo.py` document and
+    test the two-command safe innovation demo (`workflow_demo_cli` then
+    `run_status_cli --summary`).
+  - it remains safe no-op only and calls no real tools/connectors; the smoke test
+    asserts `planner_template: "innovation"`, `compilation_status: compiled`, and
+    `execution_status: blocked`.
 
 ## Explicit Non-Goals
 
