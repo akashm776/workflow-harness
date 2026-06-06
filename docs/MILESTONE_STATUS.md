@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `356 tests` passing
+- `357 tests` passing
 
 ## Major Implemented Layers
 
@@ -30,6 +30,10 @@
 
 ## Design Hardening Documentation
 
+- `README.md` is the documentation index: it organizes the docs into current
+  implemented harness, security/design boundaries, and inspection-only safe code
+  surfaces, and restates that V1 is no-op only, planner output is
+  non-authoritative, and the compiler is the sole authority boundary.
 - `SECURITY_ASSUMPTIONS_AND_LIMITS.md` records the current security boundary and
   the deferred enforcement gaps.
 - `AUTHORITY_SUBSUMPTION_DESIGN.md` is a design-only checkpoint: it defines the
@@ -160,12 +164,10 @@ complete and reviewed.
 
 1. Authority subsumption: refine per-dimension narrowing rules (design only,
    building on `AUTHORITY_SUBSUMPTION_DESIGN.md`; no reuse/carryover behavior).
-2. Docs/index cleanup: cross-link and index the design checkpoints
-   (`SECURITY_ASSUMPTIONS_AND_LIMITS.md`, `AUTHORITY_SUBSUMPTION_DESIGN.md`,
-   `REAL_EXECUTION_THREAT_MODEL.md`, `SIDE_EFFECT_CATALOG_DESIGN.md`,
-   `SANDBOX_BROKER_INTERFACE_DESIGN.md`).
-3. Future catalog fixture/docs example: a committed `SideEffectCatalog.json`
+2. Future catalog fixture/docs example: a committed `SideEffectCatalog.json`
    example for the schema-shape validator (docs/fixture only; no runtime wiring).
-4. Optional broker contract validators/examples: pure shape validation or
+3. Optional broker contract validators/examples: pure shape validation or
    example payloads for the broker request/decision/result shapes (still no
    broker implementation, no sandbox, no execution).
+4. Documentation drift/link consistency audit: verify the docs index and
+   cross-references stay accurate (docs/tests only; no runtime wiring).

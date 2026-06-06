@@ -14,6 +14,7 @@ AUTHORITY_SUBSUMPTION_PATH = ROOT / "docs" / "AUTHORITY_SUBSUMPTION_DESIGN.md"
 REAL_EXECUTION_THREAT_MODEL_PATH = ROOT / "docs" / "REAL_EXECUTION_THREAT_MODEL.md"
 SIDE_EFFECT_CATALOG_PATH = ROOT / "docs" / "SIDE_EFFECT_CATALOG_DESIGN.md"
 SANDBOX_BROKER_INTERFACE_PATH = ROOT / "docs" / "SANDBOX_BROKER_INTERFACE_DESIGN.md"
+DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 
 
 class DocsTests(unittest.TestCase):
@@ -47,7 +48,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("356 tests", content)
+        self.assertIn("357 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -296,6 +297,39 @@ class DocsTests(unittest.TestCase):
 
         # Non-goals.
         self.assertIn("Non-Goals", content)
+
+    def test_docs_index_exists_and_organizes_docs(self) -> None:
+        self.assertTrue(DOCS_INDEX_PATH.exists())
+        content = DOCS_INDEX_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        # References all major docs.
+        for doc_name in (
+            "V1_SAFE_NOOP_HARNESS.md",
+            "MILESTONE_STATUS.md",
+            "CANONICAL_JSON_V1.md",
+            "PLANNER_SKELETON.md",
+            "SECURITY_ASSUMPTIONS_AND_LIMITS.md",
+            "AUTHORITY_SUBSUMPTION_DESIGN.md",
+            "REAL_EXECUTION_THREAT_MODEL.md",
+            "SIDE_EFFECT_CATALOG_DESIGN.md",
+            "SANDBOX_BROKER_INTERFACE_DESIGN.md",
+        ):
+            self.assertIn(doc_name, content)
+
+        # No-op only / no real execution.
+        self.assertIn("no-op only", lowered)
+        self.assertIn("no real execution", lowered)
+
+        # Planner non-authoritative, compiler authority boundary.
+        self.assertIn("non-authoritative", lowered)
+        self.assertIn("compiler remains the sole authority boundary", content)
+
+        # Mentions the safe code surfaces without implying execution.
+        self.assertIn("audit/side_effect_audit_event.py", content)
+        self.assertIn("compiler/side_effect_catalog_schema_validator.py", content)
+        self.assertIn("broker/sandbox_broker_contract.py", content)
+        self.assertIn("execute nothing", lowered)
 
     def test_sandbox_broker_interface_design_doc_exists_and_is_design_only(
         self,
