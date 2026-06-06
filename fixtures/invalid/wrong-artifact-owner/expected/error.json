@@ -1,0 +1,6 @@
+{
+  "expected_error_code": "WRONG_ARTIFACT_OWNER",
+  "expected_component": "artifact_ownership_validator",
+  "expected_artifact": "EffectivePolicy.json",
+  "expected_message_fragment": "owner"
+}

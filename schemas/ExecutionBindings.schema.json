@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExecutionBindings",
+  "type": "object",
+  "required": [
+    "node_id",
+    "workflow_revision_id",
+    "policy_bundle_digest",
+    "artifact_lifecycle_state",
+    "bound_tools",
+    "bound_connectors",
+    "bound_permissions",
+    "env_bindings"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "node_id": {
+      "type": "string"
+    },
+    "workflow_revision_id": {
+      "type": "string"
+    },
+    "policy_bundle_digest": {
+      "type": "string"
+    },
+    "artifact_lifecycle_state": {
+      "type": "string"
+    },
+    "bound_tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tool_name": {
+            "type": "string"
+          },
+          "access_mode": {
+            "type": "string"
+          },
+          "binding_type": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "bound_connectors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "connector_name": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "binding_ref": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "bound_permissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "binding_ref": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "env_bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "env_name": {
+            "type": "string"
+          },
+          "binding_ref": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

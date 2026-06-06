@@ -1,0 +1,19 @@
+{
+  "schema_version": "m1",
+  "registry_version": "lifecycle-states-001",
+  "field_name": "artifact_lifecycle_state",
+  "note": "In M1 this field is artifact-local metadata only. It does not represent an enforced run-level or node-level FSM state.",
+  "allowed_states": [
+    "proposed",
+    "validated",
+    "compile_pending",
+    "approval_pending",
+    "compiled",
+    "ready_to_run",
+    "running",
+    "completed",
+    "failed",
+    "stale",
+    "rerun_requested"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": "m1",
+  "registry_version": "registry-invalid-fanout-001",
+  "node_types": [
+    {
+      "node_type": "retrieve",
+      "description": "Fetches source evidence.",
+      "category": "evidence",
+      "max_outgoing_edges": 1
+    },
+    {
+      "node_type": "synthesize",
+      "description": "Produces a grounded synthesis.",
+      "category": "reasoning",
+      "max_outgoing_edges": 1
+    }
+  ]
+}

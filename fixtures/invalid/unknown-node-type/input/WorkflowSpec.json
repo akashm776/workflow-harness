@@ -1,0 +1,36 @@
+{
+  "schema_version": "m1",
+  "workflow_id": "invalid-unknown-node-type",
+  "graph_revision_id": "graph-rev-invalid-001",
+  "workflow_revision_id": "workflow-rev-invalid-001",
+  "policy_bundle_digest": "policy-bundle-digest-invalid-001",
+  "artifact_lifecycle_state": "validated",
+  "executable_run_context": {
+    "environment": "fixture"
+  },
+  "nodes": [
+    {
+      "node_id": "retrieve-1",
+      "node_type": "retrieve",
+      "display_name": "Retrieve Evidence",
+      "task": {
+        "summary": "Collect evidence."
+      }
+    },
+    {
+      "node_id": "mystery-1",
+      "node_type": "unknown-node-type",
+      "display_name": "Unknown Node",
+      "task": {
+        "summary": "Invalid node type for validator testing."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from_node_id": "retrieve-1",
+      "to_node_id": "mystery-1",
+      "edge_type": "data-flow"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NodeTypeRegistry",
+  "type": "object",
+  "required": [
+    "registry_version",
+    "node_types"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "registry_version": {
+      "type": "string"
+    },
+    "node_types": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "node_type",
+          "max_outgoing_edges"
+        ],
+        "properties": {
+          "node_type": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "max_outgoing_edges": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

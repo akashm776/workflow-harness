@@ -1,0 +1,782 @@
+from __future__ import annotations
+
+from collections import defaultdict, deque
+import json
+from pathlib import Path
+from typing import Any
+
+from compiler.authority_value_validator import find_disallowed_authority_values
+
+
+def _load_json(path: str | Path) -> dict[str, Any]:
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def validate_authority_values(
+    artifact_path: str | Path, artifact_name: str
+) -> dict[str, Any]:
+    artifact = _load_json(artifact_path)
+    findings = find_disallowed_authority_values(artifact)
+
+    if not findings:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    detail = "; ".join(
+        f"{finding['path']} ({finding['reason']})" for finding in findings
+    )
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "DISALLOWED_AUTHORITY_VALUE",
+            "component": "authority_value_validator",
+            "artifact": artifact_name,
+            "message": (
+                f"disallowed authority value in {artifact_name}: {detail}"
+            ),
+        },
+    }
+
+
+def _schema_diagnostic(artifact: str, message: str) -> dict[str, Any]:
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "INVALID_ARTIFACT_SCHEMA",
+            "component": "static_schema_validator",
+            "artifact": artifact,
+            "message": message,
+        },
+    }
+
+
+def validate_workflow_spec_schema(workflow_spec_path: str | Path) -> dict[str, Any]:
+    artifact = "WorkflowSpec.json"
+    workflow_spec = _load_json(workflow_spec_path)
+
+    if not isinstance(workflow_spec, dict):
+        return _schema_diagnostic(artifact, "WorkflowSpec.json root $ must be an object")
+
+    for field_name in (
+        "schema_version",
+        "graph_revision_id",
+        "workflow_revision_id",
+        "policy_bundle_digest",
+    ):
+        if not isinstance(workflow_spec.get(field_name), str):
+            return _schema_diagnostic(
+                artifact, f"WorkflowSpec.json field $.{field_name} must be a string"
+            )
+
+    nodes = workflow_spec.get("nodes")
+    if not isinstance(nodes, list):
+        return _schema_diagnostic(
+            artifact, "WorkflowSpec.json field $.nodes must be a list"
+        )
+
+    edges = workflow_spec.get("edges")
+    if not isinstance(edges, list):
+        return _schema_diagnostic(
+            artifact, "WorkflowSpec.json field $.edges must be a list"
+        )
+
+    for index, node in enumerate(nodes):
+        if not isinstance(node, dict):
+            return _schema_diagnostic(
+                artifact, f"WorkflowSpec.json field $.nodes[{index}] must be an object"
+            )
+        for field_name in ("node_id", "node_type"):
+            if not isinstance(node.get(field_name), str):
+                return _schema_diagnostic(
+                    artifact,
+                    f"WorkflowSpec.json field $.nodes[{index}].{field_name} "
+                    "must be a string",
+                )
+
+    for index, edge in enumerate(edges):
+        if not isinstance(edge, dict):
+            return _schema_diagnostic(
+                artifact, f"WorkflowSpec.json field $.edges[{index}] must be an object"
+            )
+        for field_name in ("from_node_id", "to_node_id"):
+            if not isinstance(edge.get(field_name), str):
+                return _schema_diagnostic(
+                    artifact,
+                    f"WorkflowSpec.json field $.edges[{index}].{field_name} "
+                    "must be a string",
+                )
+
+    return {"ok": True, "diagnostic": None}
+
+
+def validate_node_type_registry_schema(
+    node_type_registry_path: str | Path,
+) -> dict[str, Any]:
+    artifact = "NodeTypeRegistry.json"
+    node_type_registry = _load_json(node_type_registry_path)
+
+    if not isinstance(node_type_registry, dict):
+        return _schema_diagnostic(artifact, "NodeTypeRegistry.json root $ must be an object")
+
+    if not isinstance(node_type_registry.get("schema_version"), str):
+        return _schema_diagnostic(
+            artifact, "NodeTypeRegistry.json field $.schema_version must be a string"
+        )
+
+    node_types = node_type_registry.get("node_types")
+    if not isinstance(node_types, list):
+        return _schema_diagnostic(
+            artifact, "NodeTypeRegistry.json field $.node_types must be a list"
+        )
+
+    for index, entry in enumerate(node_types):
+        path = f"$.node_types[{index}]"
+        if not isinstance(entry, dict):
+            return _schema_diagnostic(
+                artifact, f"NodeTypeRegistry.json field {path} must be an object"
+            )
+
+        if not isinstance(entry.get("node_type"), str):
+            return _schema_diagnostic(
+                artifact,
+                f"NodeTypeRegistry.json field {path}.node_type must be a string",
+            )
+
+        if "max_outgoing_edges" in entry:
+            max_outgoing_edges = entry["max_outgoing_edges"]
+            # bool is a subclass of int; reject it explicitly.
+            if isinstance(max_outgoing_edges, bool) or not isinstance(
+                max_outgoing_edges, int
+            ):
+                return _schema_diagnostic(
+                    artifact,
+                    f"NodeTypeRegistry.json field {path}.max_outgoing_edges "
+                    "must be an int",
+                )
+
+        if "required_scopes" in entry:
+            required_scopes = entry["required_scopes"]
+            if not isinstance(required_scopes, list):
+                return _schema_diagnostic(
+                    artifact,
+                    f"NodeTypeRegistry.json field {path}.required_scopes "
+                    "must be a list",
+                )
+            for scope_index, scope in enumerate(required_scopes):
+                if not isinstance(scope, str):
+                    return _schema_diagnostic(
+                        artifact,
+                        f"NodeTypeRegistry.json field "
+                        f"{path}.required_scopes[{scope_index}] must be a string",
+                    )
+
+        if "side_effect_class" in entry and not isinstance(
+            entry["side_effect_class"], str
+        ):
+            return _schema_diagnostic(
+                artifact,
+                f"NodeTypeRegistry.json field {path}.side_effect_class "
+                "must be a string",
+            )
+
+    return {"ok": True, "diagnostic": None}
+
+
+def validate_requested_auth_schema(requested_auth_path: str | Path) -> dict[str, Any]:
+    artifact = "RequestedAuth.json"
+    requested_auth = _load_json(requested_auth_path)
+
+    if not isinstance(requested_auth, dict):
+        return _schema_diagnostic(artifact, "RequestedAuth.json root $ must be an object")
+
+    if not isinstance(requested_auth.get("schema_version"), str):
+        return _schema_diagnostic(
+            artifact, "RequestedAuth.json field $.schema_version must be a string"
+        )
+
+    # Authority reference fields present in fixtures must be strings when present.
+    for field_name in ("node_id", "workflow_revision_id"):
+        if field_name in requested_auth and not isinstance(
+            requested_auth[field_name], str
+        ):
+            return _schema_diagnostic(
+                artifact, f"RequestedAuth.json field $.{field_name} must be a string"
+            )
+
+    requested_connectors = requested_auth.get("requested_connectors")
+    if not isinstance(requested_connectors, list):
+        return _schema_diagnostic(
+            artifact, "RequestedAuth.json field $.requested_connectors must be a list"
+        )
+
+    for index, connector in enumerate(requested_connectors):
+        path = f"$.requested_connectors[{index}]"
+        if not isinstance(connector, dict):
+            return _schema_diagnostic(
+                artifact, f"RequestedAuth.json field {path} must be an object"
+            )
+        if not isinstance(connector.get("connector_name"), str):
+            return _schema_diagnostic(
+                artifact,
+                f"RequestedAuth.json field {path}.connector_name must be a string",
+            )
+        # scope is optional at the schema layer; missing scope is an
+        # interpretation-phase concern. When present it must be a string.
+        if "scope" in connector and not isinstance(connector["scope"], str):
+            return _schema_diagnostic(
+                artifact, f"RequestedAuth.json field {path}.scope must be a string"
+            )
+
+    requested_tools = requested_auth.get("requested_tools")
+    if requested_tools is not None:
+        if not isinstance(requested_tools, list):
+            return _schema_diagnostic(
+                artifact, "RequestedAuth.json field $.requested_tools must be a list"
+            )
+        for index, tool in enumerate(requested_tools):
+            path = f"$.requested_tools[{index}]"
+            if not isinstance(tool, dict):
+                return _schema_diagnostic(
+                    artifact, f"RequestedAuth.json field {path} must be an object"
+                )
+            if not isinstance(tool.get("tool_name"), str):
+                return _schema_diagnostic(
+                    artifact,
+                    f"RequestedAuth.json field {path}.tool_name must be a string",
+                )
+
+    return {"ok": True, "diagnostic": None}
+
+
+def validate_approval_requests_schema(
+    approval_requests_path: str | Path,
+) -> dict[str, Any]:
+    artifact = "ApprovalRequests.json"
+    approval_requests = _load_json(approval_requests_path)
+
+    if not isinstance(approval_requests, dict):
+        return _schema_diagnostic(
+            artifact, "ApprovalRequests.json root $ must be an object"
+        )
+
+    if not isinstance(approval_requests.get("schema_version"), str):
+        return _schema_diagnostic(
+            artifact, "ApprovalRequests.json field $.schema_version must be a string"
+        )
+
+    if "workflow_revision_id" in approval_requests and not isinstance(
+        approval_requests["workflow_revision_id"], str
+    ):
+        return _schema_diagnostic(
+            artifact,
+            "ApprovalRequests.json field $.workflow_revision_id must be a string",
+        )
+
+    requests = approval_requests.get("requests")
+    if not isinstance(requests, list):
+        return _schema_diagnostic(
+            artifact, "ApprovalRequests.json field $.requests must be a list"
+        )
+
+    for index, request in enumerate(requests):
+        path = f"$.requests[{index}]"
+        if not isinstance(request, dict):
+            return _schema_diagnostic(
+                artifact, f"ApprovalRequests.json field {path} must be an object"
+            )
+        for field_name in ("request_id", "node_id", "approval_subject_hash"):
+            if not isinstance(request.get(field_name), str):
+                return _schema_diagnostic(
+                    artifact,
+                    f"ApprovalRequests.json field {path}.{field_name} "
+                    "must be a string",
+                )
+        # reason is informational; required to be a string only when present.
+        if "reason" in request and not isinstance(request["reason"], str):
+            return _schema_diagnostic(
+                artifact, f"ApprovalRequests.json field {path}.reason must be a string"
+            )
+
+    return {"ok": True, "diagnostic": None}
+
+
+def validate_approval_decisions_schema(
+    approval_decisions_path: str | Path,
+) -> dict[str, Any]:
+    artifact = "ApprovalDecisions.json"
+    approval_decisions = _load_json(approval_decisions_path)
+
+    if not isinstance(approval_decisions, dict):
+        return _schema_diagnostic(
+            artifact, "ApprovalDecisions.json root $ must be an object"
+        )
+
+    if not isinstance(approval_decisions.get("schema_version"), str):
+        return _schema_diagnostic(
+            artifact, "ApprovalDecisions.json field $.schema_version must be a string"
+        )
+
+    if "workflow_revision_id" in approval_decisions and not isinstance(
+        approval_decisions["workflow_revision_id"], str
+    ):
+        return _schema_diagnostic(
+            artifact,
+            "ApprovalDecisions.json field $.workflow_revision_id must be a string",
+        )
+
+    decisions = approval_decisions.get("decisions")
+    if not isinstance(decisions, list):
+        return _schema_diagnostic(
+            artifact, "ApprovalDecisions.json field $.decisions must be a list"
+        )
+
+    for index, decision in enumerate(decisions):
+        path = f"$.decisions[{index}]"
+        if not isinstance(decision, dict):
+            return _schema_diagnostic(
+                artifact, f"ApprovalDecisions.json field {path} must be an object"
+            )
+
+        # Fields present in current fixtures must be strings.
+        for field_name in ("request_id", "decision"):
+            if not isinstance(decision.get(field_name), str):
+                return _schema_diagnostic(
+                    artifact,
+                    f"ApprovalDecisions.json field {path}.{field_name} "
+                    "must be a string",
+                )
+
+        # Optional fields must be strings only when present. node_id and
+        # approval_subject_hash are not in current fixtures but are validated
+        # when supplied. No enum constraint is placed on decision values, since
+        # the resolver only distinguishes "approved" from anything else.
+        for field_name in (
+            "node_id",
+            "approval_subject_hash",
+            "approved_by",
+            "approved_at",
+            "reason",
+            "comment",
+        ):
+            if field_name in decision and not isinstance(decision[field_name], str):
+                return _schema_diagnostic(
+                    artifact,
+                    f"ApprovalDecisions.json field {path}.{field_name} "
+                    "must be a string",
+                )
+
+    return {"ok": True, "diagnostic": None}
+
+
+def validate_unknown_node_types(
+    workflow_spec_path: str | Path, node_type_registry_path: str | Path
+) -> dict[str, Any]:
+    workflow_spec = _load_json(workflow_spec_path)
+    node_type_registry = _load_json(node_type_registry_path)
+
+    allowed_node_types = {
+        node_type_entry["node_type"]
+        for node_type_entry in node_type_registry.get("node_types", [])
+        if "node_type" in node_type_entry
+    }
+
+    unknown_node_types = sorted(
+        {
+            node["node_type"]
+            for node in workflow_spec.get("nodes", [])
+            if node.get("node_type") not in allowed_node_types
+        }
+    )
+
+    if not unknown_node_types:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "UNKNOWN_NODE_TYPE",
+            "component": "graph_validator",
+            "artifact": "WorkflowSpec.json",
+            "message": f"unknown node type: {', '.join(unknown_node_types)}",
+        },
+    }
+
+
+def validate_missing_required_scope(requested_auth_path: str | Path) -> dict[str, Any]:
+    requested_auth = _load_json(requested_auth_path)
+
+    connectors_missing_scope = sorted(
+        {
+            connector.get("connector_name", "<unknown>")
+            for connector in requested_auth.get("requested_connectors", [])
+            if not isinstance(connector.get("scope"), str) or not connector["scope"].strip()
+        }
+    )
+
+    if not connectors_missing_scope:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "MISSING_REQUIRED_SCOPE",
+            "component": "scope_validator",
+            "artifact": "RequestedAuth.json",
+            "message": (
+                "missing required scope for connector: "
+                + ", ".join(connectors_missing_scope)
+            ),
+        },
+    }
+
+
+def validate_illegal_graph_cycle(workflow_spec_path: str | Path) -> dict[str, Any]:
+    workflow_spec = _load_json(workflow_spec_path)
+
+    node_ids = {node.get("node_id") for node in workflow_spec.get("nodes", []) if "node_id" in node}
+    adjacency: dict[str, list[str]] = defaultdict(list)
+    indegree: dict[str, int] = {node_id: 0 for node_id in node_ids}
+
+    for edge in workflow_spec.get("edges", []):
+        from_node_id = edge.get("from_node_id")
+        to_node_id = edge.get("to_node_id")
+        if from_node_id is None or to_node_id is None:
+            continue
+
+        if from_node_id not in indegree:
+            indegree[from_node_id] = 0
+        if to_node_id not in indegree:
+            indegree[to_node_id] = 0
+
+        adjacency[from_node_id].append(to_node_id)
+        indegree[to_node_id] += 1
+
+    ready = deque(sorted(node_id for node_id, count in indegree.items() if count == 0))
+    visited_count = 0
+
+    while ready:
+        node_id = ready.popleft()
+        visited_count += 1
+
+        for next_node_id in sorted(adjacency.get(node_id, [])):
+            indegree[next_node_id] -= 1
+            if indegree[next_node_id] == 0:
+                ready.append(next_node_id)
+
+    if visited_count == len(indegree):
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    cyclic_nodes = sorted(node_id for node_id, count in indegree.items() if count > 0)
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "ILLEGAL_GRAPH_CYCLE",
+            "component": "graph_validator",
+            "artifact": "WorkflowSpec.json",
+            "message": f"cycle detected in workflow graph: {', '.join(cyclic_nodes)}",
+        },
+    }
+
+
+def validate_disconnected_graph(workflow_spec_path: str | Path) -> dict[str, Any]:
+    workflow_spec = _load_json(workflow_spec_path)
+
+    node_ids = sorted(
+        node.get("node_id")
+        for node in workflow_spec.get("nodes", [])
+        if "node_id" in node
+    )
+
+    if len(node_ids) <= 1:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    adjacency: dict[str, list[str]] = defaultdict(list)
+    declared_node_ids = set(node_ids)
+
+    for edge in workflow_spec.get("edges", []):
+        from_node_id = edge.get("from_node_id")
+        to_node_id = edge.get("to_node_id")
+        if from_node_id not in declared_node_ids or to_node_id not in declared_node_ids:
+            continue
+
+        adjacency[from_node_id].append(to_node_id)
+        adjacency[to_node_id].append(from_node_id)
+
+    reachable: set[str] = set()
+    queue = deque([node_ids[0]])
+
+    while queue:
+        node_id = queue.popleft()
+        if node_id in reachable:
+            continue
+
+        reachable.add(node_id)
+        for next_node_id in sorted(adjacency.get(node_id, [])):
+            if next_node_id not in reachable:
+                queue.append(next_node_id)
+
+    disconnected_nodes = sorted(node_id for node_id in node_ids if node_id not in reachable)
+    if not disconnected_nodes:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "DISCONNECTED_GRAPH",
+            "component": "graph_validator",
+            "artifact": "WorkflowSpec.json",
+            "message": (
+                "disconnected graph contains unreachable nodes: "
+                + ", ".join(disconnected_nodes)
+            ),
+        },
+    }
+
+
+def validate_invalid_edge_endpoints(workflow_spec_path: str | Path) -> dict[str, Any]:
+    workflow_spec = _load_json(workflow_spec_path)
+
+    declared_node_ids = {
+        node.get("node_id")
+        for node in workflow_spec.get("nodes", [])
+        if "node_id" in node
+    }
+    invalid_endpoints: list[str] = []
+
+    for edge in workflow_spec.get("edges", []):
+        from_node_id = edge.get("from_node_id")
+        to_node_id = edge.get("to_node_id")
+
+        if from_node_id not in declared_node_ids:
+            invalid_endpoints.append(f"from:{from_node_id}")
+        if to_node_id not in declared_node_ids:
+            invalid_endpoints.append(f"to:{to_node_id}")
+
+    if not invalid_endpoints:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "INVALID_EDGE_ENDPOINT",
+            "component": "graph_validator",
+            "artifact": "WorkflowSpec.json",
+            "message": (
+                "invalid edge endpoint in workflow graph: "
+                + ", ".join(sorted(invalid_endpoints))
+            ),
+        },
+    }
+
+
+def validate_invalid_fan_out(
+    workflow_spec_path: str | Path, node_type_registry_path: str | Path
+) -> dict[str, Any]:
+    workflow_spec = _load_json(workflow_spec_path)
+    node_type_registry = _load_json(node_type_registry_path)
+
+    node_id_to_type = {
+        node["node_id"]: node["node_type"]
+        for node in workflow_spec.get("nodes", [])
+        if "node_id" in node and "node_type" in node
+    }
+    node_type_to_max_outgoing = {
+        entry["node_type"]: entry["max_outgoing_edges"]
+        for entry in node_type_registry.get("node_types", [])
+        if "node_type" in entry and "max_outgoing_edges" in entry
+    }
+    outgoing_counts: dict[str, int] = defaultdict(int)
+
+    for edge in workflow_spec.get("edges", []):
+        from_node_id = edge.get("from_node_id")
+        if from_node_id in node_id_to_type:
+            outgoing_counts[from_node_id] += 1
+
+    invalid_fan_out_nodes: list[str] = []
+    for node_id, node_type in sorted(node_id_to_type.items()):
+        max_outgoing_edges = node_type_to_max_outgoing.get(node_type)
+        if max_outgoing_edges is None:
+            continue
+
+        outgoing_count = outgoing_counts.get(node_id, 0)
+        if outgoing_count > max_outgoing_edges:
+            invalid_fan_out_nodes.append(
+                f"{node_id}({node_type})={outgoing_count}>{max_outgoing_edges}"
+            )
+
+    if not invalid_fan_out_nodes:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "INVALID_FAN_OUT",
+            "component": "graph_validator",
+            "artifact": "WorkflowSpec.json",
+            "message": (
+                "invalid fan-out in workflow graph: "
+                + ", ".join(invalid_fan_out_nodes)
+            ),
+        },
+    }
+
+
+def validate_ambiguous_approval_subjects(approval_requests_path: str | Path) -> dict[str, Any]:
+    approval_requests = _load_json(approval_requests_path)
+
+    seen_request_ids: set[str] = set()
+    seen_node_ids: set[str] = set()
+    seen_approval_subject_hashes: set[str] = set()
+    ambiguous_details: list[str] = []
+
+    for request in approval_requests.get("requests", []):
+        request_id = request.get("request_id")
+        node_id = request.get("node_id")
+        approval_subject_hash = request.get("approval_subject_hash")
+
+        if request_id in seen_request_ids:
+            ambiguous_details.append(f"duplicate request_id:{request_id}")
+        elif request_id is not None:
+            seen_request_ids.add(request_id)
+
+        if node_id in seen_node_ids:
+            ambiguous_details.append(f"duplicate node_id:{node_id}")
+        elif node_id is not None:
+            seen_node_ids.add(node_id)
+
+        if approval_subject_hash in seen_approval_subject_hashes:
+            ambiguous_details.append(
+                f"duplicate approval_subject_hash:{approval_subject_hash}"
+            )
+        elif approval_subject_hash is not None:
+            seen_approval_subject_hashes.add(approval_subject_hash)
+
+    if not ambiguous_details:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "AMBIGUOUS_APPROVAL_SUBJECT",
+            "component": "approval_validator",
+            "artifact": "ApprovalRequests.json",
+            "message": "ambiguous approval subject: " + "; ".join(sorted(set(ambiguous_details))),
+        },
+    }
+
+
+def validate_static_inputs(
+    workflow_spec_path: str | Path,
+    node_type_registry_path: str | Path,
+    requested_auth_path: str | Path,
+    approval_requests_path: str | Path,
+    *,
+    approval_decisions_path: str | Path | None = None,
+    stop_on_first_error: bool = True,
+) -> dict[str, Any]:
+    # Validation is phased. A phase that produces any diagnostic returns before
+    # the next phase runs, even when aggregate diagnostics are requested
+    # (stop_on_first_error=False). This prevents later phases from interpreting
+    # input that an earlier phase already found unsafe or malformed.
+    #
+    # Phase 1: authority-value validators (do not interpret bad authority values)
+    # Phase 2: schema validators (graph validators must not see malformed shapes)
+    # Phase 3: interpretation validators (graph, scope, approval semantics)
+
+    # Phase 1: authority-value validators.
+    phase_authority_values = [
+        lambda: validate_authority_values(workflow_spec_path, "WorkflowSpec.json"),
+        lambda: validate_authority_values(
+            node_type_registry_path, "NodeTypeRegistry.json"
+        ),
+        lambda: validate_authority_values(requested_auth_path, "RequestedAuth.json"),
+        lambda: validate_authority_values(
+            approval_requests_path, "ApprovalRequests.json"
+        ),
+    ]
+    if approval_decisions_path is not None:
+        phase_authority_values.append(
+            lambda: validate_authority_values(
+                approval_decisions_path, "ApprovalDecisions.json"
+            )
+        )
+
+    # Phase 2: schema validators.
+    phase_schema = [
+        lambda: validate_workflow_spec_schema(workflow_spec_path),
+        lambda: validate_node_type_registry_schema(node_type_registry_path),
+        lambda: validate_requested_auth_schema(requested_auth_path),
+        lambda: validate_approval_requests_schema(approval_requests_path),
+    ]
+    if approval_decisions_path is not None:
+        phase_schema.append(
+            lambda: validate_approval_decisions_schema(approval_decisions_path)
+        )
+
+    # Phase 3: interpretation validators.
+    phase_interpretation = [
+        lambda: validate_unknown_node_types(
+            workflow_spec_path, node_type_registry_path
+        ),
+        lambda: validate_invalid_edge_endpoints(workflow_spec_path),
+        lambda: validate_illegal_graph_cycle(workflow_spec_path),
+        lambda: validate_disconnected_graph(workflow_spec_path),
+        lambda: validate_invalid_fan_out(
+            workflow_spec_path, node_type_registry_path
+        ),
+        lambda: validate_missing_required_scope(requested_auth_path),
+        lambda: validate_ambiguous_approval_subjects(approval_requests_path),
+    ]
+
+    for phase in (phase_authority_values, phase_schema, phase_interpretation):
+        diagnostics: list[dict[str, Any]] = []
+        for validator in phase:
+            result = validator()
+            if result["ok"]:
+                continue
+
+            diagnostics.append(result["diagnostic"])
+            if stop_on_first_error:
+                return {
+                    "ok": False,
+                    "diagnostics": diagnostics,
+                }
+
+        # Gate the next phase: if this phase produced any diagnostics, stop here
+        # rather than letting a later phase interpret already-rejected input.
+        if diagnostics:
+            return {
+                "ok": False,
+                "diagnostics": diagnostics,
+            }
+
+    return {
+        "ok": True,
+        "diagnostics": [],
+    }

@@ -1,0 +1,6 @@
+{
+  "expected_error_code": "UNDECLARED_AMBIENT_AUTHORITY",
+  "expected_component": "runtime_verifier",
+  "expected_artifact": "ExecutionBindings.json",
+  "expected_message_fragment": "undeclared"
+}

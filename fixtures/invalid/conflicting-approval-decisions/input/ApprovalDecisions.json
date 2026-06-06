@@ -1,0 +1,19 @@
+{
+  "schema_version": "m1",
+  "workflow_revision_id": "workflow-rev-conflict-001",
+  "artifact_lifecycle_state": "completed",
+  "decisions": [
+    {
+      "request_id": "approval-request-conflict-001",
+      "decision": "approved",
+      "approved_by": "fixture-user",
+      "approved_at": "2026-06-05T12:00:00Z"
+    },
+    {
+      "request_id": "approval-request-conflict-001",
+      "decision": "rejected",
+      "approved_by": "fixture-user",
+      "approved_at": "2026-06-05T12:05:00Z"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": "m1",
+  "workflow_revision_id": "workflow-rev-ambiguous-approval-001",
+  "artifact_lifecycle_state": "approval_pending",
+  "requests": [
+    {
+      "request_id": "approval-request-ambiguous-001",
+      "node_id": "execute-1",
+      "approval_subject_hash": "approval-subject-ambiguous-001",
+      "reason": "First approval request for execute-1."
+    },
+    {
+      "request_id": "approval-request-ambiguous-002",
+      "node_id": "execute-1",
+      "approval_subject_hash": "approval-subject-ambiguous-002",
+      "reason": "Second conflicting approval request for execute-1."
+    }
+  ]
+}

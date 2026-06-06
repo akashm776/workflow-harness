@@ -1,0 +1,26 @@
+{
+  "schema_version": "m1",
+  "node_id": "execute-1",
+  "workflow_revision_id": "workflow-rev-approval-001",
+  "policy_bundle_digest": "policy-bundle-digest-approval-001",
+  "artifact_lifecycle_state": "compiled",
+  "allowed_tools": [
+    {
+      "tool_name": "local-file-writer",
+      "access_mode": "write"
+    }
+  ],
+  "allowed_connectors": [
+    {
+      "connector_name": "fixture-catalog",
+      "scope": "read:fixtures/approval-required"
+    }
+  ],
+  "allowed_permissions": [
+    {
+      "permission": "write",
+      "target": "runs/approval-required-workflow"
+    }
+  ],
+  "review_required": true
+}

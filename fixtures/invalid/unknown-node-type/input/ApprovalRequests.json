@@ -1,0 +1,13 @@
+{
+  "schema_version": "m1",
+  "workflow_revision_id": "workflow-rev-invalid-001",
+  "artifact_lifecycle_state": "approval_pending",
+  "requests": [
+    {
+      "request_id": "approval-request-invalid-001",
+      "node_id": "retrieve-1",
+      "approval_subject_hash": "approval-subject-invalid-001",
+      "reason": "Fixture approval request for invalid workflow testing."
+    }
+  ]
+}

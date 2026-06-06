@@ -1,0 +1,36 @@
+{
+  "schema_version": "m1",
+  "workflow_id": "simple-workflow",
+  "graph_revision_id": "graph-rev-simple-001",
+  "workflow_revision_id": "workflow-rev-simple-001",
+  "policy_bundle_digest": "policy-bundle-digest-001",
+  "artifact_lifecycle_state": "validated",
+  "executable_run_context": {
+    "environment": "fixture"
+  },
+  "nodes": [
+    {
+      "node_id": "retrieve-1",
+      "node_type": "retrieve",
+      "display_name": "Retrieve Evidence",
+      "task": {
+        "summary": "Collect one evidence bundle."
+      }
+    },
+    {
+      "node_id": "synthesize-1",
+      "node_type": "synthesize",
+      "display_name": "Synthesize Evidence",
+      "task": {
+        "summary": "Write one grounded synthesis."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from_node_id": "retrieve-1",
+      "to_node_id": "synthesize-1",
+      "edge_type": "data-flow"
+    }
+  ]
+}

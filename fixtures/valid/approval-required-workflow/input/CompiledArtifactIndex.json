@@ -1,0 +1,42 @@
+{
+  "schema_version": "m1",
+  "graph_revision_id": "graph-rev-approval-001",
+  "workflow_revision_id": "workflow-rev-approval-001",
+  "policy_bundle_digest": "policy-bundle-digest-approval-001",
+  "artifact_lifecycle_state": "ready_to_run",
+  "compiler_version": "m1-fixture",
+  "hash_algorithm": "sha256",
+  "canonicalization_version": "canon-json-v1",
+  "declared_input_dependency_digests": [
+    {
+      "artifact_group": "proposal",
+      "artifact_path": "fixtures/valid/approval-required-workflow/input/WorkflowSpec.json",
+      "content_digest": "workflow-spec-digest-approval-001",
+      "hash_algorithm": "sha256",
+      "canonicalization_version": "canon-json-v1",
+      "revision_id": "workflow-rev-approval-001"
+    },
+    {
+      "artifact_group": "proposal",
+      "artifact_path": "fixtures/valid/approval-required-workflow/input/RequestedAuth.json",
+      "content_digest": "requested-auth-digest-approval-001",
+      "hash_algorithm": "sha256",
+      "canonicalization_version": "canon-json-v1",
+      "revision_id": "workflow-rev-approval-001"
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_name": "EffectivePolicy",
+      "artifact_path": "fixtures/valid/approval-required-workflow/input/EffectivePolicy.json",
+      "content_digest": "effective-policy-digest-approval-001",
+      "artifact_revision_id": "workflow-rev-approval-001"
+    },
+    {
+      "artifact_name": "ExecutionBindings",
+      "artifact_path": "fixtures/valid/approval-required-workflow/input/ExecutionBindings.json",
+      "content_digest": "execution-bindings-digest-approval-001",
+      "artifact_revision_id": "workflow-rev-approval-001"
+    }
+  ]
+}

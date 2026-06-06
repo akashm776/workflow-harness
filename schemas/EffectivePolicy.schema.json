@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EffectivePolicy",
+  "type": "object",
+  "required": [
+    "node_id",
+    "workflow_revision_id",
+    "policy_bundle_digest",
+    "artifact_lifecycle_state",
+    "allowed_permissions"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "node_id": {
+      "type": "string"
+    },
+    "workflow_revision_id": {
+      "type": "string"
+    },
+    "policy_bundle_digest": {
+      "type": "string"
+    },
+    "artifact_lifecycle_state": {
+      "type": "string"
+    },
+    "allowed_tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tool_name": {
+            "type": "string"
+          },
+          "access_mode": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "allowed_connectors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "connector_name": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "allowed_permissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "review_required": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": true
+}

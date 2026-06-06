@@ -1,0 +1,16 @@
+{
+  "schema_version": "m1",
+  "registry_version": "registry-invalid-001",
+  "node_types": [
+    {
+      "node_type": "retrieve",
+      "description": "Fetches source evidence.",
+      "category": "evidence"
+    },
+    {
+      "node_type": "synthesize",
+      "description": "Produces a grounded synthesis.",
+      "category": "reasoning"
+    }
+  ]
+}

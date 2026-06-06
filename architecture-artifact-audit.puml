@@ -1,0 +1,133 @@
+@startuml
+title Artifact And Audit Model: Deterministic Dynamic Workflow Harness
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+skinparam ArrowColor #4A4A4A
+skinparam PackageBorderColor #666666
+skinparam DatabaseBorderColor #666666
+skinparam NoteBorderColor #888888
+skinparam NoteBackgroundColor #FFF8D9
+skinparam DefaultFontName Courier
+
+package "Artifact Producers" {
+  component "Planner" as Planner
+  component "Review TUI" as ReviewTUI
+  component "Compiler" as Compiler
+  component "Runtime" as Runtime
+}
+
+database "Run Directory\nruns/<run-id>" as RunDir
+database "Audit Log\nAuditLog.jsonl" as AuditLog
+
+package "Workflow Artifacts" {
+  file "workflow/WorkflowSpec.json" as WorkflowSpec
+}
+
+package "Node Proposal Artifacts" {
+  file "nodes/<node>/AgentCard.json" as AgentCard
+  file "nodes/<node>/Task.json" as TaskJson
+  file "nodes/<node>/RequestedAuth.json" as RequestedAuth
+}
+
+package "Run-Scoped Governance Artifacts" {
+  file "nodes/<node>/NodeReviewConfig.json" as NodeReviewConfig
+  file "nodes/<node>/NodeChangeRequest.json" as NodeChangeRequest
+  file "approvals/ApprovalDecisions.json" as ApprovalDecisions
+}
+
+package "Compiled Artifacts" {
+  file "approvals/ApprovalRequests.json" as ApprovalRequests
+  file "nodes/<node>/EffectivePolicy.json" as EffectivePolicy
+  file "nodes/<node>/ExecutionBindings.json" as ExecutionBindings
+  file "nodes/<node>/CompilationReport.json" as CompilationReport
+  file "nodes/<node>/CompiledArtifactIndex.json" as CompiledIndex
+}
+
+package "Execution Artifacts" {
+  file "nodes/<node>/EvidenceArtifact.json" as EvidenceArtifact
+  file "nodes/<node>/EvidenceManifest.json" as EvidenceManifest
+  file "nodes/<node>/output/response.json" as NodeOutput
+  file "execution/ExecutionManifest.json" as ExecutionManifest
+  file "nodes/<node>/SideEffectManifest.json" as SideEffectManifest
+  file "nodes/<node>/NodeRerunHistory.json" as RerunHistory
+}
+
+Planner --> WorkflowSpec
+Planner --> AgentCard
+Planner --> TaskJson
+Planner --> RequestedAuth
+
+ReviewTUI --> NodeReviewConfig
+ReviewTUI --> NodeChangeRequest
+ReviewTUI --> ApprovalDecisions
+
+Compiler --> ApprovalRequests
+Compiler --> EffectivePolicy
+Compiler --> ExecutionBindings
+Compiler --> CompilationReport
+Compiler --> CompiledIndex
+
+Runtime --> EvidenceArtifact
+Runtime --> EvidenceManifest
+Runtime --> NodeOutput
+Runtime --> ExecutionManifest
+Runtime --> SideEffectManifest
+Runtime --> RerunHistory
+
+WorkflowSpec --> RunDir
+AgentCard --> RunDir
+TaskJson --> RunDir
+RequestedAuth --> RunDir
+NodeReviewConfig --> RunDir
+NodeChangeRequest --> RunDir
+ApprovalDecisions --> RunDir
+ApprovalRequests --> RunDir
+EffectivePolicy --> RunDir
+ExecutionBindings --> RunDir
+CompilationReport --> RunDir
+CompiledIndex --> RunDir
+EvidenceArtifact --> RunDir
+EvidenceManifest --> RunDir
+NodeOutput --> RunDir
+ExecutionManifest --> RunDir
+SideEffectManifest --> RunDir
+RerunHistory --> RunDir
+
+CompiledIndex --> EffectivePolicy : policy hash
+CompiledIndex --> ExecutionBindings : bindings hash
+CompiledIndex --> WorkflowSpec : workflow revision linkage
+RerunHistory --> CompiledIndex : revision lineage
+
+Planner --> AuditLog : proposal events
+ReviewTUI --> AuditLog : review + approval events
+Compiler --> AuditLog : compile + validation events
+Runtime --> AuditLog : execution + evidence + side-effect events
+
+note right of CompiledIndex
+CompiledArtifactIndex binds:
+- graph revision id
+- workflow revision id
+- node revision id
+- policy bundle digest
+- EffectivePolicy hash
+- ExecutionBindings hash
+- compiler/schema versions
+Runtime verifies these before execution.
+end note
+
+note right of RerunHistory
+Policy-changing and evidence-refresh reruns create new node revisions.
+Older compiled artifact indices become stale.
+Content-only reruns preserve pinned evidence lineage.
+end note
+
+note bottom of RunDir
+The run directory is the durable system of record.
+Authority, evidence, execution, and revision history
+are all persisted as structured artifacts.
+end note
+
+@enduml
