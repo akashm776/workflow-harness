@@ -62,7 +62,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("396 tests", content)
+        self.assertIn("399 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -118,6 +118,9 @@ class DocsTests(unittest.TestCase):
         # Candidate workflow graph visibility in the opt-in summary.
         self.assertIn("Candidate Workflow", content)
         self.assertIn("display-only proposal data", content)
+        # Safe innovation demo example wrapper.
+        self.assertIn("examples/safe_innovation_demo.py", content)
+        self.assertIn("tests/test_safe_innovation_demo_example.py", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
@@ -387,6 +390,11 @@ class DocsTests(unittest.TestCase):
         self.assertIn("completed safe no-op", content)
         self.assertIn("no approval carryover", content)
         self.assertIn("no authority subsumption", content)
+        # One-command example wrapper (kept out of cli/).
+        self.assertIn("examples.safe_innovation_demo", content)
+        self.assertIn("--demo-approve-current-request", content)
+        self.assertIn("demo-local", content)
+        self.assertIn("not a general auto-approval", content)
 
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())
