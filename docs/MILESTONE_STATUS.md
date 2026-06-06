@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `396 tests` passing
+- `399 tests` passing
 
 ## Major Implemented Layers
 
@@ -206,6 +206,16 @@
   - approval is explicit and for the current run/request only; it changes no
     approval matching semantics and implements no carryover, subsumption, or
     execution. `completed` remains a completed safe no-op (`side_effects == []`).
+- safe innovation demo example wrapper:
+  - `examples/safe_innovation_demo.py` and `tests/test_safe_innovation_demo_example.py`
+    provide a demo/example wrapper that composes the blocked and approved safe
+    innovation demo paths.
+  - it is an example script kept out of `cli/`; approval generation requires the
+    explicit `--demo-approve-current-request` flag.
+  - the generated approval is demo-local and current-run/request-only, not a
+    general auto-approval mechanism.
+  - no approval semantics, carryover, subsumption, or execution changed; runtime
+    remains safe no-op only.
 
 ## Explicit Non-Goals
 

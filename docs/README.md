@@ -37,6 +37,10 @@ only and changes no behavior.
   including an explicit approval-decision path from blocked to completed safe
   no-op (`safe_run_cli --approval-decisions`). It is a safe no-op demonstration,
   not real execution.
+- `examples/safe_innovation_demo.py` — an example wrapper that runs the safe
+  innovation demo end to end (blocked, and optionally an explicit demo-local
+  approval to completed). It is an example script, **not** a core CLI approval
+  path; any approval it writes is demo-local and current-run/request-only.
 - `cli.run_status_cli --summary` (`runtime/run_status_summary.py`,
   `tui/run_status_summary_view.py`) — an opt-in, read-only, fail-soft summary over
   known local safe-run artifacts, including an optional `Candidate Workflow:`

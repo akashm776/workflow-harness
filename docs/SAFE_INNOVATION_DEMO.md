@@ -125,3 +125,28 @@ execution. The flow composes existing commands; nothing is auto-approved.
   called.
 - The approved `ExecutionResult.json` still has `side_effects == []` and
   `produced_evidence == []`.
+
+### One-Command Example Wrapper
+
+For convenience, `examples/safe_innovation_demo.py` runs the whole flow. It is an
+**example script, intentionally outside `cli/`** — it can write a demo-local
+`ApprovalDecisions.json`, so it is kept out of the core CLI surface to avoid
+implying a supported general auto-approval path.
+
+No-approval mode (blocked only; writes no approval decision):
+
+```text
+python -m examples.safe_innovation_demo --run-root runs
+```
+
+Approval-demo mode (blocked, then explicit demo-local approval, then completed):
+
+```text
+python -m examples.safe_innovation_demo --run-root runs --demo-approve-current-request
+```
+
+Any approval it generates is **demo-local only**, applies to the **current
+run/request only**, and is **not a general auto-approval mechanism**. It still
+performs no real execution, calls no tools/connectors, implements no approval
+carryover and no authority subsumption, and `completed` means a completed safe
+no-op.
