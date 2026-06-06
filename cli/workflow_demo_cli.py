@@ -25,7 +25,7 @@ from typing import Any, Sequence
 from compiler.canonical_json import canonical_json_text
 from orchestrator.safe_run import safe_noop_run
 from planner.workflow_spec_planner import (
-    build_stub_planner_candidate,
+    select_planner_candidate,
     write_planner_candidate,
 )
 
@@ -70,7 +70,7 @@ def run_workflow_demo(
 
     run_path.mkdir(parents=True, exist_ok=True)
 
-    candidate = build_stub_planner_candidate(goal)
+    planner_template, candidate = select_planner_candidate(goal)
     write_planner_candidate(candidate, candidate_dir)
 
     registry_dest = run_path / "NodeTypeRegistry.json"
@@ -89,6 +89,7 @@ def run_workflow_demo(
 
     return {
         "goal": goal,
+        "planner_template": planner_template,
         "candidate_dir": str(candidate_dir),
         "run_dir": str(run_path),
         "effective_repo_root": str(run_path),
@@ -112,6 +113,7 @@ def build_demo_summary(demo_result: dict[str, Any]) -> dict[str, Any]:
     return {
         "ok": bool(compile_summary["ok"]),
         "goal": demo_result["goal"],
+        "planner_template": demo_result["planner_template"],
         "candidate_dir": demo_result["candidate_dir"],
         "run_dir": run_dir,
         "effective_repo_root": demo_result["effective_repo_root"],

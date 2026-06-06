@@ -18,6 +18,31 @@ See `planner/workflow_spec_planner.py`.
 The candidate carries the original goal as **non-authoritative metadata only**.
 The goal text is never written into the candidate authority-bearing artifacts.
 
+## Deterministic Templates and Selection
+
+Two deterministic templates exist, both non-authoritative proposals:
+
+- `build_stub_planner_candidate(goal)` — the minimal stub (retrieve → synthesize).
+- `build_innovation_planner_candidate(goal)` — a deterministic **innovation-agent
+  template**: a linear `retrieve`/`synthesize` chain (load program data → gather
+  example context → generate idea candidates → score against rubric → synthesize
+  MVP plans) with innovation-oriented metadata. It uses only the registered
+  `retrieve`/`synthesize` node types and compiles against the existing
+  simple-workflow registry. Its `RequestedAuth` is proposal-only and uses
+  example-prefixed connector/tool names (e.g. `example-bitbucket`,
+  `example-confluence`, `example-issue-tracker`); nothing is called or executed.
+
+`select_planner_candidate(goal)` chooses the template by **deterministic
+whole-word keyword matching** (`innovation`, `idea`, `ideas`, `mvp`) — not by
+authority inference and not by any model. Whole-word matching means `ideal` does
+not select the innovation template. Unrelated goals fall back to the stub. The
+selector returns `(template_name, candidate)`, and `workflow_demo_cli` reports the
+chosen `planner_template`.
+
+This is **not** LLM planning and **not** dynamic node creation: the graphs are
+fixed deterministic templates. The raw goal text is never written into the
+authority-bearing candidate artifacts.
+
 ## Planner Output Is Non-Authoritative
 
 Planner output is **non-authoritative until compiler validation**. Candidate

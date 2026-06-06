@@ -47,6 +47,8 @@ class DocsTests(unittest.TestCase):
         self.assertIn("cli.run_status_cli --summary", content)
         self.assertIn("remain existence-only", content)
         self.assertIn("read-only and fail-soft", content)
+        # Planner template selection is surfaced in the demo summary.
+        self.assertIn("planner_template", content)
         self.assertIn("python -m cli.run_status_cli", content)
         self.assertNotIn("C:\\Users\\", content)
         self.assertNotIn("```powershell", content)
@@ -56,7 +58,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("375 tests", content)
+        self.assertIn("387 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -105,6 +107,10 @@ class DocsTests(unittest.TestCase):
         self.assertIn("cli.run_status_cli --summary", content)
         self.assertIn("read-only, fail-soft summary", content)
         self.assertIn("remain existence-only and unchanged", content)
+        # Deterministic innovation-agent planner template is mentioned.
+        self.assertIn("build_innovation_planner_candidate", content)
+        self.assertIn("select_planner_candidate", content)
+        self.assertIn("planner_template", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
@@ -184,6 +190,14 @@ class DocsTests(unittest.TestCase):
         self.assertIn("does not", content)
         self.assertIn("cli/planner_check_cli.py", content)
         self.assertIn("python -m cli.planner_check_cli", content)
+        # Deterministic innovation template and whole-word keyword selection.
+        self.assertIn("build_innovation_planner_candidate", content)
+        self.assertIn("select_planner_candidate", content)
+        self.assertIn("innovation-agent", content)
+        self.assertIn("whole-word keyword matching", content)
+        self.assertIn("not** LLM planning", content)
+        self.assertIn("not** dynamic node creation", content)
+        self.assertIn("planner_template", content)
 
     def test_authority_subsumption_design_doc_exists_and_is_design_only(self) -> None:
         self.assertTrue(AUTHORITY_SUBSUMPTION_PATH.exists())

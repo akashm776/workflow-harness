@@ -154,6 +154,20 @@ class WorkflowDemoCliTests(unittest.TestCase):
             self.assertEqual(return_code, 0)
             self.assertTrue(summary["ok"])
 
+    def test_innovation_goal_summary_reports_innovation_template(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            _, summary = self._run(
+                "generate innovation ideas from program data", run_dir
+            )
+            self.assertEqual(summary["planner_template"], "innovation")
+
+    def test_unrelated_goal_summary_reports_stub_template(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            _, summary = self._run("summarize the quarterly report", run_dir)
+            self.assertEqual(summary["planner_template"], "stub")
+
 
 if __name__ == "__main__":
     unittest.main()
