@@ -68,6 +68,16 @@ class SideEffectCatalogSchemaValidatorTests(unittest.TestCase):
         result = self._validate(catalog)
         self.assertTrue(result["ok"])
 
+    def test_committed_example_future_fixture_passes(self) -> None:
+        root = Path(__file__).resolve().parent.parent
+        fixture_path = (
+            root / "fixtures" / "future" / "side-effect-catalog"
+            / "SideEffectCatalog.json"
+        )
+        result = validate_side_effect_catalog_schema(fixture_path)
+        self.assertTrue(result["ok"])
+        self.assertIsNone(result["diagnostic"])
+
     def test_root_non_object_fails(self) -> None:
         self._assert_schema_failure(self._validate(["not", "an", "object"]),
                                     path_fragment="root $")

@@ -62,3 +62,13 @@ connectors, and are not wired into compile or runtime behavior.
   data-shape builders for future broker request, decision, and result
   dictionaries, with light shape invariants only. No broker, sandbox, or
   execution is implemented.
+
+### Example / Future-Only Fixtures
+
+- `fixtures/future/` holds example/future-only artifacts that are **not** active
+  governance inputs, **not** control-plane inputs, and **not** consumed by compile
+  or runtime. They exist only to demonstrate future shapes and to be exercised by
+  standalone validators.
+- `fixtures/future/side-effect-catalog/SideEffectCatalog.json` is an example
+  catalog validated only by `compiler/side_effect_catalog_schema_validator.py`. It
+  grants no authority. See [`../fixtures/future/README.md`](../fixtures/future/README.md).

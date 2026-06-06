@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `357 tests` passing
+- `358 tests` passing
 
 ## Major Implemented Layers
 
@@ -143,6 +143,12 @@
   - it does not implement a broker, a sandbox, execution, tools/connectors,
     runtime/compiler wiring, catalog enforcement, authority subsumption, approval
     carryover, or any canonical JSON/hashing changes.
+- example/future-only side-effect catalog fixture:
+  - `fixtures/future/side-effect-catalog/SideEffectCatalog.json` is an
+    example/future-only fixture validated only by the standalone side-effect
+    catalog schema validator.
+  - it is not active governance input, not a control-plane input, not consumed by
+    compile/runtime, and grants no authority.
 
 ## Explicit Non-Goals
 
@@ -164,10 +170,8 @@ complete and reviewed.
 
 1. Authority subsumption: refine per-dimension narrowing rules (design only,
    building on `AUTHORITY_SUBSUMPTION_DESIGN.md`; no reuse/carryover behavior).
-2. Future catalog fixture/docs example: a committed `SideEffectCatalog.json`
-   example for the schema-shape validator (docs/fixture only; no runtime wiring).
-3. Optional broker contract validators/examples: pure shape validation or
+2. Optional broker contract validators/examples: pure shape validation or
    example payloads for the broker request/decision/result shapes (still no
    broker implementation, no sandbox, no execution).
-4. Documentation drift/link consistency audit: verify the docs index and
+3. Documentation drift/link consistency audit: verify the docs index and
    cross-references stay accurate (docs/tests only; no runtime wiring).
