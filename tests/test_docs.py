@@ -12,6 +12,7 @@ CANONICAL_JSON_PATH = ROOT / "docs" / "CANONICAL_JSON_V1.md"
 PLANNER_SKELETON_PATH = ROOT / "docs" / "PLANNER_SKELETON.md"
 AUTHORITY_SUBSUMPTION_PATH = ROOT / "docs" / "AUTHORITY_SUBSUMPTION_DESIGN.md"
 REAL_EXECUTION_THREAT_MODEL_PATH = ROOT / "docs" / "REAL_EXECUTION_THREAT_MODEL.md"
+SIDE_EFFECT_CATALOG_PATH = ROOT / "docs" / "SIDE_EFFECT_CATALOG_DESIGN.md"
 
 
 class DocsTests(unittest.TestCase):
@@ -45,7 +46,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("302 tests", content)
+        self.assertIn("303 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -60,6 +61,9 @@ class DocsTests(unittest.TestCase):
         self.assertIn("REAL_EXECUTION_THREAT_MODEL.md", content)
         self.assertIn("design-only checkpoint and is not", content)
         self.assertIn("V1 remains no-op only", content)
+        # Side-effect catalog is referenced as a design-only checkpoint.
+        self.assertIn("SIDE_EFFECT_CATALOG_DESIGN.md", content)
+        self.assertIn("no real tools or connectors", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
@@ -234,6 +238,46 @@ class DocsTests(unittest.TestCase):
         self.assertIn("Post-Retrieval Re-Gating", content)
         self.assertIn("proposed and every denied side effect must be logged", content)
         self.assertIn("fail closed", lowered)
+        self.assertIn("Non-Goals", content)
+
+    def test_side_effect_catalog_design_doc_exists_and_is_design_only(self) -> None:
+        self.assertTrue(SIDE_EFFECT_CATALOG_PATH.exists())
+        content = SIDE_EFFECT_CATALOG_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        # Design-only / not implemented; V1 remains no-op only.
+        self.assertIn("design only", lowered)
+        self.assertIn("not implemented", lowered)
+        self.assertIn("no-op only", lowered)
+
+        # Trust boundary: planner untrusted, compiler sole authority boundary.
+        self.assertIn("planner remains untrusted", content)
+        self.assertIn("compiler remains the sole authority boundary", content)
+
+        # Side-effect classes.
+        for side_effect_class in (
+            "read-only",
+            "local write",
+            "external write",
+            "network call",
+            "export",
+            "deletion",
+        ):
+            self.assertIn(side_effect_class, content)
+
+        # Entries must be declared / scoped / versioned / compiler-approved.
+        for entry_property in ("declared", "scoped", "versioned", "compiler-approved"):
+            self.assertIn(entry_property, content)
+
+        # Deny-by-default / fail-closed behavior.
+        self.assertIn("deny-by-default", lowered)
+        self.assertIn("fail closed", lowered)
+
+        # Relationships to the other design checkpoints.
+        self.assertIn("REAL_EXECUTION_THREAT_MODEL.md", content)
+        self.assertIn("AUTHORITY_SUBSUMPTION_DESIGN.md", content)
+
+        # Non-goals.
         self.assertIn("Non-Goals", content)
 
 
