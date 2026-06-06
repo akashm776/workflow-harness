@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `338 tests` passing
+- `356 tests` passing
 
 ## Major Implemented Layers
 
@@ -129,6 +129,16 @@
   - it grants no authority, enforces no runtime behavior, calls no
     tools/connectors, implements no sandbox/broker, and changes no canonical JSON
     or hashing.
+- sandbox/broker contract shapes are pure data-shape builders:
+  - `broker/sandbox_broker_contract.py` provides `build_broker_request`,
+    `build_broker_decision`, and `build_broker_result` — pure data-shape builders
+    for future broker request, decision, and result dictionaries.
+  - it enforces only light shape invariants: a request requires exactly one of
+    `tool_name` or `connector_name`; a denied decision requires `reason_code`; a
+    failure/denied result requires `reason_code`.
+  - it does not implement a broker, a sandbox, execution, tools/connectors,
+    runtime/compiler wiring, catalog enforcement, authority subsumption, approval
+    carryover, or any canonical JSON/hashing changes.
 
 ## Explicit Non-Goals
 
@@ -148,13 +158,14 @@ Design- and inspection-first, consistent with the current no-op boundary. Real
 execution and real tools remain out of scope until their design checkpoints are
 complete and reviewed.
 
-1. Sandbox/broker request, decision, and result schema types: pure data-shape
-   definitions only (no broker, no sandbox, no execution).
-2. Authority subsumption: refine per-dimension narrowing rules (design only,
+1. Authority subsumption: refine per-dimension narrowing rules (design only,
    building on `AUTHORITY_SUBSUMPTION_DESIGN.md`; no reuse/carryover behavior).
-3. Docs/index cleanup: cross-link and index the design checkpoints
+2. Docs/index cleanup: cross-link and index the design checkpoints
    (`SECURITY_ASSUMPTIONS_AND_LIMITS.md`, `AUTHORITY_SUBSUMPTION_DESIGN.md`,
    `REAL_EXECUTION_THREAT_MODEL.md`, `SIDE_EFFECT_CATALOG_DESIGN.md`,
    `SANDBOX_BROKER_INTERFACE_DESIGN.md`).
-4. Future catalog fixture/docs example: a committed `SideEffectCatalog.json`
+3. Future catalog fixture/docs example: a committed `SideEffectCatalog.json`
    example for the schema-shape validator (docs/fixture only; no runtime wiring).
+4. Optional broker contract validators/examples: pure shape validation or
+   example payloads for the broker request/decision/result shapes (still no
+   broker implementation, no sandbox, no execution).

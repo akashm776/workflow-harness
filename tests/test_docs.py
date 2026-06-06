@@ -47,7 +47,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("338 tests", content)
+        self.assertIn("356 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -75,6 +75,12 @@ class DocsTests(unittest.TestCase):
         self.assertIn("pure standalone", content)
         self.assertIn("schema-shape validator", content)
         self.assertIn("not wired into `validate_static_inputs`", content)
+        # Pure sandbox/broker contract shape builders are mentioned.
+        self.assertIn("broker/sandbox_broker_contract.py", content)
+        self.assertIn("pure data-shape builders", content)
+        self.assertIn(
+            "does not implement a broker, a sandbox, execution", content
+        )
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
