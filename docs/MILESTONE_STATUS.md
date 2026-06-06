@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `300 tests` passing
+- `301 tests` passing
 
 ## Major Implemented Layers
 
@@ -32,6 +32,10 @@
 
 - `SECURITY_ASSUMPTIONS_AND_LIMITS.md` records the current security boundary and
   the deferred enforcement gaps.
+- `AUTHORITY_SUBSUMPTION_DESIGN.md` is a design-only checkpoint: it defines the
+  future partial-order model that would be required before approval carryover or
+  narrowed-authority reuse. Authority subsumption is design-only and is not
+  implemented; exact-match approval remains the current behavior.
 - `CANONICAL_JSON_V1.md` documents the currently implemented canonical JSON
   contract.
 - canonical JSON characterization tests pin the current serializer and hashing

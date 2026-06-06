@@ -10,6 +10,7 @@ MILESTONE_STATUS_PATH = ROOT / "docs" / "MILESTONE_STATUS.md"
 SECURITY_LIMITS_PATH = ROOT / "docs" / "SECURITY_ASSUMPTIONS_AND_LIMITS.md"
 CANONICAL_JSON_PATH = ROOT / "docs" / "CANONICAL_JSON_V1.md"
 PLANNER_SKELETON_PATH = ROOT / "docs" / "PLANNER_SKELETON.md"
+AUTHORITY_SUBSUMPTION_PATH = ROOT / "docs" / "AUTHORITY_SUBSUMPTION_DESIGN.md"
 
 
 class DocsTests(unittest.TestCase):
@@ -43,7 +44,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("300 tests", content)
+        self.assertIn("301 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -133,6 +134,48 @@ class DocsTests(unittest.TestCase):
         self.assertIn("does not", content)
         self.assertIn("cli/planner_check_cli.py", content)
         self.assertIn("python -m cli.planner_check_cli", content)
+
+    def test_authority_subsumption_design_doc_exists_and_is_design_only(self) -> None:
+        self.assertTrue(AUTHORITY_SUBSUMPTION_PATH.exists())
+        content = AUTHORITY_SUBSUMPTION_PATH.read_text(encoding="utf-8")
+
+        # Design-only / not implemented.
+        self.assertIn("design only", content.lower())
+        self.assertIn("not implemented", content.lower())
+
+        # Exact-match remains current behavior; subsumption required before reuse.
+        self.assertIn("Exact-Match Approval", content)
+        self.assertIn("approval_subject_hash", content)
+        self.assertIn("partial order", content)
+
+        # All nine authority dimensions are listed.
+        for dimension in (
+            "connector",
+            "scope",
+            "tool",
+            "skill",
+            "filesystem",
+            "side effect",
+            "export",
+            "review",
+            "approval",
+        ):
+            self.assertIn(dimension, content)
+
+        # All five relation outcomes are defined.
+        for outcome in (
+            "equal",
+            "narrower",
+            "broader",
+            "incomparable",
+            "ambiguous",
+        ):
+            self.assertIn(outcome, content)
+
+        # The reuse rule and fail-closed default.
+        self.assertIn("equal or strictly narrower", content)
+        self.assertIn("fails closed", content)
+        self.assertIn("new approval is required", content)
 
 
 if __name__ == "__main__":
