@@ -82,6 +82,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             "compiler.static_validation.validate_unsupported_safeguard_authority_claims",
             return_value=success,
         ), patch(
+            "compiler.static_validation.validate_unsupported_authority_artifacts",
+            return_value=success,
+        ), patch(
             "compiler.static_validation.validate_unsupported_execution_bindings",
             return_value=success,
         ), patch("compiler.static_validation.validate_unknown_node_types", return_value=success), patch(
@@ -183,6 +186,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             "compiler.static_validation.validate_unsupported_safeguard_authority_claims",
             return_value={"ok": True, "diagnostic": None},
         ), patch(
+            "compiler.static_validation.validate_unsupported_authority_artifacts",
+            return_value={"ok": True, "diagnostic": None},
+        ), patch(
             "compiler.static_validation.validate_unsupported_execution_bindings",
             return_value={"ok": True, "diagnostic": None},
         ):
@@ -247,6 +253,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_unsupported_safeguard_authority_claims",
+            return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_authority_artifacts",
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_unsupported_execution_bindings",
@@ -372,6 +381,28 @@ class StaticValidationAggregateTests(unittest.TestCase):
                 ),
             ],
         ), patch(
+            "compiler.static_validation.validate_unsupported_authority_artifacts",
+            side_effect=[
+                failure(
+                    "UNSUPPORTED_AUTHORITY_ARTIFACT",
+                    "authority_artifact_ownership_validator",
+                    "WorkflowSpec.json",
+                    "authority workflow",
+                ),
+                failure(
+                    "UNSUPPORTED_AUTHORITY_ARTIFACT",
+                    "authority_artifact_ownership_validator",
+                    "RequestedAuth.json",
+                    "authority requested",
+                ),
+                failure(
+                    "UNSUPPORTED_AUTHORITY_ARTIFACT",
+                    "authority_artifact_ownership_validator",
+                    "ApprovalRequests.json",
+                    "authority approval",
+                ),
+            ],
+        ), patch(
             "compiler.static_validation.validate_unsupported_execution_bindings",
             return_value=failure(
                 "UNSUPPORTED_EXECUTION_BINDING",
@@ -454,6 +485,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
                 "safeguard workflow",
                 "safeguard requested",
                 "safeguard approval",
+                "authority workflow",
+                "authority requested",
+                "authority approval",
                 "execution binding",
                 "unknown node type",
                 "invalid endpoint",
@@ -553,6 +587,98 @@ class StaticValidationAggregateTests(unittest.TestCase):
             [diagnostic["component"] for diagnostic in result["diagnostics"]],
             [
                 "safeguard_authority_claim_validator",
+                "execution_binding_validator",
+            ],
+        )
+
+    def test_requested_auth_safeguard_and_authority_artifact_keep_documented_order(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
+            requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
+            approval_requests = _load_json(
+                SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
+            )
+            requested_auth["grant_capabilities"] = True
+            requested_auth["execution_manifest"] = {"display_only": True}
+
+            workflow_spec_path = _write_json(
+                Path(tmp) / "WorkflowSpec.json", workflow_spec
+            )
+            requested_auth_path = _write_json(
+                Path(tmp) / "RequestedAuth.json", requested_auth
+            )
+            approval_requests_path = _write_json(
+                Path(tmp) / "ApprovalRequests.json", approval_requests
+            )
+
+            result = validate_static_inputs(
+                workflow_spec_path,
+                SIMPLE_FIXTURE_INPUT / "NodeTypeRegistry.json",
+                requested_auth_path,
+                approval_requests_path,
+                stop_on_first_error=False,
+            )
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(
+            [diagnostic["error_code"] for diagnostic in result["diagnostics"]],
+            [
+                "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
+                "UNSUPPORTED_AUTHORITY_ARTIFACT",
+            ],
+        )
+        self.assertEqual(
+            [diagnostic["component"] for diagnostic in result["diagnostics"]],
+            [
+                "safeguard_authority_claim_validator",
+                "authority_artifact_ownership_validator",
+            ],
+        )
+
+    def test_workflow_authority_artifact_and_execution_binding_keep_documented_order(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
+            requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
+            approval_requests = _load_json(
+                SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
+            )
+            workflow_spec["nodes"][0]["execution_manifest"] = {"display_only": True}
+            workflow_spec["nodes"][0]["tool_binding"] = {"tool_name": "future-tool"}
+
+            workflow_spec_path = _write_json(
+                Path(tmp) / "WorkflowSpec.json", workflow_spec
+            )
+            requested_auth_path = _write_json(
+                Path(tmp) / "RequestedAuth.json", requested_auth
+            )
+            approval_requests_path = _write_json(
+                Path(tmp) / "ApprovalRequests.json", approval_requests
+            )
+
+            result = validate_static_inputs(
+                workflow_spec_path,
+                SIMPLE_FIXTURE_INPUT / "NodeTypeRegistry.json",
+                requested_auth_path,
+                approval_requests_path,
+                stop_on_first_error=False,
+            )
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(
+            [diagnostic["error_code"] for diagnostic in result["diagnostics"]],
+            [
+                "UNSUPPORTED_AUTHORITY_ARTIFACT",
+                "UNSUPPORTED_EXECUTION_BINDING",
+            ],
+        )
+        self.assertEqual(
+            [diagnostic["component"] for diagnostic in result["diagnostics"]],
+            [
+                "authority_artifact_ownership_validator",
                 "execution_binding_validator",
             ],
         )

@@ -82,6 +82,12 @@ design gates. The design-only documents in this section are not implementations.
   request capabilities but cannot authorize them, compiler remains the only
   future authority boundary that may produce compiled envelopes, and V1 rejects
   planner-supplied capability-envelope fields fail-closed.
+- [`AUTHORITY_ARTIFACT_OWNERSHIP.md`](AUTHORITY_ARTIFACT_OWNERSHIP.md) - the
+  future ownership boundary for planner-proposed vs compiler-owned vs
+  runtime-owned vs operator-owned artifacts: planner proposals remain
+  non-authoritative, compiler remains the authority boundary, runtime reports
+  results without inventing authority, and V1 rejects planner-supplied
+  compiler/runtime/operator authority artifact fields fail-closed.
 - [`SAFEGUARD_ADVISORY_DESIGN.md`](SAFEGUARD_ADVISORY_DESIGN.md) - the future
   advisory-only safeguard review boundary: safeguard output is not authority,
   cannot approve or grant capabilities, and V1 does not call, download, or run

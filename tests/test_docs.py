@@ -17,6 +17,9 @@ TOOL_CONNECTOR_CATALOG_PATH = ROOT / "docs" / "TOOL_CONNECTOR_CATALOG_DESIGN.md"
 SANDBOX_BROKER_INTERFACE_PATH = ROOT / "docs" / "SANDBOX_BROKER_INTERFACE_DESIGN.md"
 CAPABILITY_ENVELOPE_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_DESIGN.md"
 CAPABILITY_ENVELOPE_V1_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_V1_DESIGN.md"
+AUTHORITY_ARTIFACT_OWNERSHIP_PATH = (
+    ROOT / "docs" / "AUTHORITY_ARTIFACT_OWNERSHIP.md"
+)
 SAFEGUARD_ADVISORY_PATH = ROOT / "docs" / "SAFEGUARD_ADVISORY_DESIGN.md"
 SKILL_PROMPT_REGISTRY_PATH = ROOT / "docs" / "SKILL_PROMPT_REGISTRY_DESIGN.md"
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
@@ -105,7 +108,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("456 tests", content)
+        self.assertIn("465 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -210,17 +213,21 @@ class DocsTests(unittest.TestCase):
         self.assertIn("UNSUPPORTED_EXECUTION_BINDING", content)
         self.assertIn("CAPABILITY_ENVELOPE_DESIGN.md", content)
         self.assertIn("CAPABILITY_ENVELOPE_V1_DESIGN.md", content)
+        self.assertIn("AUTHORITY_ARTIFACT_OWNERSHIP.md", content)
         self.assertIn("SAFEGUARD_ADVISORY_DESIGN.md", content)
         self.assertIn("CompiledCapabilityEnvelope.example.json", content)
         self.assertIn("UNSUPPORTED_CAPABILITY_ENVELOPE", content)
         self.assertIn("SafeguardAdvisory.example.json", content)
         self.assertIn("UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM", content)
+        self.assertIn("UNSUPPORTED_AUTHORITY_ARTIFACT", content)
         self.assertIn("validate_static_inputs(...)", content)
         self.assertIn("deterministic and fail-closed by", content)
         self.assertIn("capability-envelope validator", content)
         self.assertIn("safeguard-authority-claim validator", content)
+        self.assertIn("authority-artifact-ownership validator", content)
         self.assertIn("execution-binding validator", content)
         self.assertIn("graph/scope/approval validators", content)
+        self.assertIn("authority-artifact-ownership checks", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
@@ -588,6 +595,54 @@ class DocsTests(unittest.TestCase):
         self.assertIn("connector support", lowered)
         self.assertIn("mcp support", lowered)
 
+    def test_authority_artifact_ownership_doc_exists_and_is_design_only(
+        self,
+    ) -> None:
+        self.assertTrue(AUTHORITY_ARTIFACT_OWNERSHIP_PATH.exists())
+        content = AUTHORITY_ARTIFACT_OWNERSHIP_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        self.assertIn("design only", lowered)
+        self.assertIn("not implemented", lowered)
+        self.assertIn(
+            "Planner artifacts may request authority, but they cannot grant authority",
+            content,
+        )
+        self.assertIn("The compiler is the authority boundary", content)
+        self.assertIn(
+            "Runtime may report results, but it does not invent authority",
+            content,
+        )
+        self.assertIn(
+            "Operator approval must remain explicit and current-run/request scoped",
+            content,
+        )
+        self.assertIn(
+            "V1 safe no-op does not execute real tools, connectors, or MCP calls",
+            content,
+        )
+        self.assertIn(
+            "V1 does not generate compiled capability envelopes yet",
+            content,
+        )
+        self.assertIn(
+            "V1 does not consume compiled capability envelopes yet",
+            content,
+        )
+        self.assertIn(
+            "V1 does not allow planner-supplied compiler-owned or runtime-owned authority artifacts",
+            content,
+        )
+        self.assertIn(
+            "V1 does not allow planner-supplied operator approval artifacts",
+            content,
+        )
+        self.assertIn("UNSUPPORTED_AUTHORITY_ARTIFACT", content)
+        self.assertIn("authority_artifact_ownership_validator", content)
+        self.assertIn("no real execution", lowered)
+        self.assertIn("no tools/connectors", lowered)
+        self.assertIn("no mcp/network calls", lowered)
+
     def test_safeguard_advisory_design_doc_exists_and_is_design_only(
         self,
     ) -> None:
@@ -749,8 +804,12 @@ class DocsTests(unittest.TestCase):
             "Implementation checkpoint before this safeguard-advisory slice: 6c81a23 Reject unsupported capability envelopes",
             content,
         )
+        self.assertIn(
+            "Implementation checkpoint before this authority-artifact slice: 4d9a468 Document static validation diagnostic order",
+            content,
+        )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("456 tests passing", content)
+        self.assertIn("465 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -763,6 +822,8 @@ class DocsTests(unittest.TestCase):
         self.assertIn("safeguard advisory design checkpoint", content)
         self.assertIn("inert future-only safeguard advisory fixtures", content)
         self.assertIn("fail-closed unsupported safeguard authority-claim rejection", content)
+        self.assertIn("authority artifact ownership contract", content)
+        self.assertIn("fail-closed unsupported authority artifact rejection", content)
         self.assertIn("fixtures/future/innovation-context/", content)
         self.assertIn(
             "fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json",
@@ -807,6 +868,18 @@ class DocsTests(unittest.TestCase):
             "SafeguardAdvisory.example.json",
             "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
             "does not add API/network behavior",
+            "Authority artifact ownership is now documented",
+            "AUTHORITY_ARTIFACT_OWNERSHIP.md",
+            "planner proposals only",
+            "compiler-owned and runtime-owned authority artifacts",
+            "current-run/request scoped",
+            "UNSUPPORTED_AUTHORITY_ARTIFACT",
+            "compiled plans/manifests",
+            "runtime results",
+            "audit or evidence artifacts",
+            "approval-decision artifacts",
+            "does not create",
+            "does not consume compiled artifacts",
             "RequestedAuth.json",
             "shows proposed tools and connector metadata as display-only",
             "blocked safe no-op runs",
@@ -878,6 +951,7 @@ class DocsTests(unittest.TestCase):
             "TOOL_CONNECTOR_CATALOG_DESIGN.md",
             "CAPABILITY_ENVELOPE_DESIGN.md",
             "CAPABILITY_ENVELOPE_V1_DESIGN.md",
+            "AUTHORITY_ARTIFACT_OWNERSHIP.md",
             "SAFEGUARD_ADVISORY_DESIGN.md",
             "SKILL_PROMPT_REGISTRY_DESIGN.md",
             "SANDBOX_BROKER_INTERFACE_DESIGN.md",

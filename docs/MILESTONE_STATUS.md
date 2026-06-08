@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `456 tests` passing
+- `465 tests` passing
 
 ## Major Implemented Layers
 
@@ -297,23 +297,39 @@
   - skills, tools, prompt templates, approvals, and broker bindings stay
     explicit per node; no ambient authority is granted.
 - capability envelope V1 checkpoint and fail-closed rejection:
-  - `CAPABILITY_ENVELOPE_V1_DESIGN.md` records that planner capability requests
-    remain non-authoritative, only the compiler may eventually produce compiled
-    envelopes, and V1 neither generates nor consumes capability envelopes.
-  - `fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json`
-    is an inert display-only, not executable, compiler-owned example shape only.
-  - `compiler/static_validation.py` now rejects planner-controlled capability or
-    authority envelope fields in candidate artifacts with
-    `UNSUPPORTED_CAPABILITY_ENVELOPE`.
+- `CAPABILITY_ENVELOPE_V1_DESIGN.md` records that planner capability requests
+  remain non-authoritative, only the compiler may eventually produce compiled
+  envelopes, and V1 neither generates nor consumes capability envelopes.
+- `AUTHORITY_ARTIFACT_OWNERSHIP.md` records the planner-proposed vs
+  compiler-owned vs runtime-owned vs operator-owned artifact boundary: planner
+  artifacts remain non-authoritative, compiler remains the authority boundary,
+  runtime reports results but does not invent authority, and operator approval
+  remains explicit and current-run/request scoped.
+- `fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json`
+  is an inert display-only, not executable, compiler-owned example shape only.
+- `compiler/static_validation.py` now rejects planner-controlled capability or
+  authority envelope fields in candidate artifacts with
+  `UNSUPPORTED_CAPABILITY_ENVELOPE`.
 - safeguard advisory design checkpoint and fail-closed authority-claim rejection:
   - `SAFEGUARD_ADVISORY_DESIGN.md` records that safeguard output is advisory
     only, cannot approve or grant capabilities, and cannot unblock execution.
   - `fixtures/future/safeguard-advisory/WorkflowHarnessSafeguardPolicy.md` and
     `fixtures/future/safeguard-advisory/SafeguardAdvisory.example.json` are
     inert advisory-only future examples only.
-  - `compiler/static_validation.py` now rejects planner-supplied or
-    model-supplied safeguard authority-claim keys in candidate artifacts with
-    `UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM`.
+- `compiler/static_validation.py` now rejects planner-supplied or
+  model-supplied safeguard authority-claim keys in candidate artifacts with
+  `UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM`.
+- authority artifact ownership checkpoint and fail-closed rejection:
+  - `AUTHORITY_ARTIFACT_OWNERSHIP.md` records that candidate
+    `WorkflowSpec.json`, `RequestedAuth.json`, and `ApprovalRequests.json` are
+    planner proposals only, while compiler/runtime/operator authority artifacts
+    remain out of planner control.
+  - `compiler/static_validation.py` now rejects planner-controlled
+    compiler-owned, runtime-owned, or operator-owned authority artifact keys in
+    candidate artifacts with `UNSUPPORTED_AUTHORITY_ARTIFACT`.
+  - this is rejection-only; it does not create compiled artifacts, does not
+    consume compiled artifacts, does not change approval behavior, and does not
+    enable runtime authority.
 - static validation diagnostic ordering contract:
   - `validate_static_inputs(...)` remains deterministic and fail-closed by
     phase: authority-value validators, then schema validators, then
@@ -325,12 +341,16 @@
     - safeguard-authority-claim validator:
       `UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM` for safeguard approval,
       authorization, or execution-unblock claims.
+    - authority-artifact-ownership validator:
+      `UNSUPPORTED_AUTHORITY_ARTIFACT` for planner-supplied compiler-owned,
+      runtime-owned, or operator-owned authority artifact fields.
     - execution-binding validator:
       `UNSUPPORTED_EXECUTION_BINDING` for tool/connector/MCP/broker execution
       binding claims.
   - within the current interpretation phase, ordering is deterministic:
     capability-envelope checks, then safeguard-authority-claim checks, then
-    execution-binding checks, then graph/scope/approval validators.
+    authority-artifact-ownership checks, then execution-binding checks, then
+    graph/scope/approval validators.
   - this is a hardening contract for safety regression tests, not a public API.
 
 ## Explicit Non-Goals
