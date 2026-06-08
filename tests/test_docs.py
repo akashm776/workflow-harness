@@ -16,6 +16,7 @@ SIDE_EFFECT_CATALOG_PATH = ROOT / "docs" / "SIDE_EFFECT_CATALOG_DESIGN.md"
 TOOL_CONNECTOR_CATALOG_PATH = ROOT / "docs" / "TOOL_CONNECTOR_CATALOG_DESIGN.md"
 SANDBOX_BROKER_INTERFACE_PATH = ROOT / "docs" / "SANDBOX_BROKER_INTERFACE_DESIGN.md"
 CAPABILITY_ENVELOPE_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_DESIGN.md"
+NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
 
@@ -536,6 +537,62 @@ class DocsTests(unittest.TestCase):
         self.assertIn("demo-local", content)
         self.assertIn("not a general auto-approval", content)
 
+    def test_next_safe_slices_doc_exists_and_preserves_boundaries(self) -> None:
+        self.assertTrue(NEXT_SAFE_SLICES_PATH.exists())
+        content = NEXT_SAFE_SLICES_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        self.assertIn(
+            "Baseline before this handoff slice: f7de8c4 Update safe noop milestone status",
+            content,
+        )
+        self.assertIn("V1 remains safe no-op only", content)
+        self.assertIn("411 tests passing", content)
+
+        for slice_name in (
+            "Proposal-only skill/prompt registry design",
+            "Richer deterministic innovation template",
+            "Local fixture input artifacts",
+            "Display-only proposed tool access",
+        ):
+            self.assertIn(slice_name, content)
+
+        for boundary in (
+            "docs/design only first",
+            "SkillRegistry",
+            "PromptTemplateRegistry",
+            "no arbitrary planner prompts becoming executable",
+            "deterministic template only",
+            "dedupe/critique/scoring/MVP-plan nodes",
+            "local committed fake data only",
+            "fixture lineage can be display-only",
+            "proposal-only",
+            "no tool execution",
+        ):
+            self.assertIn(boundary, content)
+
+        for non_goal in (
+            "no real execution",
+            "no tools/connectors",
+            "no MCP/network calls",
+            "no sandbox/broker implementation",
+            "no LLM planning",
+            "no dynamic node creation",
+            "no approval carryover",
+            "no authority subsumption",
+            "no approval matching semantics changes",
+            "no canonical JSON/hashing changes",
+            "compiler/canonical_json.py",
+        ):
+            self.assertIn(non_goal, content)
+
+        self.assertIn(
+            "Every risky future capability should first appear as a design doc",
+            content,
+        )
+        self.assertIn("before any execution path exists", content)
+        self.assertIn("changes no behavior and enables nothing", lowered)
+
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())
         content = DOCS_INDEX_PATH.read_text(encoding="utf-8")
@@ -545,6 +602,7 @@ class DocsTests(unittest.TestCase):
         for doc_name in (
             "V1_SAFE_NOOP_HARNESS.md",
             "MILESTONE_STATUS.md",
+            "NEXT_SAFE_SLICES.md",
             "CANONICAL_JSON_V1.md",
             "PLANNER_SKELETON.md",
             "SECURITY_ASSUMPTIONS_AND_LIMITS.md",

@@ -106,3 +106,8 @@ connectors, and are not wired into compile or runtime behavior.
 - `fixtures/future/side-effect-catalog/SideEffectCatalog.json` is an example
   catalog validated only by `compiler/side_effect_catalog_schema_validator.py`. It
   grants no authority. See [`../fixtures/future/README.md`](../fixtures/future/README.md).
+
+## 4. Handoff
+
+- [`NEXT_SAFE_SLICES.md`](NEXT_SAFE_SLICES.md) - concise handoff for the next
+  docs-first safe slices and the staging rule for risky future capabilities.
