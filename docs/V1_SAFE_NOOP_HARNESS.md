@@ -201,6 +201,13 @@ approval helper.
   approval semantics, remains fail-soft and operator-facing only, and grants no
   authority.
 - When a safe no-op run is blocked by review, `cli.run_status_cli --summary`
+  also renders a display-only `Operator Review Packet:` checklist derived only
+  from already-computed summary fields such as `review_required`,
+  `blocked_by_review`, `review_gate`, `candidate_workflow`,
+  `fixture_lineage`, and `proposed_tool_access`. It is operator-facing only,
+  not a new artifact, not approval logic, not execution behavior, and it grants
+  no authority.
+- When a safe no-op run is blocked by review, `cli.run_status_cli --summary`
   also renders a display-only `Review Gate:` section. It reads
   `candidate/ApprovalRequests.json` fail-soft for operator guidance only, does
   not validate approval semantics, and does not approve anything. Unblocking

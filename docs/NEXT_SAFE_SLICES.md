@@ -5,9 +5,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 ## Current Checkpoint
 
 - `Baseline before this handoff slice: f7de8c4 Update safe noop milestone status`
-- `Implementation checkpoint before this proposed-tool-access slice: c94cb58 Show display-only fixture lineage`
+- `Implementation checkpoint before this operator-review-packet slice: 3d88c2b Show display-only proposed tool access`
 - `V1 remains safe no-op only`
-- `432 tests passing`
+- `433 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -17,6 +17,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - inert future-only innovation context fixtures
 - display-only fixture lineage for `innovation_review` summary
 - display-only proposed tool access for `innovation_review` summary
+- display-only Operator Review Packet for blocked summaries
 - Review Gate visibility
 - tool/MCP design boundary
 - inert side-effect class registry
@@ -48,6 +49,12 @@ proposal only, shows proposed tools and connector metadata as display-only
 operator guidance, does not execute tools, does not enable connector support,
 does not change approval semantics, and remains fail-soft and operator-facing
 only.
+
+Display-only Operator Review Packet is now implemented as an opt-in
+`cli.run_status_cli --summary` checklist for blocked safe no-op runs. It is
+derived only from already-computed summary fields, is operator-facing only, is
+not a new artifact, does not change approval logic, does not change execution
+behavior, and grants no authority.
 
 ## Recommended Next Safe Slices
 
@@ -103,6 +110,16 @@ display-only operator-surface checkpoint.
 - no connector support
 - no tool execution
 - no approval semantics changes
+
+### Implemented checkpoint: Display-only Operator Review Packet
+
+- `cli.run_status_cli --summary` now shows an operator-facing checklist for
+  blocked safe no-op runs
+- it is derived only from already-computed summary fields
+- it is not a new artifact
+- it is not approval logic
+- it is not execution behavior
+- no authority is granted
 
 ## Hard Non-Goals
 
