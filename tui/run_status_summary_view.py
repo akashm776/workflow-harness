@@ -45,6 +45,14 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
             marker = "[x]" if exists else "[ ]"
             lines.append(f"{marker} {artifact_name}")
 
+    review_gate_lines = _review_gate_lines(
+        summary.get("review_gate"),
+        summary.get("approval_request_count"),
+    )
+    if review_gate_lines:
+        lines.append("")
+        lines.extend(review_gate_lines)
+
     candidate_lines = _candidate_workflow_lines(summary.get("candidate_workflow"))
     if candidate_lines:
         lines.append("")
@@ -56,6 +64,41 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append(f"status command: {status_command}")
 
     return "\n".join(lines)
+
+
+def _review_gate_lines(review_gate: Any, approval_request_count: Any) -> list[str]:
+    if not isinstance(review_gate, Mapping):
+        return []
+
+    lines = ["Review Gate:"]
+
+    blocked_reason = review_gate.get("blocked_reason")
+    if blocked_reason is not None:
+        lines.append(f"blocked_reason: {blocked_reason}")
+
+    if isinstance(approval_request_count, int):
+        lines.append(f"approval_request_count: {approval_request_count}")
+
+    request_id = review_gate.get("request_id")
+    if isinstance(request_id, str):
+        lines.append(f"approval_request_id: {request_id}")
+
+    node_id = review_gate.get("node_id")
+    if isinstance(node_id, str):
+        lines.append(f"node_id: {node_id}")
+
+    reason = review_gate.get("reason")
+    if isinstance(reason, str):
+        lines.append(f"reason: {reason}")
+
+    approval_requests_path = review_gate.get("approval_requests_path")
+    if isinstance(approval_requests_path, str):
+        lines.append(f"approval request artifact: {approval_requests_path}")
+
+    lines.append(
+        "unblock: supply a matching ApprovalDecisions.json for this run/request only"
+    )
+    return lines
 
 
 def _candidate_workflow_lines(candidate_workflow: Any) -> list[str]:
