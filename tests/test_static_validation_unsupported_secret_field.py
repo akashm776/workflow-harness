@@ -7,7 +7,7 @@ import unittest
 
 from compiler.static_validation import (
     validate_static_inputs,
-    validate_unsupported_capability_envelope_fields,
+    validate_unsupported_secret_fields,
 )
 
 
@@ -28,7 +28,7 @@ def _write_json(path: Path, value: object) -> Path:
     return path
 
 
-class UnsupportedCapabilityEnvelopeValidationTests(unittest.TestCase):
+class UnsupportedSecretFieldValidationTests(unittest.TestCase):
     def test_valid_fixtures_pass(self) -> None:
         for fixture_name in VALID_FIXTURES:
             fixture_input = ROOT / "fixtures" / "valid" / fixture_name / "input"
@@ -38,51 +38,82 @@ class UnsupportedCapabilityEnvelopeValidationTests(unittest.TestCase):
                 "ApprovalRequests.json",
             ):
                 with self.subTest(fixture=fixture_name, artifact=artifact_name):
-                    result = validate_unsupported_capability_envelope_fields(
+                    result = validate_unsupported_secret_fields(
                         fixture_input / artifact_name,
                         artifact_name,
                     )
                     self.assertTrue(result["ok"])
                     self.assertIsNone(result["diagnostic"])
 
-    def test_workflow_spec_capability_envelope_field_is_rejected(self) -> None:
+    def test_workflow_spec_nested_secret_field_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
-            workflow_spec["nodes"][0]["capability_envelope"] = {
-                "display_only": True
-            }
+            workflow_spec["nodes"][0]["metadata"] = {"secret": "forbidden"}
             path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
 
-            result = validate_unsupported_capability_envelope_fields(
+            result = validate_unsupported_secret_fields(
                 path,
                 "WorkflowSpec.json",
             )
 
         self.assertFalse(result["ok"])
         diagnostic = result["diagnostic"]
-        self.assertEqual(diagnostic["error_code"], "UNSUPPORTED_CAPABILITY_ENVELOPE")
-        self.assertEqual(diagnostic["component"], "capability_envelope_validator")
+        self.assertEqual(diagnostic["error_code"], "UNSUPPORTED_SECRET_FIELD")
+        self.assertEqual(diagnostic["component"], "secret_field_validator")
         self.assertEqual(diagnostic["artifact"], "WorkflowSpec.json")
-        self.assertIn("$.nodes[0].capability_envelope", diagnostic["message"])
+        self.assertIn("$.nodes[0].metadata.secret", diagnostic["message"])
 
-    def test_requested_auth_approved_capabilities_field_is_rejected(self) -> None:
+    def test_requested_auth_credentials_field_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
-            requested_auth["approved_capabilities"] = ["future-only"]
+            requested_auth["credentials"] = {"mode": "forbidden"}
             path = _write_json(Path(tmp) / "RequestedAuth.json", requested_auth)
 
-            result = validate_unsupported_capability_envelope_fields(
+            result = validate_unsupported_secret_fields(
                 path,
                 "RequestedAuth.json",
             )
 
         self.assertFalse(result["ok"])
         diagnostic = result["diagnostic"]
-        self.assertEqual(diagnostic["error_code"], "UNSUPPORTED_CAPABILITY_ENVELOPE")
+        self.assertEqual(diagnostic["error_code"], "UNSUPPORTED_SECRET_FIELD")
         self.assertEqual(diagnostic["artifact"], "RequestedAuth.json")
-        self.assertIn("$.approved_capabilities", diagnostic["message"])
+        self.assertIn("$.credentials", diagnostic["message"])
 
-    def test_aggregate_static_validation_surfaces_capability_envelope_rejection(
+    def test_approval_requests_api_keys_field_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            approval_requests = _load_json(
+                SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
+            )
+            approval_requests["requests"][0]["api_keys"] = ["forbidden"]
+            path = _write_json(Path(tmp) / "ApprovalRequests.json", approval_requests)
+
+            result = validate_unsupported_secret_fields(
+                path,
+                "ApprovalRequests.json",
+            )
+
+        self.assertFalse(result["ok"])
+        diagnostic = result["diagnostic"]
+        self.assertEqual(diagnostic["error_code"], "UNSUPPORTED_SECRET_FIELD")
+        self.assertEqual(diagnostic["artifact"], "ApprovalRequests.json")
+        self.assertIn("$.requests[0].api_keys", diagnostic["message"])
+
+    def test_benign_string_mentioning_secret_is_not_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
+            workflow_spec["nodes"][0]["display_name"] = "Review secret field policy"
+            path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
+
+            result = validate_unsupported_secret_fields(
+                path,
+                "WorkflowSpec.json",
+            )
+
+        self.assertTrue(result["ok"])
+        self.assertIsNone(result["diagnostic"])
+
+    def test_aggregate_static_validation_surfaces_secret_field_rejection(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -91,7 +122,7 @@ class UnsupportedCapabilityEnvelopeValidationTests(unittest.TestCase):
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
-            requested_auth["approved_capabilities"] = ["future-only"]
+            requested_auth["credentials"] = {"mode": "forbidden"}
 
             workflow_spec_path = _write_json(
                 Path(tmp) / "WorkflowSpec.json", workflow_spec
@@ -113,10 +144,10 @@ class UnsupportedCapabilityEnvelopeValidationTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertEqual(len(result["diagnostics"]), 1)
         diagnostic = result["diagnostics"][0]
-        self.assertEqual(diagnostic["error_code"], "UNSUPPORTED_CAPABILITY_ENVELOPE")
-        self.assertEqual(diagnostic["component"], "capability_envelope_validator")
+        self.assertEqual(diagnostic["error_code"], "UNSUPPORTED_SECRET_FIELD")
+        self.assertEqual(diagnostic["component"], "secret_field_validator")
         self.assertEqual(diagnostic["artifact"], "RequestedAuth.json")
-        self.assertIn("$.approved_capabilities", diagnostic["message"])
+        self.assertIn("$.credentials", diagnostic["message"])
 
 
 if __name__ == "__main__":

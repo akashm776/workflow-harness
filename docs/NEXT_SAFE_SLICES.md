@@ -7,8 +7,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Baseline before this handoff slice: f7de8c4 Update safe noop milestone status`
 - `Implementation checkpoint before this safeguard-advisory slice: 6c81a23 Reject unsupported capability envelopes`
 - `Implementation checkpoint before this authority-artifact slice: 4d9a468 Document static validation diagnostic order`
+- `Implementation checkpoint before this secret-field slice: 51a214f Reject unsupported authority artifacts`
 - `V1 remains safe no-op only`
-- `465 tests passing`
+- `472 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -27,6 +28,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - capability envelope V1 design checkpoint
 - inert future-only capability envelope example fixture
 - fail-closed unsupported capability envelope rejection
+- fail-closed unsupported secret field rejection
 - safeguard advisory design checkpoint
 - inert future-only safeguard advisory fixtures
 - fail-closed unsupported safeguard authority-claim rejection
@@ -78,11 +80,19 @@ consumed by compile/runtime/CLI behavior, and grants no authority.
 
 Fail-closed unsupported capability-envelope rejection is now implemented in
 `compiler/static_validation.py`. Planner-controlled artifacts that attempt to
-include capability-envelope, authority-envelope, approved-capability, or
-credential-bearing authority fields are rejected with
+include capability-envelope, authority-envelope, or
+approved-capability fields are rejected with
 `UNSUPPORTED_CAPABILITY_ENVELOPE`. This is rejection-only, does not generate
 capability envelopes, does not consume capability envelopes, and does not
 change runtime, CLI summary, approval, or execution behavior.
+
+Fail-closed unsupported secret-field rejection is now implemented in
+`compiler/static_validation.py`. Planner-controlled artifacts that attempt to
+include exact secret-like key names such as token, secret, password, api_key,
+private_key, credential, or credentials are rejected with
+`UNSUPPORTED_SECRET_FIELD`. This is rejection-only, does not scan arbitrary
+string values, does not add credential storage, and does not change runtime,
+CLI summary, approval, or execution behavior.
 
 Safeguard advisory design is now documented in `SAFEGUARD_ADVISORY_DESIGN.md`.
 It states that safeguard output is advisory only, is not authority, cannot approve,

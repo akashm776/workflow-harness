@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `465 tests` passing
+- `472 tests` passing
 
 ## Major Implemented Layers
 
@@ -310,6 +310,14 @@
 - `compiler/static_validation.py` now rejects planner-controlled capability or
   authority envelope fields in candidate artifacts with
   `UNSUPPORTED_CAPABILITY_ENVELOPE`.
+- secret field checkpoint and fail-closed rejection:
+  - `compiler/static_validation.py` now rejects planner-controlled secret-like
+    exact key names in candidate artifacts with `UNSUPPORTED_SECRET_FIELD`.
+  - `credential` and `credentials` are now owned by the dedicated
+    secret-field validator rather than capability-envelope diagnostics.
+  - this is rejection-only; it does not scan arbitrary string values, does not
+    add credential storage, and does not change runtime, planner, CLI,
+    approval, or execution behavior.
 - safeguard advisory design checkpoint and fail-closed authority-claim rejection:
   - `SAFEGUARD_ADVISORY_DESIGN.md` records that safeguard output is advisory
     only, cannot approve or grant capabilities, and cannot unblock execution.
@@ -335,6 +343,9 @@
     phase: authority-value validators, then schema validators, then
     interpretation validators.
   - current interpretation validator ownership is:
+    - secret-field validator:
+      `UNSUPPORTED_SECRET_FIELD` for planner-supplied token, secret, password,
+      API-key, private-key, or credential-like exact field names.
     - capability-envelope validator:
       `UNSUPPORTED_CAPABILITY_ENVELOPE` for unsupported capability/authority
       envelope fields.
@@ -348,9 +359,7 @@
       `UNSUPPORTED_EXECUTION_BINDING` for tool/connector/MCP/broker execution
       binding claims.
   - within the current interpretation phase, ordering is deterministic:
-    capability-envelope checks, then safeguard-authority-claim checks, then
-    authority-artifact-ownership checks, then execution-binding checks, then
-    graph/scope/approval validators.
+    secret-field checks, then capability-envelope checks, then safeguard-authority-claim checks, then authority-artifact-ownership checks, then execution-binding checks, then graph/scope/approval validators.
   - this is a hardening contract for safety regression tests, not a public API.
 
 ## Explicit Non-Goals

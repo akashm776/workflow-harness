@@ -108,7 +108,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("465 tests", content)
+        self.assertIn("472 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -217,16 +217,19 @@ class DocsTests(unittest.TestCase):
         self.assertIn("SAFEGUARD_ADVISORY_DESIGN.md", content)
         self.assertIn("CompiledCapabilityEnvelope.example.json", content)
         self.assertIn("UNSUPPORTED_CAPABILITY_ENVELOPE", content)
+        self.assertIn("UNSUPPORTED_SECRET_FIELD", content)
         self.assertIn("SafeguardAdvisory.example.json", content)
         self.assertIn("UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM", content)
         self.assertIn("UNSUPPORTED_AUTHORITY_ARTIFACT", content)
         self.assertIn("validate_static_inputs(...)", content)
         self.assertIn("deterministic and fail-closed by", content)
+        self.assertIn("secret-field validator", content)
         self.assertIn("capability-envelope validator", content)
         self.assertIn("safeguard-authority-claim validator", content)
         self.assertIn("authority-artifact-ownership validator", content)
         self.assertIn("execution-binding validator", content)
         self.assertIn("graph/scope/approval validators", content)
+        self.assertIn("secret-field checks", content)
         self.assertIn("authority-artifact-ownership checks", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
@@ -590,6 +593,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("immutable once compiled", content)
         self.assertIn("broker/sandbox enforcement is out of scope", content)
         self.assertIn("UNSUPPORTED_CAPABILITY_ENVELOPE", content)
+        self.assertIn("UNSUPPORTED_SECRET_FIELD", content)
         self.assertIn("does not enable", lowered)
         self.assertIn("tool support", lowered)
         self.assertIn("connector support", lowered)
@@ -808,8 +812,12 @@ class DocsTests(unittest.TestCase):
             "Implementation checkpoint before this authority-artifact slice: 4d9a468 Document static validation diagnostic order",
             content,
         )
+        self.assertIn(
+            "Implementation checkpoint before this secret-field slice: 51a214f Reject unsupported authority artifacts",
+            content,
+        )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("465 tests passing", content)
+        self.assertIn("472 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -824,6 +832,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("fail-closed unsupported safeguard authority-claim rejection", content)
         self.assertIn("authority artifact ownership contract", content)
         self.assertIn("fail-closed unsupported authority artifact rejection", content)
+        self.assertIn("fail-closed unsupported secret field rejection", content)
         self.assertIn("fixtures/future/innovation-context/", content)
         self.assertIn(
             "fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json",
@@ -855,9 +864,14 @@ class DocsTests(unittest.TestCase):
             "planner requests remain",
             "only the compiler may eventually produce compiled envelopes",
             "display-only, not executable, compiler-owned example data only",
+            "UNSUPPORTED_SECRET_FIELD",
             "UNSUPPORTED_CAPABILITY_ENVELOPE",
             "does not generate",
             "does not consume",
+            "Fail-closed unsupported secret-field rejection is now implemented",
+            "exact secret-like key names",
+            "does not scan arbitrary",
+            "does not add credential storage",
             "Safeguard advisory design is now documented",
             "advisory only",
             "cannot approve",
