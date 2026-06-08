@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `399 tests` passing
+- `411 tests` passing
 
 ## Major Implemented Layers
 
@@ -198,6 +198,12 @@
     node IDs, node types, display names, and edges.
   - it is read-only, writes nothing, grants no authority, validates nothing, and
     does not change `inspect_run_directory`, default JSON, `--text`, or `--view`.
+- display-only Review Gate guidance in `run_status_cli --summary`:
+  - the summary renders a `Review Gate:` section for blocked safe no-op runs.
+  - it reads `candidate/ApprovalRequests.json` fail-soft for operator guidance only.
+  - it does not validate approval semantics, approve anything, or change
+    matching behavior.
+  - unblocking still requires an explicit matching `ApprovalDecisions.json` for the current run/request only.
 - explicit approval-decision demo path (blocked -> approved -> completed):
   - `tests/test_safe_innovation_approval_demo.py` and the approval section of
     `SAFE_INNOVATION_DEMO.md` demonstrate carrying the blocked innovation run to a
@@ -216,17 +222,42 @@
     general auto-approval mechanism.
   - no approval semantics, carryover, subsumption, or execution changed; runtime
     remains safe no-op only.
+- tool/connector/MCP trust-boundary design checkpoint:
+  - `TOOL_CONNECTOR_CATALOG_DESIGN.md` documents that tool and MCP proposals
+    remain non-authoritative, the compiler remains the sole authority boundary,
+    and any future MCP/tool execution must be broker-mediated and use standard MCP transports/methods.
+  - V1 safe no-op still enables no real connectors and no MCP/network calls.
+- inert side-effect class registry:
+  - `registry/SideEffectClasses.json` is an inert class-ID registry only.
+  - it defines stable side-effect class names/descriptions and enables no
+    execution or approval.
+- unsupported execution binding rejection:
+  - `compiler/static_validation.py` rejects node-level tool/connector/broker/MCP
+    execution intent in `WorkflowSpec.json` with
+    `UNSUPPORTED_EXECUTION_BINDING`.
+  - this is a V1 fail-closed guard only; it is not an MCP schema and it
+    preserves future broker-mediated standard MCP compatibility.
+- capability envelope design checkpoint:
+  - `CAPABILITY_ENVELOPE_DESIGN.md` documents future compiler-produced,
+    node-scoped capability envelopes.
+  - runtime remains orchestration-only; any future isolated broker/sandbox would
+    enforce the envelope.
+  - skills, tools, prompt templates, approvals, and broker bindings stay
+    explicit per node; no ambient authority is granted.
 
 ## Explicit Non-Goals
 
 - no real execution
 - no tools or connectors
+- no MCP/network calls
+- no sandbox/broker implementation
 - no authority subsumption
 - no approval carryover
 - no full TUI framework (a dependency-free status view and loop already exist)
 - no LLM-backed planner and no authoritative planner output (the deterministic
   planner skeleton exists, but its output stays non-authoritative until compiler
   validation)
+- no dynamic node creation
 - no real policy evaluation
 
 ## Recommended Next Milestone Options
