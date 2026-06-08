@@ -25,6 +25,7 @@ from typing import Any, Sequence
 from compiler.canonical_json import canonical_json_text
 from orchestrator.safe_run import safe_noop_run
 from planner.workflow_spec_planner import (
+    PLANNER_TEMPLATES,
     select_planner_candidate,
     write_planner_candidate,
 )
@@ -39,6 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--repo-root", required=True)
     parser.add_argument("--run-dir", required=True)
     parser.add_argument("--node-id", default="retrieve-1")
+    parser.add_argument("--planner-template", choices=PLANNER_TEMPLATES)
     parser.add_argument("--allow-overwrite", action="store_true")
     return parser
 
@@ -49,6 +51,7 @@ def run_workflow_demo(
     node_type_registry_path: str | Path,
     run_dir: str | Path,
     node_id: str = "retrieve-1",
+    planner_template: str | None = None,
     allow_overwrite: bool = False,
 ) -> dict[str, Any]:
     """Build a candidate, materialize a self-contained bundle, run the safe path.
@@ -70,7 +73,9 @@ def run_workflow_demo(
 
     run_path.mkdir(parents=True, exist_ok=True)
 
-    planner_template, candidate = select_planner_candidate(goal)
+    planner_template, candidate = select_planner_candidate(
+        goal, template_name=planner_template
+    )
     write_planner_candidate(candidate, candidate_dir)
 
     registry_dest = run_path / "NodeTypeRegistry.json"
@@ -133,6 +138,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         node_type_registry_path=args.node_type_registry,
         run_dir=args.run_dir,
         node_id=args.node_id,
+        planner_template=args.planner_template,
         allow_overwrite=args.allow_overwrite,
     )
     summary = build_demo_summary(demo_result)

@@ -174,6 +174,42 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             node_types = {node["node_type"] for node in candidate_workflow["nodes"]}
             self.assertTrue(node_types.issubset({"retrieve", "synthesize"}))
 
+    def test_innovation_review_demo_run_includes_candidate_workflow_and_review_gate(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+
+            summary = summarize_run_directory(run_dir)
+            candidate_workflow = summary["candidate_workflow"]
+
+            self.assertIsNotNone(candidate_workflow)
+            self.assertEqual(len(candidate_workflow["nodes"]), 7)
+            self.assertEqual(len(candidate_workflow["edges"]), 6)
+            display_names = [
+                node.get("display_name") for node in candidate_workflow["nodes"]
+            ]
+            self.assertEqual(
+                display_names,
+                [
+                    "Load Program Data",
+                    "Gather Example Context",
+                    "Dedupe Against Existing Work",
+                    "Generate Idea Candidates",
+                    "Score Against Rubric",
+                    "Critique Top Ideas",
+                    "Synthesize MVP Plans",
+                ],
+            )
+            self.assertTrue(summary["blocked_by_review"])
+            self.assertIsNotNone(summary["review_gate"])
+
     def test_missing_candidate_workflow_is_none(self) -> None:
         # A completed safe_noop_run has no candidate/ directory.
         with tempfile.TemporaryDirectory() as tmp:

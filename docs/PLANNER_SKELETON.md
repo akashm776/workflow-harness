@@ -20,7 +20,7 @@ The goal text is never written into the candidate authority-bearing artifacts.
 
 ## Deterministic Templates and Selection
 
-Two deterministic templates exist, both non-authoritative proposals:
+Three deterministic templates exist, all non-authoritative proposals:
 
 - `build_stub_planner_candidate(goal)` — the minimal stub (retrieve → synthesize).
 - `build_innovation_planner_candidate(goal)` — a deterministic **innovation-agent
@@ -31,6 +31,12 @@ Two deterministic templates exist, both non-authoritative proposals:
   simple-workflow registry. Its `RequestedAuth` is proposal-only and uses
   example-prefixed connector/tool names (e.g. `example-bitbucket`,
   `example-confluence`, `example-issue-tracker`); nothing is called or executed.
+- `build_innovation_review_planner_candidate(goal)` - a deterministic richer
+  **innovation review template**: a linear `retrieve`/`synthesize` chain (load
+  program data -> gather example context -> dedupe against existing work ->
+  generate idea candidates -> score against rubric -> critique top ideas ->
+  synthesize MVP plans). It also uses only the registered
+  `retrieve`/`synthesize` node types and remains proposal-only.
 
 `select_planner_candidate(goal)` chooses the template by **deterministic
 whole-word keyword matching** (`innovation`, `idea`, `ideas`, `mvp`) — not by
@@ -38,6 +44,11 @@ authority inference and not by any model. Whole-word matching means `ideal` does
 not select the innovation template. Unrelated goals fall back to the stub. The
 selector returns `(template_name, candidate)`, and `workflow_demo_cli` reports the
 chosen `planner_template`.
+
+`workflow_demo_cli` also accepts an explicit `--planner-template` override
+(`stub`, `innovation`, or `innovation_review`). This remains deterministic and
+non-authoritative: it selects one fixed template explicitly, while the default
+keyword-based behavior stays unchanged when the flag is omitted.
 
 This is **not** LLM planning and **not** dynamic node creation: the graphs are
 fixed deterministic templates. The raw goal text is never written into the

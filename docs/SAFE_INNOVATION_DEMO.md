@@ -16,6 +16,12 @@ Run the demo into a self-contained run directory:
 python -m cli.workflow_demo_cli --goal "generate innovation ideas from program data" --node-type-registry fixtures/valid/simple-workflow/input/NodeTypeRegistry.json --repo-root . --run-dir runs/innovation-demo
 ```
 
+An explicit deterministic richer review chain is also available:
+
+```text
+python -m cli.workflow_demo_cli --goal "review innovation options" --planner-template innovation_review --node-type-registry fixtures/valid/simple-workflow/input/NodeTypeRegistry.json --repo-root . --run-dir runs/innovation-review-demo
+```
+
 Inspect the produced run with the opt-in read-only summary:
 
 ```text
@@ -158,6 +164,12 @@ Blocked demo command (writes no approval decision):
 
 ```text
 python -m examples.safe_innovation_demo --run-root runs/manual-demo
+```
+
+Explicit richer deterministic review template:
+
+```text
+python -m examples.safe_innovation_demo --run-root runs/manual-demo --planner-template innovation_review
 ```
 
 Expected blocked status:
