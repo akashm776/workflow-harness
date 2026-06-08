@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 
 from cli.workflow_demo_cli import run_workflow_demo
 from orchestrator.safe_run import safe_noop_run
@@ -13,6 +14,13 @@ from runtime.run_status_summary import summarize_run_directory
 ROOT = Path(__file__).resolve().parent.parent
 SIMPLE_WORKFLOW = ROOT / "fixtures" / "valid" / "simple-workflow" / "input"
 SIMPLE_NODE_TYPE_REGISTRY = SIMPLE_WORKFLOW / "NodeTypeRegistry.json"
+INNOVATION_CONTEXT_FIXTURE_PATHS = (
+    "fixtures/future/innovation-context/ProgramContext.json",
+    "fixtures/future/innovation-context/RepoContextSummary.json",
+    "fixtures/future/innovation-context/ConfluenceContextSummary.json",
+    "fixtures/future/innovation-context/IssueTrackerContextSummary.json",
+    "fixtures/future/innovation-context/Rubric.json",
+)
 
 
 class SummarizeRunDirectoryTests(unittest.TestCase):
@@ -209,6 +217,83 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             )
             self.assertTrue(summary["blocked_by_review"])
             self.assertIsNotNone(summary["review_gate"])
+            self.assertEqual(
+                summary["fixture_lineage"],
+                {
+                    "display_only": True,
+                    "not_loaded": True,
+                    "not_control_plane_inputs": True,
+                    "paths": list(INNOVATION_CONTEXT_FIXTURE_PATHS),
+                },
+            )
+
+    def test_default_innovation_demo_run_does_not_include_fixture_lineage(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="generate innovation ideas from program data",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+            self.assertIsNone(summary["fixture_lineage"])
+
+    def test_fixture_lineage_is_display_only_and_never_reads_fixture_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+
+            original_exists = Path.exists
+            original_read_text = Path.read_text
+            original_open = Path.open
+            original_stat = Path.stat
+
+            def _is_fixture_path(path: Path) -> bool:
+                normalized = str(path).replace("\\", "/")
+                return "fixtures/future/innovation-context/" in normalized
+
+            def guarded_exists(path: Path) -> bool:
+                if _is_fixture_path(path):
+                    raise AssertionError(f"fixture path exists() should not be called: {path}")
+                return original_exists(path)
+
+            def guarded_read_text(path: Path, *args: object, **kwargs: object) -> str:
+                if _is_fixture_path(path):
+                    raise AssertionError(
+                        f"fixture path read_text() should not be called: {path}"
+                    )
+                return original_read_text(path, *args, **kwargs)
+
+            def guarded_open(path: Path, *args: object, **kwargs: object):
+                if _is_fixture_path(path):
+                    raise AssertionError(f"fixture path open() should not be called: {path}")
+                return original_open(path, *args, **kwargs)
+
+            def guarded_stat(path: Path, *args: object, **kwargs: object):
+                if _is_fixture_path(path):
+                    raise AssertionError(f"fixture path stat() should not be called: {path}")
+                return original_stat(path, *args, **kwargs)
+
+            with (
+                mock.patch.object(Path, "exists", guarded_exists),
+                mock.patch.object(Path, "read_text", guarded_read_text),
+                mock.patch.object(Path, "open", guarded_open),
+                mock.patch.object(Path, "stat", guarded_stat),
+            ):
+                summary = summarize_run_directory(run_dir)
+
+            self.assertIsNotNone(summary["fixture_lineage"])
+            self.assertEqual(
+                summary["fixture_lineage"]["paths"],
+                list(INNOVATION_CONTEXT_FIXTURE_PATHS),
+            )
 
     def test_missing_candidate_workflow_is_none(self) -> None:
         # A completed safe_noop_run has no candidate/ directory.
@@ -219,6 +304,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
 
             summary = summarize_run_directory(run_dir)
             self.assertIsNone(summary["candidate_workflow"])
+            self.assertIsNone(summary["fixture_lineage"])
 
     def test_missing_approval_requests_is_fail_soft_for_blocked_review_gate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
