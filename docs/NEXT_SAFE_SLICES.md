@@ -5,9 +5,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 ## Current Checkpoint
 
 - `Baseline before this handoff slice: f7de8c4 Update safe noop milestone status`
-- `Implementation checkpoint before this docs update: f4f6873 Add deterministic innovation review template`
+- `Implementation checkpoint before this fixture-lineage summary slice: bd6873d Add inert innovation context fixtures`
 - `V1 remains safe no-op only`
-- `427 tests passing`
+- `430 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -15,6 +15,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - proposal-only skill/prompt registry design
 - explicit deterministic `innovation_review` template
 - inert future-only innovation context fixtures
+- display-only fixture lineage for `innovation_review` summary
 - Review Gate visibility
 - tool/MCP design boundary
 - inert side-effect class registry
@@ -32,10 +33,16 @@ Local fixture input artifacts now also exist as inert future-only fake data unde
 `fixtures/future/innovation-context/`. V1 does not load them, execute anything
 from them, connect to tools/connectors/MCP from them, or grant any authority.
 
+Display-only fixture lineage is now implemented as an opt-in
+`cli.run_status_cli --summary` section for explicit `innovation_review`
+proposals. It is derived from already-read candidate workflow metadata only,
+lists known future fixture paths as display-only strings, does not load fixture
+contents, does not make fixtures control-plane inputs, and remains fail-soft
+and operator-facing only.
+
 ## Recommended Next Safe Slices
 
-1. Display-only fixture lineage
-2. Display-only proposed tool access
+1. Display-only proposed tool access
 
 ## Slice Boundaries
 
@@ -58,9 +65,10 @@ from them, connect to tools/connectors/MCP from them, or grant any authority.
 - no dynamic node creation
 - no LLM planner
 
-### 3. Display-only fixture lineage
+### Implemented checkpoint: Display-only fixture lineage
 
-- summary/docs may show known future fixture paths as display-only
+- `cli.run_status_cli --summary` now shows known future fixture paths as
+  display-only for explicit `innovation_review` proposals
 - known fixture paths may include:
   - `fixtures/future/innovation-context/ProgramContext.json`
   - `fixtures/future/innovation-context/RepoContextSummary.json`
@@ -74,7 +82,7 @@ from them, connect to tools/connectors/MCP from them, or grant any authority.
 - no connector/MCP/tools
 - no authority or approval changes
 - no fixture-driven planning
-- fail-soft and operator-facing only if later implemented
+- fail-soft and operator-facing only
 
 ### 4. Display-only proposed tool access
 

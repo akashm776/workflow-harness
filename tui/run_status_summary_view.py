@@ -58,6 +58,11 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(candidate_lines)
 
+    fixture_lineage_lines = _fixture_lineage_lines(summary.get("fixture_lineage"))
+    if fixture_lineage_lines:
+        lines.append("")
+        lines.extend(fixture_lineage_lines)
+
     status_command = summary.get("status_command")
     if status_command:
         lines.append("")
@@ -132,4 +137,24 @@ def _candidate_workflow_lines(candidate_workflow: Any) -> list[str]:
         lines.append(f"- {node_id} [{node_type}]{suffix}")
         for to_node_id in outgoing.get(node_id, []):
             lines.append(f"  -> {to_node_id}")
+    return lines
+
+
+def _fixture_lineage_lines(fixture_lineage: Any) -> list[str]:
+    if not isinstance(fixture_lineage, Mapping):
+        return []
+
+    lines = ["Fixture Lineage:"]
+    lines.append(f"display_only: {_bool_text(fixture_lineage.get('display_only'))}")
+    lines.append(f"not_loaded: {_bool_text(fixture_lineage.get('not_loaded'))}")
+    lines.append(
+        "not_control_plane_inputs: "
+        f"{_bool_text(fixture_lineage.get('not_control_plane_inputs'))}"
+    )
+
+    paths = fixture_lineage.get("paths")
+    if isinstance(paths, list):
+        for path in paths:
+            if isinstance(path, str):
+                lines.append(f"- {path}")
     return lines

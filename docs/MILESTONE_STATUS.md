@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `427 tests` passing
+- `430 tests` passing
 
 ## Major Implemented Layers
 
@@ -244,11 +244,20 @@
     remains safe no-op only.
 - explicit deterministic `innovation_review` blocked-run surface:
   - missing approval still blocks safely, the run remains safe no-op only, and
-    `cli.run_status_cli --summary` shows both the candidate graph and
-    `Review Gate:` guidance for the blocked run.
+  `cli.run_status_cli --summary` shows both the candidate graph and
+  `Review Gate:` guidance for the blocked run.
+- display-only fixture lineage in the opt-in summary:
+  - for explicit `innovation_review` proposals,
+    `cli.run_status_cli --summary` now also renders a `Fixture Lineage:`
+    section listing known future fixture paths under
+    `fixtures/future/innovation-context/`.
+  - it is derived from already-read candidate workflow metadata only.
+  - it does not load fixture contents, does not make fixtures control-plane
+    inputs, grants no authority, and remains fail-soft and operator-facing
+    only.
 - tool/connector/MCP trust-boundary design checkpoint:
   - `TOOL_CONNECTOR_CATALOG_DESIGN.md` documents that tool and MCP proposals
-    remain non-authoritative, the compiler remains the sole authority boundary,
+  remain non-authoritative, the compiler remains the sole authority boundary,
     and any future MCP/tool execution must be broker-mediated and use standard MCP transports/methods.
   - V1 safe no-op still enables no real connectors and no MCP/network calls.
 - inert side-effect class registry:

@@ -188,6 +188,12 @@ approval helper.
   performs no execution, and grants no authority. It does not validate artifacts
   or confer authority. The default `cli.run_status_cli` (default JSON, `--text`,
   `--view`) remains existence-only and unchanged.
+- For explicit `innovation_review` proposals, `cli.run_status_cli --summary`
+  also renders a display-only `Fixture Lineage:` section listing known future
+  fixture paths under `fixtures/future/innovation-context/`. It is derived from
+  already-read candidate workflow metadata only, does not load fixture
+  contents, does not make fixtures control-plane inputs, remains fail-soft and
+  operator-facing only, and grants no authority.
 - When a safe no-op run is blocked by review, `cli.run_status_cli --summary`
   also renders a display-only `Review Gate:` section. It reads
   `candidate/ApprovalRequests.json` fail-soft for operator guidance only, does

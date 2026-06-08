@@ -23,6 +23,16 @@ from typing import Any
 from runtime.run_status import inspect_run_directory
 
 
+INNOVATION_REVIEW_WORKFLOW_PREFIX = "planner-innovation-review-workflow-"
+INNOVATION_CONTEXT_FIXTURE_PATHS = (
+    "fixtures/future/innovation-context/ProgramContext.json",
+    "fixtures/future/innovation-context/RepoContextSummary.json",
+    "fixtures/future/innovation-context/ConfluenceContextSummary.json",
+    "fixtures/future/innovation-context/IssueTrackerContextSummary.json",
+    "fixtures/future/innovation-context/Rubric.json",
+)
+
+
 def _safe_load_json(path: Path) -> Any | None:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -161,6 +171,30 @@ def _extract_review_gate(
     )
 
 
+def _extract_fixture_lineage(
+    candidate_workflow: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Return display-only future fixture lineage for innovation_review only.
+
+    This is operator-facing metadata derived from already-read candidate
+    workflow fields. It is not validation, authority, execution eligibility, or
+    fixture loading. The fixture paths remain inert strings only.
+    """
+
+    workflow_id = _get_str(candidate_workflow, "workflow_id")
+    if workflow_id is None or not workflow_id.startswith(
+        INNOVATION_REVIEW_WORKFLOW_PREFIX
+    ):
+        return None
+
+    return {
+        "display_only": True,
+        "not_loaded": True,
+        "not_control_plane_inputs": True,
+        "paths": list(INNOVATION_CONTEXT_FIXTURE_PATHS),
+    }
+
+
 def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
     run_path = Path(run_dir)
     inspection = inspect_run_directory(run_path)
@@ -192,6 +226,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         approval_requests_path,
         review_gate,
     ) = _extract_review_gate(run_path, blocked_by_review)
+    candidate_workflow = _extract_candidate_workflow(run_path)
 
     return {
         "run_dir": str(run_path),
@@ -206,7 +241,8 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "approval_request_count": approval_request_count,
         "approval_requests_path": approval_requests_path,
         "review_gate": review_gate,
-        "candidate_workflow": _extract_candidate_workflow(run_path),
+        "candidate_workflow": candidate_workflow,
+        "fixture_lineage": _extract_fixture_lineage(candidate_workflow),
         "status_command": (
             f"python -m cli.run_status_cli --run-dir {run_path} --view"
         ),

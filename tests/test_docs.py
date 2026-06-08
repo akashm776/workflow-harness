@@ -74,6 +74,11 @@ class DocsTests(unittest.TestCase):
         self.assertIn("fail-soft for operator guidance only", content)
         self.assertIn("ApprovalDecisions.json", content)
         self.assertIn("current run/request only", content)
+        self.assertIn("Fixture Lineage:", content)
+        self.assertIn("fixtures/future/innovation-context/", content)
+        self.assertIn("already-read candidate workflow metadata only", content)
+        self.assertIn("does not load fixture", content)
+        self.assertIn("does not make fixtures control-plane inputs", content)
         self.assertIn("UNSUPPORTED_EXECUTION_BINDING", content)
         self.assertIn("No MCP/network calls", content)
         self.assertIn("No sandbox/broker implementation", content)
@@ -86,7 +91,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("427 tests", content)
+        self.assertIn("430 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -145,6 +150,10 @@ class DocsTests(unittest.TestCase):
         self.assertIn("fail-soft for operator guidance", content)
         self.assertIn("ApprovalDecisions.json", content)
         self.assertIn("current run/request only", content)
+        self.assertIn("Fixture Lineage:", content)
+        self.assertIn("already-read candidate workflow metadata only", content)
+        self.assertIn("does not load fixture contents", content)
+        self.assertIn("does not make fixtures control-plane", content)
         # Deterministic innovation-agent planner template is mentioned.
         self.assertIn("build_innovation_planner_candidate", content)
         self.assertIn("select_planner_candidate", content)
@@ -625,14 +634,15 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn(
-            "Implementation checkpoint before this docs update: f4f6873 Add deterministic innovation review template",
+            "Implementation checkpoint before this fixture-lineage summary slice: bd6873d Add inert innovation context fixtures",
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("427 tests passing", content)
+        self.assertIn("430 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
+        self.assertIn("display-only fixture lineage for `innovation_review` summary", content)
         self.assertIn("fixtures/future/innovation-context/", content)
         self.assertIn("does not load them", content)
         self.assertIn("connect to tools/connectors/MCP", content)
@@ -644,13 +654,13 @@ class DocsTests(unittest.TestCase):
         self.assertIn("behavior", content)
 
         for slice_name in (
-            "Display-only fixture lineage",
             "Display-only proposed tool access",
         ):
             self.assertIn(slice_name, content)
 
         for boundary in (
-            "known future fixture paths as display-only",
+            "Display-only fixture lineage is now implemented",
+            "`cli.run_status_cli --summary` now shows known future fixture paths as",
             "fixtures/future/innovation-context/ProgramContext.json",
             "fixtures/future/innovation-context/RepoContextSummary.json",
             "fixtures/future/innovation-context/ConfluenceContextSummary.json",
@@ -663,7 +673,7 @@ class DocsTests(unittest.TestCase):
             "no connector/MCP/tools",
             "no authority or approval changes",
             "no fixture-driven planning",
-            "fail-soft and operator-facing only if later implemented",
+            "fail-soft and operator-facing only",
             "proposal-only",
             "no tool execution",
         ):

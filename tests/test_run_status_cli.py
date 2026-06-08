@@ -355,14 +355,52 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         self.assertIn("Review Gate:", rendered)
         self.assertIn("Candidate Workflow:", rendered)
+        self.assertIn("Fixture Lineage:", rendered)
+        self.assertIn("display_only: true", rendered)
+        self.assertIn("not_loaded: true", rendered)
+        self.assertIn("not_control_plane_inputs: true", rendered)
         self.assertIn("retrieve-1 [retrieve] Load Program Data", rendered)
         self.assertIn("dedupe-1 [synthesize] Dedupe Against Existing Work", rendered)
         self.assertIn("score-1 [synthesize] Score Against Rubric", rendered)
         self.assertIn("critique-1 [synthesize] Critique Top Ideas", rendered)
         self.assertIn("synthesize-2 [synthesize] Synthesize MVP Plans", rendered)
         self.assertIn(
+            "fixtures/future/innovation-context/ProgramContext.json", rendered
+        )
+        self.assertIn(
+            "fixtures/future/innovation-context/RepoContextSummary.json", rendered
+        )
+        self.assertIn(
+            "fixtures/future/innovation-context/ConfluenceContextSummary.json",
+            rendered,
+        )
+        self.assertIn(
+            "fixtures/future/innovation-context/IssueTrackerContextSummary.json",
+            rendered,
+        )
+        self.assertIn("fixtures/future/innovation-context/Rubric.json", rendered)
+        self.assertIn(
             "reason: Innovation review template approval request.", rendered
         )
+
+    def test_summary_flag_default_innovation_run_does_not_render_fixture_lineage(
+        self,
+    ) -> None:
+        output_dir = self._make_output_dir()
+        run_workflow_demo(
+            goal="generate innovation ideas from program data",
+            node_type_registry_path=SIMPLE_WORKFLOW / "NodeTypeRegistry.json",
+            run_dir=output_dir,
+        )
+
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            exit_code = main(["--run-dir", str(output_dir), "--summary"])
+        rendered = stdout.getvalue()
+
+        self.assertEqual(exit_code, 0)
+        self.assertNotIn("Fixture Lineage:", rendered)
+        self.assertNotIn("fixtures/future/innovation-context/ProgramContext.json", rendered)
 
     def test_default_json_does_not_include_summary_fields(self) -> None:
         output_dir = self._make_missing_output_dir()
