@@ -77,6 +77,11 @@ design gates. The design-only documents in this section are not implementations.
   skills, prompt-template references, approvals, and broker bindings only. No
   ambient authority, no approval carryover, no authority subsumption, and no
   execution behavior is enabled in V1 safe no-op.
+- [`SKILL_PROMPT_REGISTRY_DESIGN.md`](SKILL_PROMPT_REGISTRY_DESIGN.md) - the
+  future design for `SkillRegistry` and `PromptTemplateRegistry`: planner
+  proposals remain non-authoritative, prompts and skills stay versioned/reviewed
+  artifacts, and any future LLM/subagent skill execution must remain
+  broker/sandbox mediated.
 
 ## 3. Implementation Checkpoints / Safe Code Surfaces
 

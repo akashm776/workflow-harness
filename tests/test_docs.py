@@ -16,6 +16,7 @@ SIDE_EFFECT_CATALOG_PATH = ROOT / "docs" / "SIDE_EFFECT_CATALOG_DESIGN.md"
 TOOL_CONNECTOR_CATALOG_PATH = ROOT / "docs" / "TOOL_CONNECTOR_CATALOG_DESIGN.md"
 SANDBOX_BROKER_INTERFACE_PATH = ROOT / "docs" / "SANDBOX_BROKER_INTERFACE_DESIGN.md"
 CAPABILITY_ENVELOPE_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_DESIGN.md"
+SKILL_PROMPT_REGISTRY_PATH = ROOT / "docs" / "SKILL_PROMPT_REGISTRY_DESIGN.md"
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
@@ -471,6 +472,57 @@ class DocsTests(unittest.TestCase):
         self.assertIn("mcp/network", lowered)
         self.assertIn("sandbox/broker behavior", lowered)
 
+    def test_skill_prompt_registry_design_doc_exists_and_is_design_only(
+        self,
+    ) -> None:
+        self.assertTrue(SKILL_PROMPT_REGISTRY_PATH.exists())
+        content = SKILL_PROMPT_REGISTRY_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        self.assertIn("design only", lowered)
+        self.assertIn("not implemented", lowered)
+        self.assertIn(
+            "Planner may propose desired skills and prompt intent, but cannot authorize",
+            content,
+        )
+        self.assertIn(
+            "Arbitrary planner prompts must not become executable prompts",
+            content,
+        )
+        self.assertIn("Prompt templates are versioned, reviewed artifacts", content)
+        self.assertIn("Skills are versioned, reviewed artifacts", content)
+        self.assertIn("A skill does not automatically imply tool access", content)
+        self.assertIn("Tool access remains explicit per node/capability envelope", content)
+        self.assertIn("Skill access remains explicit per node/capability envelope", content)
+        self.assertIn(
+            "Prompt-template access remains explicit per node/capability envelope",
+            content,
+        )
+        self.assertIn("broker/sandbox mediated", content)
+        self.assertIn("allowed inputs", content)
+        self.assertIn("allowed outputs", content)
+        self.assertIn("model policy", content)
+        self.assertIn("prompt template", content)
+        self.assertIn("tool policy", content)
+        self.assertIn("allowed variables", content)
+        self.assertIn("output schema", content)
+        self.assertIn("version/hash", content)
+        self.assertIn("forbidden content", content)
+        self.assertIn("No credentials in planner output, prompt templates,", content)
+        self.assertIn("compiled artifacts, logs,", content)
+        self.assertIn("summaries, or capability envelopes", content)
+        self.assertIn("No approval carryover", content)
+        self.assertIn("No authority subsumption", content)
+        self.assertIn("does not enable", lowered)
+        self.assertIn("llm planning", lowered)
+        self.assertIn("dynamic skills", lowered)
+        self.assertIn("prompt execution", lowered)
+        self.assertIn("tools", lowered)
+        self.assertIn("connectors", lowered)
+        self.assertIn("mcp/network", lowered)
+        self.assertIn("sandbox/broker behavior", lowered)
+        self.assertIn("real execution", lowered)
+
     def test_safe_innovation_demo_doc_exists_and_preserves_safety_claims(
         self,
     ) -> None:
@@ -611,6 +663,7 @@ class DocsTests(unittest.TestCase):
             "SIDE_EFFECT_CATALOG_DESIGN.md",
             "TOOL_CONNECTOR_CATALOG_DESIGN.md",
             "CAPABILITY_ENVELOPE_DESIGN.md",
+            "SKILL_PROMPT_REGISTRY_DESIGN.md",
             "SANDBOX_BROKER_INTERFACE_DESIGN.md",
         ):
             self.assertIn(doc_name, content)
