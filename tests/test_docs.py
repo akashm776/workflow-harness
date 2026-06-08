@@ -117,7 +117,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("484 tests", content)
+        self.assertIn("488 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -196,6 +196,8 @@ class DocsTests(unittest.TestCase):
         self.assertIn("does not load future fixtures", content)
         self.assertIn("does not write artifacts", content)
         self.assertIn("change approval resolution", content)
+        self.assertIn("display-only summary contract only", content)
+        self.assertIn("not an artifact-generation milestone", content)
         self.assertIn("Operator Review Packet:", content)
         self.assertIn("already-computed summary fields", content)
         self.assertIn("compiler_authorization_projection", content)
@@ -1011,7 +1013,7 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("484 tests passing", content)
+        self.assertIn("488 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -1078,6 +1080,8 @@ class DocsTests(unittest.TestCase):
             "does not load future fixtures",
             "does not write artifacts",
             "does not change approval resolution",
+            "display-only summary contract only",
+            "artifact-generation",
             "Display-only Operator Review Packet is now implemented",
             "Capability envelope V1 design is now documented",
             "planner requests remain",

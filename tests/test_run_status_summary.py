@@ -7,6 +7,7 @@ import unittest
 from unittest import mock
 
 from cli.workflow_demo_cli import run_workflow_demo
+from examples.safe_innovation_demo import run_safe_innovation_demo
 from orchestrator.safe_run import safe_noop_run
 from runtime.run_status_summary import summarize_run_directory
 
@@ -483,6 +484,45 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 ],
             )
 
+    def test_compiler_authorization_projection_ignores_unrelated_diagnostics(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+
+            compilation_report_path = run_dir / "CompilationReport.json"
+            compilation_report = json.loads(
+                compilation_report_path.read_text(encoding="utf-8")
+            )
+            compilation_report["diagnostics"] = [
+                {
+                    "error_code": "UNKNOWN_NODE_TYPE",
+                    "artifact": "WorkflowSpec.json",
+                    "path": "$.nodes[0].node_type",
+                },
+                {
+                    "error_code": "INVALID_ARTIFACT_SCHEMA",
+                    "artifact": "RequestedAuth.json",
+                    "path": "$.requested_tools",
+                },
+            ]
+            compilation_report_path.write_text(
+                json.dumps(compilation_report), encoding="utf-8"
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+            self.assertEqual(
+                summary["compiler_authorization_projection"]["unsupported_authority"],
+                [],
+            )
+
     def test_blocked_innovation_review_summary_writes_no_new_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp) / "demo"
@@ -504,6 +544,27 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 for path in run_dir.rglob("*")
             )
             self.assertEqual(before, after)
+
+    def test_compiler_authorization_projection_not_present_for_approved_innovation_review_run(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_safe_innovation_demo(
+                run_root=Path(tmp),
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                planner_template="innovation_review",
+                demo_approve_current_request=True,
+            )
+
+            approved_run_dir = Path(tmp) / "innovation-approved"
+            summary = summarize_run_directory(approved_run_dir)
+
+            self.assertEqual(summary["execution_status"], "completed")
+            self.assertIs(summary["review_required"], False)
+            self.assertFalse(summary["blocked_by_review"])
+            self.assertIsNone(summary["compiler_authorization_projection"])
+            self.assertIsNone(summary["operator_review_packet"])
 
     def test_malformed_requested_auth_is_fail_soft_for_proposed_tool_access(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
