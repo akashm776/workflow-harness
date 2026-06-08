@@ -15,6 +15,7 @@ REAL_EXECUTION_THREAT_MODEL_PATH = ROOT / "docs" / "REAL_EXECUTION_THREAT_MODEL.
 SIDE_EFFECT_CATALOG_PATH = ROOT / "docs" / "SIDE_EFFECT_CATALOG_DESIGN.md"
 TOOL_CONNECTOR_CATALOG_PATH = ROOT / "docs" / "TOOL_CONNECTOR_CATALOG_DESIGN.md"
 SANDBOX_BROKER_INTERFACE_PATH = ROOT / "docs" / "SANDBOX_BROKER_INTERFACE_DESIGN.md"
+CAPABILITY_ENVELOPE_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_DESIGN.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
 
@@ -414,6 +415,35 @@ class DocsTests(unittest.TestCase):
         ):
             self.assertIn(roadmap_item, content)
 
+    def test_capability_envelope_design_doc_exists_and_is_design_only(
+        self,
+    ) -> None:
+        self.assertTrue(CAPABILITY_ENVELOPE_PATH.exists())
+        content = CAPABILITY_ENVELOPE_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        self.assertIn("design only", lowered)
+        self.assertIn("not implemented", lowered)
+        self.assertIn("no ambient authority", lowered)
+        self.assertIn("Planner may propose desired tools, skills, prompt templates, and authority,", content)
+        self.assertIn("but cannot authorize them", content)
+        self.assertIn("Compiler remains the sole authority boundary", content)
+        self.assertIn("A skill does not automatically imply tool access", content)
+        self.assertIn("Prompt templates are versioned artifacts", content)
+        self.assertIn("Harness governance metadata must remain separate from MCP wire-protocol fields", content)
+        self.assertIn("broker-mediated", content)
+        self.assertIn("stdio", content)
+        self.assertIn("Streamable HTTP", content)
+        self.assertIn("No credentials should appear in planner output, compiled artifacts, logs,", content)
+        self.assertIn("summaries, or capability envelopes", content)
+        self.assertIn("No approval carryover", content)
+        self.assertIn("No authority subsumption", content)
+        self.assertIn("does not implement", lowered)
+        self.assertIn("tools", lowered)
+        self.assertIn("connectors", lowered)
+        self.assertIn("mcp/network", lowered)
+        self.assertIn("sandbox/broker behavior", lowered)
+
     def test_safe_innovation_demo_doc_exists_and_preserves_safety_claims(
         self,
     ) -> None:
@@ -496,6 +526,7 @@ class DocsTests(unittest.TestCase):
             "REAL_EXECUTION_THREAT_MODEL.md",
             "SIDE_EFFECT_CATALOG_DESIGN.md",
             "TOOL_CONNECTOR_CATALOG_DESIGN.md",
+            "CAPABILITY_ENVELOPE_DESIGN.md",
             "SANDBOX_BROKER_INTERFACE_DESIGN.md",
         ):
             self.assertIn(doc_name, content)
