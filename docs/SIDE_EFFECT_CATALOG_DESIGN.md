@@ -4,9 +4,9 @@
 
 This document defines the future governed catalog for tools, connectors, and
 side-effect capabilities. It describes intended future structure and rules. No
-catalog, tool, connector, or side-effect channel exists in this repository, and
-this document changes no behavior. It is a design target and a gate, not a plan
-to enable tools or execution now.
+enforced side-effect catalog or allowlist exists in this repository, and this
+document changes no behavior. It is a design target and a gate, not a plan to
+enable tools or execution now.
 
 See also `docs/REAL_EXECUTION_THREAT_MODEL.md` (the prerequisites that gate any
 real execution) and `docs/AUTHORITY_SUBSUMPTION_DESIGN.md` (the authority
@@ -14,9 +14,11 @@ partial-order model that also remains design-only).
 
 ## 1. Status
 
-This is a design-only checkpoint. The side-effect catalog and allowlist are
-**not implemented**. There is no catalog file, no schema enforcement, no tool
-runner, and no connector client in the codebase.
+This is a design-only checkpoint. The enforced side-effect catalog and
+allowlist are **not implemented**. The inert class-ID registry in
+`registry/SideEffectClasses.json` exists for future design work only; it is not
+wired into compiler, runtime, CLI behavior, approval, or execution; it does not enable execution or approval. No schema enforcement, tool runner, or connector
+client is implemented in the codebase.
 
 ## 2. Current State: V1 Remains No-Op Only
 
