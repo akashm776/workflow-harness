@@ -72,6 +72,11 @@ design gates. The design-only documents in this section are not implementations.
   authority boundary, runtime does not call tools directly, and any future tool
   execution must be brokered/sandboxed. No real connectors or MCP/network calls
   are enabled in V1 safe no-op.
+- [`CAPABILITY_ENVELOPE_DESIGN.md`](CAPABILITY_ENVELOPE_DESIGN.md) - the future
+  node-scoped capability envelope design: compiler-produced per-node tools,
+  skills, prompt-template references, approvals, and broker bindings only. No
+  ambient authority, no approval carryover, no authority subsumption, and no
+  execution behavior is enabled in V1 safe no-op.
 
 ## 3. Implementation Checkpoints / Safe Code Surfaces
 
