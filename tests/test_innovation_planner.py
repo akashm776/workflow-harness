@@ -12,6 +12,7 @@ from compiler.authority_value_validator import find_disallowed_authority_values
 from planner.workflow_spec_planner import (
     CANDIDATE_ARTIFACT_FILES,
     build_innovation_planner_candidate,
+    build_innovation_review_planner_candidate,
     select_planner_candidate,
 )
 
@@ -59,6 +60,17 @@ class InnovationPlannerTests(unittest.TestCase):
             with self.subTest(goal=goal):
                 template, _ = select_planner_candidate(goal)
                 self.assertEqual(template, "stub")
+
+    def test_explicit_selector_can_choose_innovation_review(self) -> None:
+        template, candidate = select_planner_candidate(
+            "summarize the quarterly report",
+            template_name="innovation_review",
+        )
+        self.assertEqual(template, "innovation_review")
+        self.assertEqual(
+            candidate["artifacts"]["WorkflowSpec.json"]["nodes"][2]["node_id"],
+            "dedupe-1",
+        )
 
     def test_uses_only_retrieve_and_synthesize_node_types(self) -> None:
         candidate = build_innovation_planner_candidate("innovation ideas")
@@ -126,6 +138,82 @@ class InnovationPlannerTests(unittest.TestCase):
             self.assertIsInstance(connector["scope"], str)
         for tool in requested_auth["requested_tools"]:
             self.assertTrue(tool["tool_name"].startswith("example-"))
+
+    def test_innovation_review_is_deterministic_for_same_goal(self) -> None:
+        left = build_innovation_review_planner_candidate("review innovation options")
+        right = build_innovation_review_planner_candidate("review innovation options")
+        self.assertEqual(canonical_json_text(left), canonical_json_text(right))
+
+    def test_innovation_review_has_expected_linear_chain(self) -> None:
+        spec = build_innovation_review_planner_candidate("review innovation options")[
+            "artifacts"
+        ]["WorkflowSpec.json"]
+
+        nodes = [(node["node_id"], node["display_name"]) for node in spec["nodes"]]
+        self.assertEqual(
+            nodes,
+            [
+                ("retrieve-1", "Load Program Data"),
+                ("retrieve-2", "Gather Example Context"),
+                ("dedupe-1", "Dedupe Against Existing Work"),
+                ("synthesize-1", "Generate Idea Candidates"),
+                ("score-1", "Score Against Rubric"),
+                ("critique-1", "Critique Top Ideas"),
+                ("synthesize-2", "Synthesize MVP Plans"),
+            ],
+        )
+        self.assertEqual(
+            [(edge["from_node_id"], edge["to_node_id"]) for edge in spec["edges"]],
+            [
+                ("retrieve-1", "retrieve-2"),
+                ("retrieve-2", "dedupe-1"),
+                ("dedupe-1", "synthesize-1"),
+                ("synthesize-1", "score-1"),
+                ("score-1", "critique-1"),
+                ("critique-1", "synthesize-2"),
+            ],
+        )
+
+    def test_innovation_review_compiles_against_simple_registry(self) -> None:
+        candidate = build_innovation_review_planner_candidate("review innovation options")
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_dir = Path(tmp)
+            for file_name in CANDIDATE_ARTIFACT_FILES:
+                (tmp_dir / file_name).write_text(
+                    json.dumps(candidate["artifacts"][file_name]), encoding="utf-8"
+                )
+            shutil.copy(SIMPLE_NODE_TYPE_REGISTRY, tmp_dir / "NodeTypeRegistry.json")
+
+            result = compile_static_artifacts(
+                tmp_dir / "WorkflowSpec.json",
+                tmp_dir / "NodeTypeRegistry.json",
+                tmp_dir / "RequestedAuth.json",
+                tmp_dir / "ApprovalRequests.json",
+                repo_root=tmp_dir,
+            )
+            summary = summarize_compile_result(result)
+            self.assertTrue(summary["ok"])
+            self.assertEqual(summary["compilation_status"], "compiled")
+
+    def test_innovation_review_contains_no_unsupported_execution_binding_fields(
+        self,
+    ) -> None:
+        nodes = build_innovation_review_planner_candidate("review innovation options")[
+            "artifacts"
+        ]["WorkflowSpec.json"]["nodes"]
+        for node in nodes:
+            for forbidden_key in (
+                "tool_binding",
+                "tool_access",
+                "connector_binding",
+                "connector_access",
+                "broker_binding",
+                "mcp",
+                "mcp_binding",
+                "mcp_server",
+                "mcp_tool",
+            ):
+                self.assertNotIn(forbidden_key, node)
 
 
 if __name__ == "__main__":

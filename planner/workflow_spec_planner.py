@@ -138,6 +138,12 @@ def build_stub_planner_candidate(goal: str) -> dict[str, Any]:
 
 STUB_TEMPLATE = "stub"
 INNOVATION_TEMPLATE = "innovation"
+INNOVATION_REVIEW_TEMPLATE = "innovation_review"
+PLANNER_TEMPLATES = (
+    STUB_TEMPLATE,
+    INNOVATION_TEMPLATE,
+    INNOVATION_REVIEW_TEMPLATE,
+)
 
 # Stable keywords that select the innovation template. Matched on word boundaries
 # (so "ideal" does not match "idea"); deterministic and non-authoritative.
@@ -286,13 +292,195 @@ def build_innovation_planner_candidate(goal: str) -> dict[str, Any]:
     }
 
 
-def select_planner_candidate(goal: str) -> tuple[str, dict[str, Any]]:
+def _build_innovation_review_workflow_spec(slug: str) -> dict[str, Any]:
+    return {
+        "schema_version": "m1",
+        "workflow_id": f"planner-innovation-review-workflow-{slug}",
+        "graph_revision_id": f"planner-innovation-review-graph-rev-{slug}",
+        "workflow_revision_id": f"planner-innovation-review-workflow-rev-{slug}",
+        "policy_bundle_digest": (
+            f"planner-innovation-review-policy-bundle-digest-{slug}"
+        ),
+        "artifact_lifecycle_state": "proposed",
+        "executable_run_context": {"environment": "planner-innovation-review"},
+        "nodes": [
+            {
+                "node_id": "retrieve-1",
+                "node_type": "retrieve",
+                "display_name": "Load Program Data",
+                "task": {"summary": "Load and inspect governed program data."},
+            },
+            {
+                "node_id": "retrieve-2",
+                "node_type": "retrieve",
+                "display_name": "Gather Example Context",
+                "task": {
+                    "summary": (
+                        "Gather example Bitbucket, Confluence, and issue-tracker "
+                        "context."
+                    )
+                },
+            },
+            {
+                "node_id": "dedupe-1",
+                "node_type": "synthesize",
+                "display_name": "Dedupe Against Existing Work",
+                "task": {
+                    "summary": (
+                        "Dedupe proposed opportunities against existing work and "
+                        "known examples."
+                    )
+                },
+            },
+            {
+                "node_id": "synthesize-1",
+                "node_type": "synthesize",
+                "display_name": "Generate Idea Candidates",
+                "task": {"summary": "Generate grounded idea candidates."},
+            },
+            {
+                "node_id": "score-1",
+                "node_type": "synthesize",
+                "display_name": "Score Against Rubric",
+                "task": {"summary": "Score idea candidates against a rubric."},
+            },
+            {
+                "node_id": "critique-1",
+                "node_type": "synthesize",
+                "display_name": "Critique Top Ideas",
+                "task": {
+                    "summary": (
+                        "Critique the top-ranked ideas for feasibility, novelty, "
+                        "and risk."
+                    )
+                },
+            },
+            {
+                "node_id": "synthesize-2",
+                "node_type": "synthesize",
+                "display_name": "Synthesize MVP Plans",
+                "task": {"summary": "Synthesize MVP plans for top ideas."},
+            },
+        ],
+        "edges": [
+            {
+                "from_node_id": "retrieve-1",
+                "to_node_id": "retrieve-2",
+                "edge_type": "data-flow",
+            },
+            {
+                "from_node_id": "retrieve-2",
+                "to_node_id": "dedupe-1",
+                "edge_type": "data-flow",
+            },
+            {
+                "from_node_id": "dedupe-1",
+                "to_node_id": "synthesize-1",
+                "edge_type": "data-flow",
+            },
+            {
+                "from_node_id": "synthesize-1",
+                "to_node_id": "score-1",
+                "edge_type": "data-flow",
+            },
+            {
+                "from_node_id": "score-1",
+                "to_node_id": "critique-1",
+                "edge_type": "data-flow",
+            },
+            {
+                "from_node_id": "critique-1",
+                "to_node_id": "synthesize-2",
+                "edge_type": "data-flow",
+            },
+        ],
+    }
+
+
+def _build_innovation_review_requested_auth(slug: str) -> dict[str, Any]:
+    return {
+        "schema_version": "m1",
+        "node_id": "retrieve-1",
+        "workflow_revision_id": f"planner-innovation-review-workflow-rev-{slug}",
+        "artifact_lifecycle_state": "proposed",
+        "requested_tools": [
+            {"tool_name": "example-local-file-reader", "access_mode": "read"}
+        ],
+        "requested_connectors": [
+            {"connector_name": "example-bitbucket", "scope": "read:example/repo"},
+            {"connector_name": "example-confluence", "scope": "read:example/space"},
+            {
+                "connector_name": "example-issue-tracker",
+                "scope": "read:example/project",
+            },
+        ],
+        "requested_permissions": [
+            {"permission": "read", "target": "example/program-data"}
+        ],
+    }
+
+
+def _build_innovation_review_approval_requests(slug: str) -> dict[str, Any]:
+    return {
+        "schema_version": "m1",
+        "workflow_revision_id": f"planner-innovation-review-workflow-rev-{slug}",
+        "artifact_lifecycle_state": "approval_pending",
+        "requests": [
+            {
+                "request_id": f"planner-innovation-review-approval-request-{slug}",
+                "node_id": "retrieve-1",
+                "approval_subject_hash": (
+                    f"planner-innovation-review-approval-subject-{slug}"
+                ),
+                "reason": "Innovation review template approval request.",
+            }
+        ],
+    }
+
+
+def build_innovation_review_planner_candidate(goal: str) -> dict[str, Any]:
+    """Build a deterministic richer innovation-review candidate bundle.
+
+    A linear retrieve/synthesize chain with explicit dedupe, scoring, critique,
+    and MVP-plan stages. It remains a non-authoritative proposal only: it calls
+    nothing, executes nothing, and the goal text is never written into the
+    candidate artifacts.
+    """
+
+    slug = _goal_slug(goal)
+    return {
+        "planner_version": PLANNER_VERSION,
+        "deterministic": True,
+        "goal": goal,
+        "goal_slug": slug,
+        "artifacts": {
+            "WorkflowSpec.json": _build_innovation_review_workflow_spec(slug),
+            "RequestedAuth.json": _build_innovation_review_requested_auth(slug),
+            "ApprovalRequests.json": _build_innovation_review_approval_requests(slug),
+        },
+    }
+
+
+def select_planner_candidate(
+    goal: str,
+    template_name: str | None = None,
+) -> tuple[str, dict[str, Any]]:
     """Select a deterministic template by goal keywords.
 
-    Returns ``(template_name, candidate)``. The innovation template is chosen for
-    innovation-style goals; otherwise the stub template is the default fallback.
-    Selection is non-authoritative.
+    Returns ``(template_name, candidate)``. When ``template_name`` is provided,
+    that explicit deterministic template is selected. Otherwise, the innovation
+    template is chosen for innovation-style goals and the stub template remains
+    the default fallback. Selection is non-authoritative.
     """
+
+    if template_name is not None:
+        if template_name == STUB_TEMPLATE:
+            return STUB_TEMPLATE, build_stub_planner_candidate(goal)
+        if template_name == INNOVATION_TEMPLATE:
+            return INNOVATION_TEMPLATE, build_innovation_planner_candidate(goal)
+        if template_name == INNOVATION_REVIEW_TEMPLATE:
+            return INNOVATION_REVIEW_TEMPLATE, build_innovation_review_planner_candidate(goal)
+        raise ValueError(f"unsupported planner template: {template_name}")
 
     if _is_innovation_goal(goal):
         return INNOVATION_TEMPLATE, build_innovation_planner_candidate(goal)

@@ -29,6 +29,7 @@ from typing import Any, Sequence
 from cli.workflow_demo_cli import run_workflow_demo
 from compiler.canonical_json import canonical_json_text
 from orchestrator.safe_run import safe_noop_run
+from planner.workflow_spec_planner import PLANNER_TEMPLATES
 from runtime.run_status_summary import summarize_run_directory
 from tui.run_status_summary_view import render_run_status_summary_view
 
@@ -52,6 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--run-root", default="runs")
     parser.add_argument("--goal", default=DEFAULT_GOAL)
     parser.add_argument("--node-type-registry", default=DEFAULT_NODE_TYPE_REGISTRY)
+    parser.add_argument("--planner-template", choices=PLANNER_TEMPLATES)
     parser.add_argument("--allow-overwrite", action="store_true")
     parser.add_argument(
         "--demo-approve-current-request", action="store_true"
@@ -77,6 +79,7 @@ def run_safe_innovation_demo(
     run_root: str | Path,
     goal: str = DEFAULT_GOAL,
     node_type_registry_path: str | Path = DEFAULT_NODE_TYPE_REGISTRY,
+    planner_template: str | None = None,
     allow_overwrite: bool = False,
     demo_approve_current_request: bool = False,
 ) -> dict[str, Any]:
@@ -101,6 +104,7 @@ def run_safe_innovation_demo(
         goal=goal,
         node_type_registry_path=node_type_registry_path,
         run_dir=blocked_run_dir,
+        planner_template=planner_template,
         allow_overwrite=allow_overwrite,
     )
 
@@ -195,6 +199,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         run_root=args.run_root,
         goal=args.goal,
         node_type_registry_path=args.node_type_registry,
+        planner_template=args.planner_template,
         allow_overwrite=args.allow_overwrite,
         demo_approve_current_request=args.demo_approve_current_request,
     )

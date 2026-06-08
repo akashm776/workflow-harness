@@ -28,13 +28,22 @@ SAFE_ARTIFACTS = (
 
 
 class WorkflowDemoCliTests(unittest.TestCase):
-    def _run(self, goal: str, run_dir: Path, *, allow_overwrite: bool = False):
+    def _run(
+        self,
+        goal: str,
+        run_dir: Path,
+        *,
+        planner_template: str | None = None,
+        allow_overwrite: bool = False,
+    ):
         argv = [
             "--goal", goal,
             "--node-type-registry", str(SIMPLE_NODE_TYPE_REGISTRY),
             "--repo-root", ".",
             "--run-dir", str(run_dir),
         ]
+        if planner_template is not None:
+            argv.extend(["--planner-template", planner_template])
         if allow_overwrite:
             argv.append("--allow-overwrite")
         stdout = io.StringIO()
@@ -167,6 +176,27 @@ class WorkflowDemoCliTests(unittest.TestCase):
             run_dir = Path(tmp) / "demo"
             _, summary = self._run("summarize the quarterly report", run_dir)
             self.assertEqual(summary["planner_template"], "stub")
+
+    def test_explicit_innovation_review_template_reports_selected_template(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            _, summary = self._run(
+                "summarize the quarterly report",
+                run_dir,
+                planner_template="innovation_review",
+            )
+            self.assertEqual(summary["planner_template"], "innovation_review")
+            self.assertEqual(summary["compilation_status"], "compiled")
+            self.assertEqual(summary["execution_status"], "blocked")
+
+    def test_explicit_template_does_not_change_default_innovation_behavior(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            _, summary = self._run(
+                "generate innovation ideas from program data",
+                run_dir,
+            )
+            self.assertEqual(summary["planner_template"], "innovation")
 
 
 if __name__ == "__main__":

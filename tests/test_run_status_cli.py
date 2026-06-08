@@ -336,6 +336,34 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn("ApprovalDecisions.json", rendered)
         self.assertIn("this run/request only", rendered)
 
+    def test_summary_flag_innovation_review_run_includes_candidate_graph_and_review_gate(
+        self,
+    ) -> None:
+        output_dir = self._make_output_dir()
+        run_workflow_demo(
+            goal="review innovation options",
+            node_type_registry_path=SIMPLE_WORKFLOW / "NodeTypeRegistry.json",
+            run_dir=output_dir,
+            planner_template="innovation_review",
+        )
+
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            exit_code = main(["--run-dir", str(output_dir), "--summary"])
+        rendered = stdout.getvalue()
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("Review Gate:", rendered)
+        self.assertIn("Candidate Workflow:", rendered)
+        self.assertIn("retrieve-1 [retrieve] Load Program Data", rendered)
+        self.assertIn("dedupe-1 [synthesize] Dedupe Against Existing Work", rendered)
+        self.assertIn("score-1 [synthesize] Score Against Rubric", rendered)
+        self.assertIn("critique-1 [synthesize] Critique Top Ideas", rendered)
+        self.assertIn("synthesize-2 [synthesize] Synthesize MVP Plans", rendered)
+        self.assertIn(
+            "reason: Innovation review template approval request.", rendered
+        )
+
     def test_default_json_does_not_include_summary_fields(self) -> None:
         output_dir = self._make_missing_output_dir()
 

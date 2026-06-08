@@ -17,11 +17,20 @@ SIMPLE_NODE_TYPE_REGISTRY = (
 
 
 class SafeInnovationDemoExampleTests(unittest.TestCase):
-    def _run(self, run_root: Path, *, approve: bool = False, allow_overwrite: bool = False):
+    def _run(
+        self,
+        run_root: Path,
+        *,
+        planner_template: str | None = None,
+        approve: bool = False,
+        allow_overwrite: bool = False,
+    ):
         argv = [
             "--run-root", str(run_root),
             "--node-type-registry", str(SIMPLE_NODE_TYPE_REGISTRY),
         ]
+        if planner_template is not None:
+            argv.extend(["--planner-template", planner_template])
         if approve:
             argv.append("--demo-approve-current-request")
         if allow_overwrite:
@@ -108,6 +117,25 @@ class SafeInnovationDemoExampleTests(unittest.TestCase):
                 self._run(run_root)
 
             self.assertEqual(workflow_spec_path.read_text(encoding="utf-8"), before)
+
+    def test_explicit_innovation_review_template_path_works(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_root = Path(tmp)
+            return_code, output = self._run(
+                run_root, planner_template="innovation_review"
+            )
+
+            self.assertEqual(return_code, 0)
+            self.assertEqual(output["planner_template"], "innovation_review")
+            self.assertEqual(
+                output["blocked_run"]["summary"]["execution_status"], "blocked"
+            )
+
+    def test_default_planner_template_remains_innovation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_root = Path(tmp)
+            _, output = self._run(run_root)
+            self.assertEqual(output["planner_template"], "innovation")
 
 
 if __name__ == "__main__":
