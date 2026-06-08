@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `411 tests` passing
+- `424 tests` passing
 
 ## Major Implemented Layers
 
@@ -178,12 +178,22 @@
   - innovation-style goals matching whole-word keywords (`innovation`, `idea`,
     `ideas`, `mvp`) select the innovation template; unrelated goals use the
     existing stub template.
+  - explicit `--planner-template innovation_review` selection now adds a richer
+    deterministic review template only when requested.
+  - default goal-based selection remains unchanged, and existing `innovation`
+    behavior remains unchanged.
   - the innovation template is a deterministic, linear retrieve/synthesize chain
     that compiles against the existing simple registry.
+  - the `innovation_review` template also compiles against the existing simple
+    registry, uses only the existing `retrieve` and `synthesize` node types, and
+    adds deterministic proposal stages for dedupe against existing work,
+    generating idea candidates, scoring against a rubric, critiquing top ideas,
+    and synthesizing MVP plans.
   - it uses only proposal artifacts and example-prefixed names.
   - it calls no real connectors/tools, performs no execution, and planner output
     remains non-authoritative.
-  - `workflow_demo_cli` reports `planner_template` (`"stub"` or `"innovation"`).
+  - `workflow_demo_cli` reports `planner_template` (`"stub"`, `"innovation"`, or
+    `"innovation_review"`).
 - safe innovation demo walkthrough and smoke test:
   - `SAFE_INNOVATION_DEMO.md` and `tests/test_safe_innovation_demo.py` document and
     test the two-command safe innovation demo (`workflow_demo_cli` then
@@ -218,10 +228,16 @@
     innovation demo paths.
   - it is an example script kept out of `cli/`; approval generation requires the
     explicit `--demo-approve-current-request` flag.
+  - it can pass through `--planner-template innovation_review`, but its default
+    remains the existing safe innovation demo behavior.
   - the generated approval is demo-local and current-run/request-only, not a
     general auto-approval mechanism.
   - no approval semantics, carryover, subsumption, or execution changed; runtime
     remains safe no-op only.
+- explicit deterministic `innovation_review` blocked-run surface:
+  - missing approval still blocks safely, the run remains safe no-op only, and
+    `cli.run_status_cli --summary` shows both the candidate graph and
+    `Review Gate:` guidance for the blocked run.
 - tool/connector/MCP trust-boundary design checkpoint:
   - `TOOL_CONNECTOR_CATALOG_DESIGN.md` documents that tool and MCP proposals
     remain non-authoritative, the compiler remains the sole authority boundary,
@@ -258,6 +274,8 @@
   planner skeleton exists, but its output stays non-authoritative until compiler
   validation)
 - no dynamic node creation
+- no skill/prompt registry implementation
+- no fixture input artifact implementation
 - no real policy evaluation
 
 ## Recommended Next Milestone Options
@@ -273,5 +291,5 @@ complete and reviewed.
    cross-references stay accurate (docs/tests only; no runtime wiring).
 3. TUI/operator view improvements over existing safe no-op artifacts (rendering
    only; no real execution).
-4. Deterministic innovation-agent workflow template in safe no-op mode (candidate
-   shape/template only; no real connectors, no execution).
+4. Local fixture input artifacts for deterministic templates (committed fake
+   data only; no external reads, no credentials, no connector/MCP calls).

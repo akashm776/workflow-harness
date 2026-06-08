@@ -144,8 +144,20 @@ required and no approval decision is supplied.
 
 The summary reports the selected `planner_template`. Innovation/idea/MVP prompts
 (whole-word keyword match) select the deterministic innovation template; other
-goals use the stub template. Both are deterministic proposals only: no LLM
-planning, no real tools/connectors, no sandbox, and no real execution.
+goals use the stub template. An explicit `--planner-template innovation_review`
+selects a richer deterministic review chain only when requested; default
+goal-based selection remains unchanged, and existing `innovation` behavior
+remains unchanged. The `innovation_review` template uses only the existing
+`retrieve` and `synthesize` node types, compiles against the simple registry,
+and adds deterministic proposal stages for dedupe against existing work,
+generating idea candidates, scoring against a rubric, critiquing top ideas, and
+synthesizing MVP plans. Blocked `innovation_review` runs still require explicit
+current-run/request-only approval, remain safe no-op only, and `cli.run_status_cli
+--summary` shows both `Candidate Workflow:` and `Review Gate:`. The example
+wrapper can pass through `--planner-template innovation_review`, but its default
+remains the existing safe innovation demo behavior. All templates remain
+deterministic proposals only: no LLM planning, no real tools/connectors, no
+sandbox, and no real execution.
 
 The repository also includes `examples/safe_innovation_demo.py`, an example-only
 wrapper kept out of `cli/`. It composes the blocked safe innovation demo path,
