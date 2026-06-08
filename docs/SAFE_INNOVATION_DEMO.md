@@ -133,20 +133,57 @@ For convenience, `examples/safe_innovation_demo.py` runs the whole flow. It is a
 `ApprovalDecisions.json`, so it is kept out of the core CLI surface to avoid
 implying a supported general auto-approval path.
 
-No-approval mode (blocked only; writes no approval decision):
+Blocked demo command (writes no approval decision):
 
 ```text
-python -m examples.safe_innovation_demo --run-root runs
+python -m examples.safe_innovation_demo --run-root runs/manual-demo
 ```
 
-Approval-demo mode (blocked, then explicit demo-local approval, then completed):
+Expected blocked status:
+
+- `planner_template: innovation`
+- `compilation_status: compiled`
+- `execution_status: blocked`
+- `review_required: true`
+- `blocked_by_review: true`
+
+The blocked summary also shows the candidate workflow graph:
 
 ```text
-python -m examples.safe_innovation_demo --run-root runs --demo-approve-current-request
+Candidate Workflow:
+- retrieve-1 [retrieve] Load Program Data
+  -> retrieve-2
+- retrieve-2 [retrieve] Gather Example Context
+  -> synthesize-1
+- synthesize-1 [synthesize] Generate Idea Candidates
+  -> synthesize-2
+- synthesize-2 [synthesize] Score Against Rubric
+  -> synthesize-3
+- synthesize-3 [synthesize] Synthesize MVP Plans
 ```
+
+Approved demo command (reruns the demo root, allows overwrite, and generates a
+demo-local approval for the current request only):
+
+```text
+python -m examples.safe_innovation_demo --run-root runs/manual-demo --allow-overwrite --demo-approve-current-request
+```
+
+Expected approved status:
+
+- `execution_status: completed`
+- `review_required: false`
+- `blocked_by_review: false`
+
+Safety invariants for both demo outputs:
+
+- `side_effects == []`
+- `produced_evidence == []`
+- approval is **demo-local** and **current-request only**
+- **no approval carryover**
+- **no authority subsumption**
+- **no real execution**
 
 Any approval it generates is **demo-local only**, applies to the **current
-run/request only**, and is **not a general auto-approval mechanism**. It still
-performs no real execution, calls no tools/connectors, implements no approval
-carryover and no authority subsumption, and `completed` means a completed safe
-no-op.
+run/request only**, and is **not a general auto-approval mechanism**.
+`completed` still means a **completed safe no-op**.
