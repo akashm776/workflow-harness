@@ -38,6 +38,36 @@ INNOVATION_REVIEW_PROPOSED_TOOL_ACCESS = {
         },
     ],
 }
+INNOVATION_REVIEW_COMPILER_AUTHORIZATION_PROJECTION = {
+    "display_only": True,
+    "compiler_owned_summary": True,
+    "not_executable": True,
+    "not_persisted_as_artifact": True,
+    "no_runtime_authority": True,
+    "current_run_scope_only": True,
+    "requested_authority": [
+        "tool: example-local-file-reader access_mode=read",
+        "connector: example-bitbucket scope=read:example/repo",
+        "connector: example-confluence scope=read:example/space",
+        "connector: example-issue-tracker scope=read:example/project",
+        "permission: read target=example/program-data",
+    ],
+    "approval_required": [
+        "tool: example-local-file-reader access_mode=read",
+        "connector: example-bitbucket scope=read:example/repo",
+        "connector: example-confluence scope=read:example/space",
+        "connector: example-issue-tracker scope=read:example/project",
+        "permission: read target=example/program-data",
+    ],
+    "blocked_authority": [
+        "tool: example-local-file-reader access_mode=read",
+        "connector: example-bitbucket scope=read:example/repo",
+        "connector: example-confluence scope=read:example/space",
+        "connector: example-issue-tracker scope=read:example/project",
+        "permission: read target=example/program-data",
+    ],
+    "unsupported_authority": [],
+}
 INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET = {
     "review_required": True,
     "blocked_by_review": True,
@@ -48,6 +78,7 @@ INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET = {
         "Candidate Workflow",
         "Fixture Lineage",
         "Proposed Tool Access",
+        "Compiler Authorization Projection",
     ],
 }
 
@@ -83,6 +114,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["approval_requests_path"])
             self.assertIsNone(summary["review_gate"])
             self.assertFalse(summary["candidate_dir_present"])
+            self.assertIsNone(summary["compiler_authorization_projection"])
             self.assertIsNone(summary["operator_review_packet"])
             self.assertIn("artifacts", summary)
             self.assertIn(
@@ -261,6 +293,10 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 INNOVATION_REVIEW_PROPOSED_TOOL_ACCESS,
             )
             self.assertEqual(
+                summary["compiler_authorization_projection"],
+                INNOVATION_REVIEW_COMPILER_AUTHORIZATION_PROJECTION,
+            )
+            self.assertEqual(
                 summary["operator_review_packet"],
                 INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET,
             )
@@ -278,6 +314,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
 
             self.assertIsNone(summary["fixture_lineage"])
             self.assertIsNone(summary["proposed_tool_access"])
+            self.assertIsNone(summary["compiler_authorization_projection"])
             self.assertEqual(
                 summary["operator_review_packet"],
                 {
@@ -344,6 +381,130 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 list(INNOVATION_CONTEXT_FIXTURE_PATHS),
             )
 
+    def test_compiler_authorization_projection_is_display_only_and_never_reads_future_fixture_paths(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+
+            original_exists = Path.exists
+            original_read_text = Path.read_text
+            original_open = Path.open
+            original_stat = Path.stat
+
+            def _is_projection_fixture_path(path: Path) -> bool:
+                normalized = str(path).replace("\\", "/")
+                return (
+                    "fixtures/future/compiler-authorization-summary/"
+                    in normalized
+                )
+
+            def guarded_exists(path: Path) -> bool:
+                if _is_projection_fixture_path(path):
+                    raise AssertionError(
+                        f"projection fixture exists() should not be called: {path}"
+                    )
+                return original_exists(path)
+
+            def guarded_read_text(path: Path, *args: object, **kwargs: object) -> str:
+                if _is_projection_fixture_path(path):
+                    raise AssertionError(
+                        f"projection fixture read_text() should not be called: {path}"
+                    )
+                return original_read_text(path, *args, **kwargs)
+
+            def guarded_open(path: Path, *args: object, **kwargs: object):
+                if _is_projection_fixture_path(path):
+                    raise AssertionError(
+                        f"projection fixture open() should not be called: {path}"
+                    )
+                return original_open(path, *args, **kwargs)
+
+            def guarded_stat(path: Path, *args: object, **kwargs: object):
+                if _is_projection_fixture_path(path):
+                    raise AssertionError(
+                        f"projection fixture stat() should not be called: {path}"
+                    )
+                return original_stat(path, *args, **kwargs)
+
+            with (
+                mock.patch.object(Path, "exists", guarded_exists),
+                mock.patch.object(Path, "read_text", guarded_read_text),
+                mock.patch.object(Path, "open", guarded_open),
+                mock.patch.object(Path, "stat", guarded_stat),
+            ):
+                summary = summarize_run_directory(run_dir)
+
+            self.assertEqual(
+                summary["compiler_authorization_projection"],
+                INNOVATION_REVIEW_COMPILER_AUTHORIZATION_PROJECTION,
+            )
+
+    def test_compiler_authorization_projection_uses_existing_diagnostics_when_present(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+
+            compilation_report_path = run_dir / "CompilationReport.json"
+            compilation_report = json.loads(
+                compilation_report_path.read_text(encoding="utf-8")
+            )
+            compilation_report["diagnostics"] = [
+                {
+                    "error_code": "UNSUPPORTED_EXECUTION_BINDING",
+                    "artifact": "RequestedAuth.json",
+                    "path": "$.requested_tools[0]",
+                }
+            ]
+            compilation_report_path.write_text(
+                json.dumps(compilation_report), encoding="utf-8"
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+            self.assertEqual(
+                summary["compiler_authorization_projection"]["unsupported_authority"],
+                [
+                    "UNSUPPORTED_EXECUTION_BINDING artifact=RequestedAuth.json "
+                    "path=$.requested_tools[0]"
+                ],
+            )
+
+    def test_blocked_innovation_review_summary_writes_no_new_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+            before = sorted(
+                str(path.relative_to(run_dir))
+                for path in run_dir.rglob("*")
+            )
+
+            summarize_run_directory(run_dir)
+
+            after = sorted(
+                str(path.relative_to(run_dir))
+                for path in run_dir.rglob("*")
+            )
+            self.assertEqual(before, after)
+
     def test_malformed_requested_auth_is_fail_soft_for_proposed_tool_access(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp) / "demo"
@@ -361,9 +522,15 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
 
             self.assertIsNotNone(summary["fixture_lineage"])
             self.assertIsNone(summary["proposed_tool_access"])
+            self.assertIsNotNone(summary["compiler_authorization_projection"])
             self.assertEqual(
                 summary["operator_review_packet"]["included_sections"],
-                ["Review Gate", "Candidate Workflow", "Fixture Lineage"],
+                [
+                    "Review Gate",
+                    "Candidate Workflow",
+                    "Fixture Lineage",
+                    "Compiler Authorization Projection",
+                ],
             )
 
     def test_missing_requested_auth_is_fail_soft_for_proposed_tool_access(self) -> None:
@@ -381,9 +548,15 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
 
             self.assertIsNotNone(summary["fixture_lineage"])
             self.assertIsNone(summary["proposed_tool_access"])
+            self.assertIsNotNone(summary["compiler_authorization_projection"])
             self.assertEqual(
                 summary["operator_review_packet"]["included_sections"],
-                ["Review Gate", "Candidate Workflow", "Fixture Lineage"],
+                [
+                    "Review Gate",
+                    "Candidate Workflow",
+                    "Fixture Lineage",
+                    "Compiler Authorization Projection",
+                ],
             )
 
     def test_missing_candidate_workflow_is_none(self) -> None:
@@ -397,6 +570,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["candidate_workflow"])
             self.assertIsNone(summary["fixture_lineage"])
             self.assertIsNone(summary["proposed_tool_access"])
+            self.assertIsNone(summary["compiler_authorization_projection"])
             self.assertIsNone(summary["operator_review_packet"])
 
     def test_missing_approval_requests_is_fail_soft_for_blocked_review_gate(self) -> None:

@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `481 tests` passing
+- `484 tests` passing
 
 ## Major Implemented Layers
 
@@ -265,13 +265,25 @@
   - it does not execute tools, does not enable connector support, does not
     change approval semantics, grants no authority, and remains fail-soft and
     operator-facing only.
+- display-only compiler authorization projection in the opt-in summary:
+  - for blocked explicit `innovation_review` proposals,
+    `cli.run_status_cli --summary` now also renders a
+    `Compiler Authorization Projection:` section.
+  - it is derived only from already-read `EffectivePolicy.json`, blocked-review
+    state, and existing `CompilationReport.json` diagnostics.
+  - it is display-only, compiler-owned summary metadata only, not executable,
+    not persisted as an artifact, grants no runtime authority, and is scoped to
+    the current run only.
+  - it does not load future fixtures, does not write artifacts, does not
+    change approval resolution, and does not change execution behavior.
 - display-only operator review packet in the opt-in summary:
   - when a safe no-op run is blocked by review,
     `cli.run_status_cli --summary` now also renders an
     `Operator Review Packet:` checklist.
   - it is derived only from already-computed summary fields such as
     `review_required`, `blocked_by_review`, `review_gate`,
-    `candidate_workflow`, `fixture_lineage`, and `proposed_tool_access`.
+    `candidate_workflow`, `fixture_lineage`, `proposed_tool_access`, and
+    `compiler_authorization_projection`.
   - it is operator-facing only, not a new artifact, not approval logic, not
     execution behavior, grants no authority, and remains fail-soft.
 - tool/connector/MCP trust-boundary design checkpoint:
