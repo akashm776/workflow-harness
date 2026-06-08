@@ -364,6 +364,7 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn("Review Gate:", rendered)
         self.assertIn("Candidate Workflow:", rendered)
         self.assertIn("Fixture Lineage:", rendered)
+        self.assertIn("Compiler Authorization Projection:", rendered)
         self.assertIn("Operator Review Packet:", rendered)
         self.assertIn("decision_scope: current run/request only", rendered)
         self.assertIn("execution_mode: safe_noop_only", rendered)
@@ -372,6 +373,7 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn("- Candidate Workflow", rendered)
         self.assertIn("- Fixture Lineage", rendered)
         self.assertIn("- Proposed Tool Access", rendered)
+        self.assertIn("- Compiler Authorization Projection", rendered)
         self.assertIn("display_only: true", rendered)
         self.assertIn("not_loaded: true", rendered)
         self.assertIn("not_control_plane_inputs: true", rendered)
@@ -379,6 +381,30 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn("proposal_only: true", rendered)
         self.assertIn("no_execution: true", rendered)
         self.assertIn("no_connector_support: true", rendered)
+        self.assertIn("compiler_owned_summary: true", rendered)
+        self.assertIn("not_executable: true", rendered)
+        self.assertIn("not_persisted_as_artifact: true", rendered)
+        self.assertIn("no_runtime_authority: true", rendered)
+        self.assertIn("current_run_scope_only: true", rendered)
+        self.assertIn("requested_authority:", rendered)
+        self.assertIn("approval_required:", rendered)
+        self.assertIn("blocked_authority:", rendered)
+        self.assertIn("unsupported_authority:", rendered)
+        self.assertIn(
+            "- tool: example-local-file-reader access_mode=read", rendered
+        )
+        self.assertIn(
+            "- connector: example-bitbucket scope=read:example/repo", rendered
+        )
+        self.assertIn(
+            "- connector: example-confluence scope=read:example/space", rendered
+        )
+        self.assertIn(
+            "- connector: example-issue-tracker scope=read:example/project",
+            rendered,
+        )
+        self.assertIn("- permission: read target=example/program-data", rendered)
+        self.assertIn("- []", rendered)
         self.assertIn("retrieve-1 [retrieve] Load Program Data", rendered)
         self.assertIn("dedupe-1 [synthesize] Dedupe Against Existing Work", rendered)
         self.assertIn("score-1 [synthesize] Score Against Rubric", rendered)
@@ -417,6 +443,14 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn(
             "reason: Innovation review template approval request.", rendered
         )
+        self.assertLess(
+            rendered.index("Proposed Tool Access:"),
+            rendered.index("Compiler Authorization Projection:"),
+        )
+        self.assertLess(
+            rendered.index("Compiler Authorization Projection:"),
+            rendered.index("Operator Review Packet:"),
+        )
 
     def test_summary_flag_innovation_review_blocked_run_matches_operator_surface_contract(
         self,
@@ -440,6 +474,7 @@ class RunStatusCliTests(unittest.TestCase):
             "Candidate Workflow:",
             "Fixture Lineage:",
             "Proposed Tool Access:",
+            "Compiler Authorization Projection:",
             "Operator Review Packet:",
         ):
             self.assertIn(section_name, rendered)
@@ -455,6 +490,11 @@ class RunStatusCliTests(unittest.TestCase):
             "no_connector_support: true",
             "not_loaded: true",
             "not_control_plane_inputs: true",
+            "compiler_owned_summary: true",
+            "not_executable: true",
+            "not_persisted_as_artifact: true",
+            "no_runtime_authority: true",
+            "current_run_scope_only: true",
         ):
             self.assertIn(required_text, rendered)
 
@@ -477,6 +517,7 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertNotIn("Fixture Lineage:", rendered)
         self.assertNotIn("fixtures/future/innovation-context/ProgramContext.json", rendered)
         self.assertNotIn("Proposed Tool Access:", rendered)
+        self.assertNotIn("Compiler Authorization Projection:", rendered)
         self.assertNotIn("- tool: example-local-file-reader", rendered)
         self.assertIn("Operator Review Packet:", rendered)
 

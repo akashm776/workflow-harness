@@ -31,6 +31,15 @@ INNOVATION_CONTEXT_FIXTURE_PATHS = (
     "fixtures/future/innovation-context/IssueTrackerContextSummary.json",
     "fixtures/future/innovation-context/Rubric.json",
 )
+UNSUPPORTED_AUTHORITY_DIAGNOSTIC_CODES = frozenset(
+    (
+        "UNSUPPORTED_SECRET_FIELD",
+        "UNSUPPORTED_CAPABILITY_ENVELOPE",
+        "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
+        "UNSUPPORTED_AUTHORITY_ARTIFACT",
+        "UNSUPPORTED_EXECUTION_BINDING",
+    )
+)
 
 
 def _safe_load_json(path: Path) -> Any | None:
@@ -255,6 +264,108 @@ def _extract_proposed_tool_access(
     }
 
 
+def _build_authority_projection_entries(effective_policy: Any) -> list[str]:
+    if not isinstance(effective_policy, dict):
+        return []
+
+    entries: list[str] = []
+
+    allowed_tools = effective_policy.get("allowed_tools")
+    if isinstance(allowed_tools, list):
+        for tool in allowed_tools:
+            tool_name = _get_str(tool, "tool_name")
+            if tool_name is None:
+                continue
+            access_mode = _get_str(tool, "access_mode")
+            suffix = f" access_mode={access_mode}" if access_mode is not None else ""
+            entries.append(f"tool: {tool_name}{suffix}")
+
+    allowed_connectors = effective_policy.get("allowed_connectors")
+    if isinstance(allowed_connectors, list):
+        for connector in allowed_connectors:
+            connector_name = _get_str(connector, "connector_name")
+            if connector_name is None:
+                continue
+            scope = _get_str(connector, "scope")
+            suffix = f" scope={scope}" if scope is not None else ""
+            entries.append(f"connector: {connector_name}{suffix}")
+
+    allowed_permissions = effective_policy.get("allowed_permissions")
+    if isinstance(allowed_permissions, list):
+        for permission_entry in allowed_permissions:
+            permission = _get_str(permission_entry, "permission")
+            target = _get_str(permission_entry, "target")
+            if permission is None:
+                continue
+            suffix = f" target={target}" if target is not None else ""
+            entries.append(f"permission: {permission}{suffix}")
+
+    return entries
+
+
+def _build_unsupported_authority_entries(compilation_report: Any) -> list[str]:
+    if not isinstance(compilation_report, dict):
+        return []
+
+    diagnostics = compilation_report.get("diagnostics")
+    if not isinstance(diagnostics, list):
+        return []
+
+    entries: list[str] = []
+    for diagnostic in diagnostics:
+        error_code = _get_str(diagnostic, "error_code")
+        if error_code is None or error_code not in UNSUPPORTED_AUTHORITY_DIAGNOSTIC_CODES:
+            continue
+
+        artifact = _get_str(diagnostic, "artifact")
+        path = _get_str(diagnostic, "path")
+        detail_parts = [error_code]
+        if artifact is not None:
+            detail_parts.append(f"artifact={artifact}")
+        if path is not None:
+            detail_parts.append(f"path={path}")
+        entries.append(" ".join(detail_parts))
+
+    return entries
+
+
+def _build_compiler_authorization_projection(
+    candidate_workflow: dict[str, Any] | None,
+    effective_policy: Any,
+    compilation_report: Any,
+    review_required: bool | None,
+    blocked_by_review: bool,
+) -> dict[str, Any] | None:
+    """Return a display-only compiler authorization projection for blocked innovation_review runs."""
+
+    workflow_id = _get_str(candidate_workflow, "workflow_id")
+    if workflow_id is None or not workflow_id.startswith(
+        INNOVATION_REVIEW_WORKFLOW_PREFIX
+    ):
+        return None
+
+    if review_required is not True or not blocked_by_review:
+        return None
+
+    requested_authority = _build_authority_projection_entries(effective_policy)
+    approval_required = list(requested_authority)
+    blocked_authority = list(requested_authority)
+    unsupported_authority = _build_unsupported_authority_entries(compilation_report)
+
+    return {
+        "display_only": True,
+        "compiler_owned_summary": True,
+        "not_executable": True,
+        "not_persisted_as_artifact": True,
+        "no_runtime_authority": True,
+        "current_run_scope_only": True,
+        "requested_authority": requested_authority,
+        "approval_required": approval_required,
+        "blocked_authority": blocked_authority,
+        "unsupported_authority": unsupported_authority,
+    }
+
+
 def _build_operator_review_packet(
     review_required: bool | None,
     blocked_by_review: bool,
@@ -262,6 +373,7 @@ def _build_operator_review_packet(
     candidate_workflow: dict[str, Any] | None,
     fixture_lineage: dict[str, Any] | None,
     proposed_tool_access: dict[str, Any] | None,
+    compiler_authorization_projection: dict[str, Any] | None,
 ) -> dict[str, Any] | None:
     """Return a display-only operator review checklist for blocked runs only."""
 
@@ -277,6 +389,8 @@ def _build_operator_review_packet(
         included_sections.append("Fixture Lineage")
     if proposed_tool_access is not None:
         included_sections.append("Proposed Tool Access")
+    if compiler_authorization_projection is not None:
+        included_sections.append("Compiler Authorization Projection")
 
     return {
         "review_required": True,
@@ -321,6 +435,13 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
     candidate_workflow = _extract_candidate_workflow(run_path)
     fixture_lineage = _extract_fixture_lineage(candidate_workflow)
     proposed_tool_access = _extract_proposed_tool_access(run_path, candidate_workflow)
+    compiler_authorization_projection = _build_compiler_authorization_projection(
+        candidate_workflow,
+        effective_policy,
+        compilation_report,
+        review_required,
+        blocked_by_review,
+    )
 
     return {
         "run_dir": str(run_path),
@@ -338,6 +459,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "candidate_workflow": candidate_workflow,
         "fixture_lineage": fixture_lineage,
         "proposed_tool_access": proposed_tool_access,
+        "compiler_authorization_projection": compiler_authorization_projection,
         "operator_review_packet": _build_operator_review_packet(
             review_required,
             blocked_by_review,
@@ -345,6 +467,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
             candidate_workflow,
             fixture_lineage,
             proposed_tool_access,
+            compiler_authorization_projection,
         ),
         "status_command": (
             f"python -m cli.run_status_cli --run-dir {run_path} --view"

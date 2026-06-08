@@ -11,8 +11,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Implementation checkpoint before this hardening-map slice: 0ae585c Reject unsupported secret fields`
 - `Implementation checkpoint before this authorization-summary slice: 2bac7e4 Document static validation hardening map`
 - `Implementation checkpoint before this projection slice: 07c100e Document compiler authorization summary design`
+- `Implementation checkpoint before this display-only compiler-authorization-projection slice: af7ca95 Document compiler authorization summary projection`
 - `V1 remains safe no-op only`
-- `481 tests passing`
+- `484 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -37,6 +38,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - inert future-only compiler authorization summary fixture
 - compiler authorization summary projection design
 - inert future-only compiler authorization summary projection fixture
+- display-only compiler authorization projection for blocked `innovation_review` summaries
 - safeguard advisory design checkpoint
 - inert future-only safeguard advisory fixtures
 - fail-closed unsupported safeguard authority-claim rejection
@@ -68,6 +70,15 @@ proposal only, shows proposed tools and connector metadata as display-only
 operator guidance, does not execute tools, does not enable connector support,
 does not change approval semantics, and remains fail-soft and operator-facing
 only.
+
+Display-only compiler authorization projection is now implemented as an opt-in
+`cli.run_status_cli --summary` section for blocked explicit
+`innovation_review` proposals. It is derived only from already-read
+`EffectivePolicy.json`, blocked-review state, and existing
+`CompilationReport.json` diagnostics; it is display-only, compiler-owned
+summary metadata only, not executable, not persisted as an artifact, grants no
+runtime authority, does not load future fixtures, does not write artifacts,
+and does not change approval resolution or execution behavior.
 
 Display-only Operator Review Packet is now implemented as an opt-in
 `cli.run_status_cli --summary` checklist for blocked safe no-op runs. It is
@@ -243,6 +254,23 @@ display-only operator-surface checkpoint.
 - it is not approval logic
 - it is not execution behavior
 - no authority is granted
+
+### Implemented checkpoint: Display-only compiler authorization projection
+
+- `cli.run_status_cli --summary` now shows a
+  `Compiler Authorization Projection:` section for blocked explicit
+  `innovation_review` proposals
+- it is derived only from already-read `EffectivePolicy.json`,
+  blocked-review state, and existing `CompilationReport.json` diagnostics
+- display-only
+- compiler-owned summary metadata only
+- not executable
+- not persisted as an artifact
+- no runtime authority
+- no fixture loading
+- no artifact writing
+- no approval behavior changes
+- no execution behavior changes
 
 ## Hard Non-Goals
 

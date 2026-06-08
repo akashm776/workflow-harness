@@ -70,6 +70,13 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(proposed_tool_access_lines)
 
+    compiler_authorization_projection_lines = _compiler_authorization_projection_lines(
+        summary.get("compiler_authorization_projection")
+    )
+    if compiler_authorization_projection_lines:
+        lines.append("")
+        lines.extend(compiler_authorization_projection_lines)
+
     operator_review_packet_lines = _operator_review_packet_lines(
         summary.get("operator_review_packet")
     )
@@ -246,5 +253,55 @@ def _operator_review_packet_lines(operator_review_packet: Any) -> list[str]:
         for section_name in included_sections:
             if isinstance(section_name, str):
                 lines.append(f"- {section_name}")
+
+    return lines
+
+
+def _compiler_authorization_projection_lines(
+    compiler_authorization_projection: Any,
+) -> list[str]:
+    if not isinstance(compiler_authorization_projection, Mapping):
+        return []
+
+    lines = ["Compiler Authorization Projection:"]
+    lines.append(
+        "display_only: "
+        f"{_bool_text(compiler_authorization_projection.get('display_only'))}"
+    )
+    lines.append(
+        "compiler_owned_summary: "
+        f"{_bool_text(compiler_authorization_projection.get('compiler_owned_summary'))}"
+    )
+    lines.append(
+        "not_executable: "
+        f"{_bool_text(compiler_authorization_projection.get('not_executable'))}"
+    )
+    lines.append(
+        "not_persisted_as_artifact: "
+        f"{_bool_text(compiler_authorization_projection.get('not_persisted_as_artifact'))}"
+    )
+    lines.append(
+        "no_runtime_authority: "
+        f"{_bool_text(compiler_authorization_projection.get('no_runtime_authority'))}"
+    )
+    lines.append(
+        "current_run_scope_only: "
+        f"{_bool_text(compiler_authorization_projection.get('current_run_scope_only'))}"
+    )
+
+    for field_name in (
+        "requested_authority",
+        "approval_required",
+        "blocked_authority",
+        "unsupported_authority",
+    ):
+        lines.append(f"{field_name}:")
+        values = compiler_authorization_projection.get(field_name)
+        if isinstance(values, list) and values:
+            for value in values:
+                if isinstance(value, str):
+                    lines.append(f"- {value}")
+        else:
+            lines.append("- []")
 
     return lines
