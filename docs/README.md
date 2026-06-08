@@ -77,6 +77,11 @@ design gates. The design-only documents in this section are not implementations.
   skills, prompt-template references, approvals, and broker bindings only. No
   ambient authority, no approval carryover, no authority subsumption, and no
   execution behavior is enabled in V1 safe no-op.
+- [`CAPABILITY_ENVELOPE_V1_DESIGN.md`](CAPABILITY_ENVELOPE_V1_DESIGN.md) - the
+  V1 boundary checkpoint for future compiled capability envelopes: planner may
+  request capabilities but cannot authorize them, compiler remains the only
+  future authority boundary that may produce compiled envelopes, and V1 rejects
+  planner-supplied capability-envelope fields fail-closed.
 - [`SKILL_PROMPT_REGISTRY_DESIGN.md`](SKILL_PROMPT_REGISTRY_DESIGN.md) - the
   future design for `SkillRegistry` and `PromptTemplateRegistry`: planner
   proposals remain non-authoritative, prompts and skills stay versioned/reviewed
@@ -111,6 +116,9 @@ connectors, and are not wired into compile or runtime behavior.
 - `fixtures/future/side-effect-catalog/SideEffectCatalog.json` is an example
   catalog validated only by `compiler/side_effect_catalog_schema_validator.py`. It
   grants no authority. See [`../fixtures/future/README.md`](../fixtures/future/README.md).
+- `fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json`
+  is an inert display-only example shape. It is not executable, not consumed by
+  compile/runtime, and grants no authority.
 
 ## 4. Handoff
 

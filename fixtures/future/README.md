@@ -18,6 +18,10 @@ Current future-only fixture sets include:
 - `innovation-context/` for local fake program/repo/wiki/issue/rubric summaries.
   V1 does **not** load, execute, connect, or call MCP/tools/connectors from
   these fixtures.
+- `capability-envelope/CompiledCapabilityEnvelope.example.json` for a
+  display-only, not executable, compiler-owned future capability-envelope
+  example. It is not consumed by compile or runtime behavior. V1 does **not**
+  compile it, consume it, execute it, or grant authority from it.
 
 Nothing here grants authority or enables any capability. The compiler remains the
 sole authority boundary, and V1 remains safe no-op only.

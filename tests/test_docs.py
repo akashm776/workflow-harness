@@ -16,6 +16,7 @@ SIDE_EFFECT_CATALOG_PATH = ROOT / "docs" / "SIDE_EFFECT_CATALOG_DESIGN.md"
 TOOL_CONNECTOR_CATALOG_PATH = ROOT / "docs" / "TOOL_CONNECTOR_CATALOG_DESIGN.md"
 SANDBOX_BROKER_INTERFACE_PATH = ROOT / "docs" / "SANDBOX_BROKER_INTERFACE_DESIGN.md"
 CAPABILITY_ENVELOPE_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_DESIGN.md"
+CAPABILITY_ENVELOPE_V1_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_V1_DESIGN.md"
 SKILL_PROMPT_REGISTRY_PATH = ROOT / "docs" / "SKILL_PROMPT_REGISTRY_DESIGN.md"
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
@@ -103,7 +104,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("434 tests", content)
+        self.assertIn("442 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -207,6 +208,9 @@ class DocsTests(unittest.TestCase):
         self.assertIn("registry/SideEffectClasses.json", content)
         self.assertIn("UNSUPPORTED_EXECUTION_BINDING", content)
         self.assertIn("CAPABILITY_ENVELOPE_DESIGN.md", content)
+        self.assertIn("CAPABILITY_ENVELOPE_V1_DESIGN.md", content)
+        self.assertIn("CompiledCapabilityEnvelope.example.json", content)
+        self.assertIn("UNSUPPORTED_CAPABILITY_ENVELOPE", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
@@ -533,6 +537,47 @@ class DocsTests(unittest.TestCase):
         self.assertIn("mcp/network", lowered)
         self.assertIn("sandbox/broker behavior", lowered)
 
+    def test_capability_envelope_v1_design_doc_exists_and_is_design_only(
+        self,
+    ) -> None:
+        self.assertTrue(CAPABILITY_ENVELOPE_V1_PATH.exists())
+        content = CAPABILITY_ENVELOPE_V1_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        self.assertIn("design only", lowered)
+        self.assertIn("not implemented", lowered)
+        self.assertIn(
+            "Planner may request capabilities, but cannot authorize them",
+            content,
+        )
+        self.assertIn(
+            "Compiler is the only future authority boundary",
+            content,
+        )
+        self.assertIn(
+            "Runtime/broker may eventually execute only against compiler-approved",
+            content,
+        )
+        self.assertIn("V1 currently does not execute envelopes", content)
+        self.assertIn("V1 currently does not grant capabilities", content)
+        self.assertIn(
+            "V1 currently does not call tools, connectors, or MCP",
+            content,
+        )
+        self.assertIn("must not contain credentials", content)
+        self.assertIn("must be node-scoped", content)
+        self.assertIn("explicit run scope", content)
+        self.assertIn("explicit node scope", content)
+        self.assertIn("must be approval-bound", content)
+        self.assertIn("must be auditable", content)
+        self.assertIn("immutable once compiled", content)
+        self.assertIn("broker/sandbox enforcement is out of scope", content)
+        self.assertIn("UNSUPPORTED_CAPABILITY_ENVELOPE", content)
+        self.assertIn("does not enable", lowered)
+        self.assertIn("tool support", lowered)
+        self.assertIn("connector support", lowered)
+        self.assertIn("mcp support", lowered)
+
     def test_skill_prompt_registry_design_doc_exists_and_is_design_only(
         self,
     ) -> None:
@@ -660,18 +705,25 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn(
-            "Implementation checkpoint before this operator-review-packet slice: 3d88c2b Show display-only proposed tool access",
+            "Implementation checkpoint before this capability-envelope-v1 slice: a881b4f Add blocked review summary contract test",
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("434 tests passing", content)
+        self.assertIn("442 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
         self.assertIn("display-only fixture lineage for `innovation_review` summary", content)
         self.assertIn("display-only proposed tool access for `innovation_review` summary", content)
         self.assertIn("display-only Operator Review Packet for blocked summaries", content)
+        self.assertIn("capability envelope V1 design checkpoint", content)
+        self.assertIn("inert future-only capability envelope example fixture", content)
+        self.assertIn("fail-closed unsupported capability envelope rejection", content)
         self.assertIn("fixtures/future/innovation-context/", content)
+        self.assertIn(
+            "fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json",
+            content,
+        )
         self.assertIn("does not load them", content)
         self.assertIn("connect to tools/connectors/MCP", content)
         self.assertIn("--planner-template innovation_review", content)
@@ -690,6 +742,13 @@ class DocsTests(unittest.TestCase):
             "`cli.run_status_cli --summary` now shows known future fixture paths as",
             "Display-only proposed tool access is now implemented",
             "Display-only Operator Review Packet is now implemented",
+            "Capability envelope V1 design is now documented",
+            "planner requests remain",
+            "only the compiler may eventually produce compiled envelopes",
+            "display-only, not executable, compiler-owned example data only",
+            "UNSUPPORTED_CAPABILITY_ENVELOPE",
+            "does not generate",
+            "does not consume",
             "RequestedAuth.json",
             "shows proposed tools and connector metadata as display-only",
             "blocked safe no-op runs",
@@ -760,6 +819,7 @@ class DocsTests(unittest.TestCase):
             "SIDE_EFFECT_CATALOG_DESIGN.md",
             "TOOL_CONNECTOR_CATALOG_DESIGN.md",
             "CAPABILITY_ENVELOPE_DESIGN.md",
+            "CAPABILITY_ENVELOPE_V1_DESIGN.md",
             "SKILL_PROMPT_REGISTRY_DESIGN.md",
             "SANDBOX_BROKER_INTERFACE_DESIGN.md",
         ):
@@ -781,6 +841,7 @@ class DocsTests(unittest.TestCase):
         # Mentions the example/future-only fixtures.
         self.assertIn("fixtures/future/", content)
         self.assertIn("SideEffectCatalog.json", content)
+        self.assertIn("CompiledCapabilityEnvelope.example.json", content)
         self.assertIn("example/future-only artifacts", content)
         # Mentions the end-to-end demo CLI.
         self.assertIn("cli/workflow_demo_cli.py", content)

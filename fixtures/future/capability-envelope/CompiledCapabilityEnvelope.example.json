@@ -1,0 +1,35 @@
+{
+  "display_only": true,
+  "not_executable": true,
+  "compiler_owned": true,
+  "future_only_example": true,
+  "run_scope": {
+    "run_id": "example-run-001",
+    "request_scope": "current-run-request-only"
+  },
+  "node_scope": {
+    "node_id": "synthesize-1",
+    "workflow_revision_id": "planner-innovation-review-workflow-rev-example"
+  },
+  "approval_binding": {
+    "review_required": true,
+    "approval_request_id": "example-approval-request-001",
+    "approval_subject_hash": "example-approval-subject-hash-001"
+  },
+  "auditable": true,
+  "immutable_once_compiled": true,
+  "allowed_tools": [],
+  "allowed_skills": [],
+  "allowed_prompt_templates": [],
+  "allowed_inputs": [
+    "ProgramContext.json",
+    "Rubric.json"
+  ],
+  "allowed_outputs": [
+    "InnovationIdeaCandidates.json"
+  ],
+  "notes": [
+    "compiler-produced example shape only",
+    "not used by V1 compile, runtime, or CLI"
+  ]
+}

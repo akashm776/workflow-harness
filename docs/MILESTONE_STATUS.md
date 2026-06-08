@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `434 tests` passing
+- `442 tests` passing
 
 ## Major Implemented Layers
 
@@ -296,6 +296,15 @@
     enforce the envelope.
   - skills, tools, prompt templates, approvals, and broker bindings stay
     explicit per node; no ambient authority is granted.
+- capability envelope V1 checkpoint and fail-closed rejection:
+  - `CAPABILITY_ENVELOPE_V1_DESIGN.md` records that planner capability requests
+    remain non-authoritative, only the compiler may eventually produce compiled
+    envelopes, and V1 neither generates nor consumes capability envelopes.
+  - `fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json`
+    is an inert display-only, not executable, compiler-owned example shape only.
+  - `compiler/static_validation.py` now rejects planner-controlled capability or
+    authority envelope fields in candidate artifacts with
+    `UNSUPPORTED_CAPABILITY_ENVELOPE`.
 
 ## Explicit Non-Goals
 

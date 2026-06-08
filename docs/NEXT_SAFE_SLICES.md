@@ -5,9 +5,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 ## Current Checkpoint
 
 - `Baseline before this handoff slice: f7de8c4 Update safe noop milestone status`
-- `Implementation checkpoint before this operator-review-packet slice: 3d88c2b Show display-only proposed tool access`
+- `Implementation checkpoint before this capability-envelope-v1 slice: a881b4f Add blocked review summary contract test`
 - `V1 remains safe no-op only`
-- `434 tests passing`
+- `442 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -23,6 +23,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - inert side-effect class registry
 - fail-closed unsupported execution binding rejection
 - capability envelope design
+- capability envelope V1 design checkpoint
+- inert future-only capability envelope example fixture
+- fail-closed unsupported capability envelope rejection
 - milestone docs updated
 
 The richer deterministic innovation template slice is now implemented as the
@@ -55,6 +58,25 @@ Display-only Operator Review Packet is now implemented as an opt-in
 derived only from already-computed summary fields, is operator-facing only, is
 not a new artifact, does not change approval logic, does not change execution
 behavior, and grants no authority.
+
+Capability envelope V1 design is now documented in
+`CAPABILITY_ENVELOPE_V1_DESIGN.md`. It states that planner requests remain
+non-authoritative, only the compiler may eventually produce compiled envelopes,
+V1 does not execute envelopes, and future broker/sandbox enforcement remains
+out of scope.
+
+An inert future-only capability-envelope example now exists at
+`fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json`.
+It is display-only, not executable, compiler-owned example data only, is not
+consumed by compile/runtime/CLI behavior, and grants no authority.
+
+Fail-closed unsupported capability-envelope rejection is now implemented in
+`compiler/static_validation.py`. Planner-controlled artifacts that attempt to
+include capability-envelope, authority-envelope, approved-capability, or
+credential-bearing authority fields are rejected with
+`UNSUPPORTED_CAPABILITY_ENVELOPE`. This is rejection-only, does not generate
+capability envelopes, does not consume capability envelopes, and does not
+change runtime, CLI summary, approval, or execution behavior.
 
 ## Recommended Next Safe Slices
 

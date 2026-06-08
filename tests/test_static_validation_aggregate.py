@@ -64,6 +64,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             "compiler.static_validation.validate_approval_requests_schema",
             return_value=success,
         ), patch(
+            "compiler.static_validation.validate_unsupported_capability_envelope_fields",
+            return_value=success,
+        ), patch(
             "compiler.static_validation.validate_unsupported_execution_bindings",
             return_value=success,
         ), patch("compiler.static_validation.validate_unknown_node_types", return_value=success), patch(
@@ -159,6 +162,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             "compiler.static_validation.validate_approval_requests_schema",
             return_value={"ok": True, "diagnostic": None},
         ), patch(
+            "compiler.static_validation.validate_unsupported_capability_envelope_fields",
+            return_value={"ok": True, "diagnostic": None},
+        ), patch(
             "compiler.static_validation.validate_unsupported_execution_bindings",
             return_value={"ok": True, "diagnostic": None},
         ):
@@ -217,6 +223,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_approval_requests_schema",
+            return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_capability_envelope_fields",
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_unsupported_execution_bindings",
