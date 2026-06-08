@@ -17,6 +17,7 @@ TOOL_CONNECTOR_CATALOG_PATH = ROOT / "docs" / "TOOL_CONNECTOR_CATALOG_DESIGN.md"
 SANDBOX_BROKER_INTERFACE_PATH = ROOT / "docs" / "SANDBOX_BROKER_INTERFACE_DESIGN.md"
 CAPABILITY_ENVELOPE_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_DESIGN.md"
 CAPABILITY_ENVELOPE_V1_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_V1_DESIGN.md"
+SAFEGUARD_ADVISORY_PATH = ROOT / "docs" / "SAFEGUARD_ADVISORY_DESIGN.md"
 SKILL_PROMPT_REGISTRY_PATH = ROOT / "docs" / "SKILL_PROMPT_REGISTRY_DESIGN.md"
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
@@ -104,7 +105,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("442 tests", content)
+        self.assertIn("453 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -209,8 +210,11 @@ class DocsTests(unittest.TestCase):
         self.assertIn("UNSUPPORTED_EXECUTION_BINDING", content)
         self.assertIn("CAPABILITY_ENVELOPE_DESIGN.md", content)
         self.assertIn("CAPABILITY_ENVELOPE_V1_DESIGN.md", content)
+        self.assertIn("SAFEGUARD_ADVISORY_DESIGN.md", content)
         self.assertIn("CompiledCapabilityEnvelope.example.json", content)
         self.assertIn("UNSUPPORTED_CAPABILITY_ENVELOPE", content)
+        self.assertIn("SafeguardAdvisory.example.json", content)
+        self.assertIn("UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM", content)
         self.assertIn("authority schema hardening", content)
         self.assertIn("compiler/authority_value_validator.py", content)
         self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
@@ -578,6 +582,37 @@ class DocsTests(unittest.TestCase):
         self.assertIn("connector support", lowered)
         self.assertIn("mcp support", lowered)
 
+    def test_safeguard_advisory_design_doc_exists_and_is_design_only(
+        self,
+    ) -> None:
+        self.assertTrue(SAFEGUARD_ADVISORY_PATH.exists())
+        content = SAFEGUARD_ADVISORY_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        self.assertIn("design only", lowered)
+        self.assertIn("not implemented", lowered)
+        self.assertIn("advisory only", content)
+        self.assertIn("not authority", content)
+        self.assertIn("cannot approve", content)
+        self.assertIn("cannot grant capabilities", content)
+        self.assertIn("cannot unblock execution", content)
+        self.assertIn("cannot change approval semantics", content)
+        self.assertIn("authority boundary", content)
+        self.assertIn("Operator/human approval remains explicit", content)
+        self.assertIn("compiler-approved", content)
+        self.assertIn("V1 does not call any safeguard model", content)
+        self.assertIn("V1 does not download any model", content)
+        self.assertIn("OpenAI API", content)
+        self.assertIn("Ollama", content)
+        self.assertIn("vLLM", content)
+        self.assertIn("LM Studio", content)
+        self.assertIn("Transformers", content)
+        self.assertIn("local inference", content)
+        self.assertIn("warn, block/escalate, or add review findings", content)
+        self.assertIn("may never approve, authorize, grant capabilities, or execute", content)
+        self.assertIn("Do not depend on hidden chain-of-thought", content)
+        self.assertIn("UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM", content)
+
     def test_skill_prompt_registry_design_doc_exists_and_is_design_only(
         self,
     ) -> None:
@@ -705,11 +740,11 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn(
-            "Implementation checkpoint before this capability-envelope-v1 slice: a881b4f Add blocked review summary contract test",
+            "Implementation checkpoint before this safeguard-advisory slice: 6c81a23 Reject unsupported capability envelopes",
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("442 tests passing", content)
+        self.assertIn("453 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -719,9 +754,16 @@ class DocsTests(unittest.TestCase):
         self.assertIn("capability envelope V1 design checkpoint", content)
         self.assertIn("inert future-only capability envelope example fixture", content)
         self.assertIn("fail-closed unsupported capability envelope rejection", content)
+        self.assertIn("safeguard advisory design checkpoint", content)
+        self.assertIn("inert future-only safeguard advisory fixtures", content)
+        self.assertIn("fail-closed unsupported safeguard authority-claim rejection", content)
         self.assertIn("fixtures/future/innovation-context/", content)
         self.assertIn(
             "fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json",
+            content,
+        )
+        self.assertIn(
+            "fixtures/future/safeguard-advisory/SafeguardAdvisory.example.json",
             content,
         )
         self.assertIn("does not load them", content)
@@ -749,6 +791,16 @@ class DocsTests(unittest.TestCase):
             "UNSUPPORTED_CAPABILITY_ENVELOPE",
             "does not generate",
             "does not consume",
+            "Safeguard advisory design is now documented",
+            "advisory only",
+            "cannot approve",
+            "cannot grant capabilities",
+            "cannot unblock execution",
+            "V1 does not call, download, or run any safeguard model",
+            "WorkflowHarnessSafeguardPolicy.md",
+            "SafeguardAdvisory.example.json",
+            "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
+            "does not add API/network behavior",
             "RequestedAuth.json",
             "shows proposed tools and connector metadata as display-only",
             "blocked safe no-op runs",
@@ -820,6 +872,7 @@ class DocsTests(unittest.TestCase):
             "TOOL_CONNECTOR_CATALOG_DESIGN.md",
             "CAPABILITY_ENVELOPE_DESIGN.md",
             "CAPABILITY_ENVELOPE_V1_DESIGN.md",
+            "SAFEGUARD_ADVISORY_DESIGN.md",
             "SKILL_PROMPT_REGISTRY_DESIGN.md",
             "SANDBOX_BROKER_INTERFACE_DESIGN.md",
         ):
@@ -842,6 +895,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("fixtures/future/", content)
         self.assertIn("SideEffectCatalog.json", content)
         self.assertIn("CompiledCapabilityEnvelope.example.json", content)
+        self.assertIn("SafeguardAdvisory.example.json", content)
         self.assertIn("example/future-only artifacts", content)
         # Mentions the end-to-end demo CLI.
         self.assertIn("cli/workflow_demo_cli.py", content)

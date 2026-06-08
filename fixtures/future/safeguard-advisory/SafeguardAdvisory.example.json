@@ -1,0 +1,19 @@
+{
+  "schema_version": "safeguard-advisory.v1.example",
+  "display_only": true,
+  "advisory_only": true,
+  "not_authority": true,
+  "cannot_approve": true,
+  "cannot_grant_capabilities": true,
+  "cannot_unblock_execution": true,
+  "policy_id": "workflow-harness-safeguard-policy-v1",
+  "result": "needs_review",
+  "findings": [
+    {
+      "severity": "medium",
+      "category": "tool_or_connector_execution_request",
+      "rule_id": "WH-SG-004",
+      "message": "Requested connector access must remain display-only until broker-mediated execution exists."
+    }
+  ]
+}
