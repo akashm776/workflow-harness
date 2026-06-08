@@ -147,6 +147,11 @@ The summary reports the selected `planner_template`. Innovation/idea/MVP prompts
 goals use the stub template. Both are deterministic proposals only: no LLM
 planning, no real tools/connectors, no sandbox, and no real execution.
 
+The repository also includes `examples/safe_innovation_demo.py`, an example-only
+wrapper kept out of `cli/`. It composes the blocked safe innovation demo path,
+and optionally a demo-local explicit approval path, without creating a general
+approval helper.
+
 ## CLI Modes
 
 - Default mode runs the full safe no-op orchestration path.
@@ -171,6 +176,11 @@ planning, no real tools/connectors, no sandbox, and no real execution.
   performs no execution, and grants no authority. It does not validate artifacts
   or confer authority. The default `cli.run_status_cli` (default JSON, `--text`,
   `--view`) remains existence-only and unchanged.
+- When a safe no-op run is blocked by review, `cli.run_status_cli --summary`
+  also renders a display-only `Review Gate:` section. It reads
+  `candidate/ApprovalRequests.json` fail-soft for operator guidance only, does
+  not validate approval semantics, and does not approve anything. Unblocking
+  still requires an explicit matching `ApprovalDecisions.json` for the current run/request only.
 
 ## Exit Codes
 
@@ -211,10 +221,14 @@ Failed compile emits:
 
 - No real execution
 - No tools or connectors
+- No MCP/network calls
+- No sandbox/broker implementation
 - Runtime artifacts are not included in `CompiledArtifactIndex.json`
 - Approvals do not carry over between runs
 - No policy evaluation beyond the current skeleton
 - Runtime start depends on compiled artifacts only
+- Compiler validation rejects unsupported node-level tool/connector/broker/MCP
+  execution intent with `UNSUPPORTED_EXECUTION_BINDING`
 - `--dry-run` and `--check` do not write compile bundles, audit logs, manifests, or execution results
 - `inspect_run_directory(...)` and the default `cli.run_status_cli` (default JSON,
   `--text`, `--view`) do not read or validate JSON contents (existence-only)
