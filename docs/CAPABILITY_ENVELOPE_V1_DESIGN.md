@@ -35,10 +35,14 @@ output.
 
 Planner-controlled artifacts must not smuggle authority through fields such as
 `capability_envelope`, `compiled_capability_envelopes`,
-`authority_envelopes`, `runtime_capabilities`, `approved_capabilities`,
-`credential`, or `credentials`. When present in planner-controlled artifacts,
-V1 should reject them fail-closed with `UNSUPPORTED_CAPABILITY_ENVELOPE`
+`authority_envelopes`, `runtime_capabilities`, or
+`approved_capabilities`. When present in planner-controlled artifacts, V1
+should reject them fail-closed with `UNSUPPORTED_CAPABILITY_ENVELOPE`
 instead of treating them as meaningful input.
+
+Secret-like planner fields such as `credential` and `credentials` are owned by
+the dedicated secret-field guard and should be rejected fail-closed with
+`UNSUPPORTED_SECRET_FIELD` instead of capability-envelope diagnostics.
 
 ## Future Enforcement Boundary
 

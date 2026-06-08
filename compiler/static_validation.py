@@ -438,6 +438,21 @@ _UNSUPPORTED_CAPABILITY_ENVELOPE_KEYS = frozenset(
         "authority_envelopes",
         "runtime_capabilities",
         "approved_capabilities",
+    }
+)
+
+_UNSUPPORTED_SECRET_FIELD_KEYS = frozenset(
+    {
+        "token",
+        "tokens",
+        "secret",
+        "secrets",
+        "password",
+        "passwords",
+        "api_key",
+        "api_keys",
+        "private_key",
+        "private_keys",
         "credential",
         "credentials",
     }
@@ -546,6 +561,38 @@ def _find_unsupported_capability_envelope_paths(
     return findings
 
 
+def _find_unsupported_secret_field_paths(
+    value: Any,
+    *,
+    path: str,
+) -> list[str]:
+    findings: list[str] = []
+
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            if key in _UNSUPPORTED_SECRET_FIELD_KEYS:
+                findings.append(child_path)
+            findings.extend(
+                _find_unsupported_secret_field_paths(
+                    child,
+                    path=child_path,
+                )
+            )
+        return findings
+
+    if isinstance(value, list):
+        for index, child in enumerate(value):
+            findings.extend(
+                _find_unsupported_secret_field_paths(
+                    child,
+                    path=f"{path}[{index}]",
+                )
+            )
+
+    return findings
+
+
 def _find_unsupported_safeguard_authority_claim_paths(
     value: Any,
     *,
@@ -632,7 +679,36 @@ def validate_unsupported_capability_envelope_fields(
             "message": (
                 f"unsupported capability/authority envelope field in {artifact_name}; "
                 "V1 safe no-op does not accept planner-supplied capability envelopes, "
-                "approved capabilities, or credential-bearing authority fields: "
+                "approved capabilities, or authority-envelope fields: "
+                + ", ".join(findings)
+            ),
+        },
+    }
+
+
+def validate_unsupported_secret_fields(
+    artifact_path: str | Path,
+    artifact_name: str,
+) -> dict[str, Any]:
+    artifact = _load_json(artifact_path)
+    findings = _find_unsupported_secret_field_paths(artifact, path="$")
+
+    if not findings:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "UNSUPPORTED_SECRET_FIELD",
+            "component": "secret_field_validator",
+            "artifact": artifact_name,
+            "message": (
+                f"unsupported secret-bearing field in {artifact_name}; "
+                "V1 safe no-op does not accept planner-supplied tokens, secrets, "
+                "passwords, API keys, private keys, or credentials: "
                 + ", ".join(findings)
             ),
         },
@@ -1047,7 +1123,7 @@ def validate_static_inputs(
     # Phase 2: schema validators (graph validators must not see malformed shapes)
     # Phase 3: interpretation validators (graph, scope, approval semantics).
     # Ordering within the phase is deterministic and fail-closed:
-    # capability-envelope, safeguard-authority-claim,
+    # secret-field, capability-envelope, safeguard-authority-claim,
     # authority-artifact-ownership, execution-binding, then graph/scope/approval.
 
     # Phase 1: authority-value validators.
@@ -1082,6 +1158,15 @@ def validate_static_inputs(
 
     # Phase 3: interpretation validators.
     phase_interpretation = [
+        lambda: validate_unsupported_secret_fields(
+            workflow_spec_path, "WorkflowSpec.json"
+        ),
+        lambda: validate_unsupported_secret_fields(
+            requested_auth_path, "RequestedAuth.json"
+        ),
+        lambda: validate_unsupported_secret_fields(
+            approval_requests_path, "ApprovalRequests.json"
+        ),
         lambda: validate_unsupported_capability_envelope_fields(
             workflow_spec_path, "WorkflowSpec.json"
         ),

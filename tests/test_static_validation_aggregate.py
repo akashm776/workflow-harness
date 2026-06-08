@@ -76,6 +76,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             "compiler.static_validation.validate_approval_requests_schema",
             return_value=success,
         ), patch(
+            "compiler.static_validation.validate_unsupported_secret_fields",
+            return_value=success,
+        ), patch(
             "compiler.static_validation.validate_unsupported_capability_envelope_fields",
             return_value=success,
         ), patch(
@@ -180,6 +183,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             "compiler.static_validation.validate_approval_requests_schema",
             return_value={"ok": True, "diagnostic": None},
         ), patch(
+            "compiler.static_validation.validate_unsupported_secret_fields",
+            return_value={"ok": True, "diagnostic": None},
+        ), patch(
             "compiler.static_validation.validate_unsupported_capability_envelope_fields",
             return_value={"ok": True, "diagnostic": None},
         ), patch(
@@ -247,6 +253,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_approval_requests_schema",
+            return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_secret_fields",
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_unsupported_capability_envelope_fields",
@@ -336,6 +345,28 @@ class StaticValidationAggregateTests(unittest.TestCase):
         ), patch(
             "compiler.static_validation.validate_approval_requests_schema",
             return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_secret_fields",
+            side_effect=[
+                failure(
+                    "UNSUPPORTED_SECRET_FIELD",
+                    "secret_field_validator",
+                    "WorkflowSpec.json",
+                    "secret workflow",
+                ),
+                failure(
+                    "UNSUPPORTED_SECRET_FIELD",
+                    "secret_field_validator",
+                    "RequestedAuth.json",
+                    "secret requested",
+                ),
+                failure(
+                    "UNSUPPORTED_SECRET_FIELD",
+                    "secret_field_validator",
+                    "ApprovalRequests.json",
+                    "secret approval",
+                ),
+            ],
         ), patch(
             "compiler.static_validation.validate_unsupported_capability_envelope_fields",
             side_effect=[
@@ -479,6 +510,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
         self.assertEqual(
             [diagnostic["message"] for diagnostic in result["diagnostics"]],
             [
+                "secret workflow",
+                "secret requested",
+                "secret approval",
                 "capability workflow",
                 "capability requested",
                 "capability approval",
@@ -496,6 +530,52 @@ class StaticValidationAggregateTests(unittest.TestCase):
                 "invalid fan out",
                 "missing scope",
                 "ambiguous approval",
+            ],
+        )
+
+    def test_requested_auth_secret_and_capability_keep_documented_order(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
+            requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
+            approval_requests = _load_json(
+                SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
+            )
+            requested_auth["credentials"] = {"mode": "forbidden"}
+            requested_auth["approved_capabilities"] = ["future-only"]
+
+            workflow_spec_path = _write_json(
+                Path(tmp) / "WorkflowSpec.json", workflow_spec
+            )
+            requested_auth_path = _write_json(
+                Path(tmp) / "RequestedAuth.json", requested_auth
+            )
+            approval_requests_path = _write_json(
+                Path(tmp) / "ApprovalRequests.json", approval_requests
+            )
+
+            result = validate_static_inputs(
+                workflow_spec_path,
+                SIMPLE_FIXTURE_INPUT / "NodeTypeRegistry.json",
+                requested_auth_path,
+                approval_requests_path,
+                stop_on_first_error=False,
+            )
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(
+            [diagnostic["error_code"] for diagnostic in result["diagnostics"]],
+            [
+                "UNSUPPORTED_SECRET_FIELD",
+                "UNSUPPORTED_CAPABILITY_ENVELOPE",
+            ],
+        )
+        self.assertEqual(
+            [diagnostic["component"] for diagnostic in result["diagnostics"]],
+            [
+                "secret_field_validator",
+                "capability_envelope_validator",
             ],
         )
 
