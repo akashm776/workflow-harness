@@ -428,6 +428,21 @@ _UNSUPPORTED_EXECUTION_BINDING_KEYS = frozenset(
     }
 )
 
+_UNSUPPORTED_CAPABILITY_ENVELOPE_KEYS = frozenset(
+    {
+        "capability_envelope",
+        "capability_envelopes",
+        "compiled_capability_envelope",
+        "compiled_capability_envelopes",
+        "authority_envelope",
+        "authority_envelopes",
+        "runtime_capabilities",
+        "approved_capabilities",
+        "credential",
+        "credentials",
+    }
+)
+
 
 def _find_unsupported_execution_binding_paths(
     value: Any,
@@ -459,6 +474,67 @@ def _find_unsupported_execution_binding_paths(
             )
 
     return findings
+
+
+def _find_unsupported_capability_envelope_paths(
+    value: Any,
+    *,
+    path: str,
+) -> list[str]:
+    findings: list[str] = []
+
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            if key in _UNSUPPORTED_CAPABILITY_ENVELOPE_KEYS:
+                findings.append(child_path)
+            findings.extend(
+                _find_unsupported_capability_envelope_paths(
+                    child,
+                    path=child_path,
+                )
+            )
+        return findings
+
+    if isinstance(value, list):
+        for index, child in enumerate(value):
+            findings.extend(
+                _find_unsupported_capability_envelope_paths(
+                    child,
+                    path=f"{path}[{index}]",
+                )
+            )
+
+    return findings
+
+
+def validate_unsupported_capability_envelope_fields(
+    artifact_path: str | Path,
+    artifact_name: str,
+) -> dict[str, Any]:
+    artifact = _load_json(artifact_path)
+    findings = _find_unsupported_capability_envelope_paths(artifact, path="$")
+
+    if not findings:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "UNSUPPORTED_CAPABILITY_ENVELOPE",
+            "component": "capability_envelope_validator",
+            "artifact": artifact_name,
+            "message": (
+                f"unsupported capability/authority envelope field in {artifact_name}; "
+                "V1 safe no-op does not accept planner-supplied capability envelopes, "
+                "approved capabilities, or credential-bearing authority fields: "
+                + ", ".join(findings)
+            ),
+        },
+    }
 
 
 def validate_unsupported_execution_bindings(
@@ -836,6 +912,15 @@ def validate_static_inputs(
 
     # Phase 3: interpretation validators.
     phase_interpretation = [
+        lambda: validate_unsupported_capability_envelope_fields(
+            workflow_spec_path, "WorkflowSpec.json"
+        ),
+        lambda: validate_unsupported_capability_envelope_fields(
+            requested_auth_path, "RequestedAuth.json"
+        ),
+        lambda: validate_unsupported_capability_envelope_fields(
+            approval_requests_path, "ApprovalRequests.json"
+        ),
         lambda: validate_unsupported_execution_bindings(workflow_spec_path),
         lambda: validate_unknown_node_types(
             workflow_spec_path, node_type_registry_path
