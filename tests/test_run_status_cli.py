@@ -9,6 +9,7 @@ import unittest
 from uuid import uuid4
 
 from cli.run_status_cli import main
+from cli.workflow_demo_cli import run_workflow_demo
 from orchestrator.safe_run import safe_noop_run
 
 
@@ -291,6 +292,7 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn("execution_status: completed", rendered)
         self.assertIn("review_required: false", rendered)
         self.assertIn("blocked_by_review: false", rendered)
+        self.assertNotIn("Review Gate:", rendered)
         self.assertIn("status command: python -m cli.run_status_cli", rendered)
 
     def test_summary_flag_missing_directory_exits_one_and_is_fail_soft(self) -> None:
@@ -305,6 +307,34 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn("Safe No-Op Run Summary", rendered)
         self.assertIn("compilation_status: unknown", rendered)
         self.assertIn("execution_status: unknown", rendered)
+
+    def test_summary_flag_blocked_run_includes_review_gate_guidance(self) -> None:
+        output_dir = self._make_output_dir()
+        run_workflow_demo(
+            goal="generate innovation ideas from program data",
+            node_type_registry_path=SIMPLE_WORKFLOW / "NodeTypeRegistry.json",
+            run_dir=output_dir,
+        )
+
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            exit_code = main(["--run-dir", str(output_dir), "--summary"])
+        rendered = stdout.getvalue()
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("Safe No-Op Run Summary", rendered)
+        self.assertIn("execution_status: blocked", rendered)
+        self.assertIn("review_required: true", rendered)
+        self.assertIn("blocked_by_review: true", rendered)
+        self.assertIn("Review Gate:", rendered)
+        self.assertIn("blocked_reason: review_required", rendered)
+        self.assertIn("approval_request_count: 1", rendered)
+        self.assertIn("approval_request_id:", rendered)
+        self.assertIn("node_id: retrieve-1", rendered)
+        self.assertIn("reason: Innovation template approval request.", rendered)
+        self.assertIn("ApprovalRequests.json", rendered)
+        self.assertIn("ApprovalDecisions.json", rendered)
+        self.assertIn("this run/request only", rendered)
 
     def test_default_json_does_not_include_summary_fields(self) -> None:
         output_dir = self._make_missing_output_dir()

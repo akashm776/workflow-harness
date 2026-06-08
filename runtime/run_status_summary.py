@@ -90,6 +90,77 @@ def _extract_candidate_workflow(run_path: Path) -> dict[str, Any] | None:
     }
 
 
+def _extract_review_gate(
+    run_path: Path,
+    blocked_by_review: bool,
+) -> tuple[bool, int, str | None, dict[str, Any] | None]:
+    approval_requests_path = run_path / "candidate" / "ApprovalRequests.json"
+    approval_requests_present = approval_requests_path.exists()
+    approval_requests_path_text = (
+        str(approval_requests_path) if approval_requests_present else None
+    )
+    approval_request_count = 0
+
+    review_gate: dict[str, Any] | None = None
+    if blocked_by_review:
+        review_gate = {
+            "blocked_reason": "review_required",
+            "guidance": (
+                "Explicit current-run approval is required to unblock this "
+                "safe no-op run."
+            ),
+            "approval_requests_path": approval_requests_path_text,
+        }
+
+    approval_requests = _safe_load_json(approval_requests_path)
+    if not isinstance(approval_requests, dict):
+        return (
+            approval_requests_present,
+            approval_request_count,
+            approval_requests_path_text,
+            review_gate,
+        )
+
+    raw_requests = approval_requests.get("requests")
+    if not isinstance(raw_requests, list):
+        return (
+            approval_requests_present,
+            approval_request_count,
+            approval_requests_path_text,
+            review_gate,
+        )
+
+    approval_request_count = len(raw_requests)
+    if review_gate is None:
+        return (
+            approval_requests_present,
+            approval_request_count,
+            approval_requests_path_text,
+            review_gate,
+        )
+
+    for raw_request in raw_requests:
+        if not isinstance(raw_request, dict):
+            continue
+        request_id = _get_str(raw_request, "request_id")
+        node_id = _get_str(raw_request, "node_id")
+        reason = _get_str(raw_request, "reason")
+        if request_id is not None:
+            review_gate["request_id"] = request_id
+        if node_id is not None:
+            review_gate["node_id"] = node_id
+        if reason is not None:
+            review_gate["reason"] = reason
+        break
+
+    return (
+        approval_requests_present,
+        approval_request_count,
+        approval_requests_path_text,
+        review_gate,
+    )
+
+
 def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
     run_path = Path(run_dir)
     inspection = inspect_run_directory(run_path)
@@ -115,6 +186,12 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         review_required = effective_policy["review_required"]
 
     blocked_by_review = execution_status == "blocked" and review_required is True
+    (
+        approval_requests_present,
+        approval_request_count,
+        approval_requests_path,
+        review_gate,
+    ) = _extract_review_gate(run_path, blocked_by_review)
 
     return {
         "run_dir": str(run_path),
@@ -125,6 +202,10 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "execution_status": execution_status,
         "review_required": review_required,
         "blocked_by_review": blocked_by_review,
+        "approval_requests_present": approval_requests_present,
+        "approval_request_count": approval_request_count,
+        "approval_requests_path": approval_requests_path,
+        "review_gate": review_gate,
         "candidate_workflow": _extract_candidate_workflow(run_path),
         "status_command": (
             f"python -m cli.run_status_cli --run-dir {run_path} --view"
