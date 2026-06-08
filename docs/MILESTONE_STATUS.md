@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `432 tests` passing
+- `433 tests` passing
 
 ## Major Implemented Layers
 
@@ -265,6 +265,15 @@
   - it does not execute tools, does not enable connector support, does not
     change approval semantics, grants no authority, and remains fail-soft and
     operator-facing only.
+- display-only operator review packet in the opt-in summary:
+  - when a safe no-op run is blocked by review,
+    `cli.run_status_cli --summary` now also renders an
+    `Operator Review Packet:` checklist.
+  - it is derived only from already-computed summary fields such as
+    `review_required`, `blocked_by_review`, `review_gate`,
+    `candidate_workflow`, `fixture_lineage`, and `proposed_tool_access`.
+  - it is operator-facing only, not a new artifact, not approval logic, not
+    execution behavior, grants no authority, and remains fail-soft.
 - tool/connector/MCP trust-boundary design checkpoint:
   - `TOOL_CONNECTOR_CATALOG_DESIGN.md` documents that tool and MCP proposals
   remain non-authoritative, the compiler remains the sole authority boundary,

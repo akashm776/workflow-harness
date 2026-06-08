@@ -86,6 +86,11 @@ class DocsTests(unittest.TestCase):
         self.assertIn("does not enable connector support", content)
         self.assertIn("does not change", content)
         self.assertIn("approval semantics", content)
+        self.assertIn("Operator Review Packet:", content)
+        self.assertIn("already-computed summary fields", content)
+        self.assertIn("not a new artifact", content)
+        self.assertIn("not approval logic", content)
+        self.assertIn("not execution behavior", content)
         self.assertIn("UNSUPPORTED_EXECUTION_BINDING", content)
         self.assertIn("No MCP/network calls", content)
         self.assertIn("No sandbox/broker implementation", content)
@@ -98,7 +103,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("432 tests", content)
+        self.assertIn("433 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -169,6 +174,12 @@ class DocsTests(unittest.TestCase):
         self.assertIn("does not enable connector support", content)
         self.assertIn("does not change", content)
         self.assertIn("approval semantics", content)
+        self.assertIn("Operator Review Packet:", content)
+        self.assertIn("already-computed summary fields", content)
+        self.assertIn("not a new artifact", content)
+        self.assertIn("not approval logic", content)
+        self.assertIn("not", content)
+        self.assertIn("execution behavior", content)
         # Deterministic innovation-agent planner template is mentioned.
         self.assertIn("build_innovation_planner_candidate", content)
         self.assertIn("select_planner_candidate", content)
@@ -649,16 +660,17 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn(
-            "Implementation checkpoint before this proposed-tool-access slice: c94cb58 Show display-only fixture lineage",
+            "Implementation checkpoint before this operator-review-packet slice: 3d88c2b Show display-only proposed tool access",
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("432 tests passing", content)
+        self.assertIn("433 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
         self.assertIn("display-only fixture lineage for `innovation_review` summary", content)
         self.assertIn("display-only proposed tool access for `innovation_review` summary", content)
+        self.assertIn("display-only Operator Review Packet for blocked summaries", content)
         self.assertIn("fixtures/future/innovation-context/", content)
         self.assertIn("does not load them", content)
         self.assertIn("connect to tools/connectors/MCP", content)
@@ -677,8 +689,13 @@ class DocsTests(unittest.TestCase):
             "Display-only fixture lineage is now implemented",
             "`cli.run_status_cli --summary` now shows known future fixture paths as",
             "Display-only proposed tool access is now implemented",
+            "Display-only Operator Review Packet is now implemented",
             "RequestedAuth.json",
             "shows proposed tools and connector metadata as display-only",
+            "blocked safe no-op runs",
+            "derived only from already-computed summary fields",
+            "does not change approval logic",
+            "does not change execution",
             "fixtures/future/innovation-context/ProgramContext.json",
             "fixtures/future/innovation-context/RepoContextSummary.json",
             "fixtures/future/innovation-context/ConfluenceContextSummary.json",
@@ -696,6 +713,10 @@ class DocsTests(unittest.TestCase):
             "no tool execution",
             "no connector support",
             "no approval semantics changes",
+            "it is not a new artifact",
+            "it is not approval logic",
+            "it is not execution behavior",
+            "no authority is granted",
         ):
             self.assertIn(boundary, content)
 

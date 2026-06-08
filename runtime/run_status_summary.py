@@ -255,6 +255,38 @@ def _extract_proposed_tool_access(
     }
 
 
+def _build_operator_review_packet(
+    review_required: bool | None,
+    blocked_by_review: bool,
+    review_gate: dict[str, Any] | None,
+    candidate_workflow: dict[str, Any] | None,
+    fixture_lineage: dict[str, Any] | None,
+    proposed_tool_access: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Return a display-only operator review checklist for blocked runs only."""
+
+    if review_required is not True or not blocked_by_review:
+        return None
+
+    included_sections: list[str] = []
+    if review_gate is not None:
+        included_sections.append("Review Gate")
+    if candidate_workflow is not None:
+        included_sections.append("Candidate Workflow")
+    if fixture_lineage is not None:
+        included_sections.append("Fixture Lineage")
+    if proposed_tool_access is not None:
+        included_sections.append("Proposed Tool Access")
+
+    return {
+        "review_required": True,
+        "blocked_by_review": True,
+        "decision_scope": "current run/request only",
+        "execution_mode": "safe_noop_only",
+        "included_sections": included_sections,
+    }
+
+
 def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
     run_path = Path(run_dir)
     inspection = inspect_run_directory(run_path)
@@ -287,6 +319,8 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         review_gate,
     ) = _extract_review_gate(run_path, blocked_by_review)
     candidate_workflow = _extract_candidate_workflow(run_path)
+    fixture_lineage = _extract_fixture_lineage(candidate_workflow)
+    proposed_tool_access = _extract_proposed_tool_access(run_path, candidate_workflow)
 
     return {
         "run_dir": str(run_path),
@@ -302,9 +336,15 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "approval_requests_path": approval_requests_path,
         "review_gate": review_gate,
         "candidate_workflow": candidate_workflow,
-        "fixture_lineage": _extract_fixture_lineage(candidate_workflow),
-        "proposed_tool_access": _extract_proposed_tool_access(
-            run_path, candidate_workflow
+        "fixture_lineage": fixture_lineage,
+        "proposed_tool_access": proposed_tool_access,
+        "operator_review_packet": _build_operator_review_packet(
+            review_required,
+            blocked_by_review,
+            review_gate,
+            candidate_workflow,
+            fixture_lineage,
+            proposed_tool_access,
         ),
         "status_command": (
             f"python -m cli.run_status_cli --run-dir {run_path} --view"

@@ -70,6 +70,13 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(proposed_tool_access_lines)
 
+    operator_review_packet_lines = _operator_review_packet_lines(
+        summary.get("operator_review_packet")
+    )
+    if operator_review_packet_lines:
+        lines.append("")
+        lines.extend(operator_review_packet_lines)
+
     status_command = summary.get("status_command")
     if status_command:
         lines.append("")
@@ -209,5 +216,35 @@ def _proposed_tool_access_lines(proposed_tool_access: Any) -> list[str]:
             scope = connector.get("scope")
             suffix = f" scope={scope}" if isinstance(scope, str) else ""
             lines.append(f"- connector proposal: {connector_name}{suffix}")
+
+    return lines
+
+
+def _operator_review_packet_lines(operator_review_packet: Any) -> list[str]:
+    if not isinstance(operator_review_packet, Mapping):
+        return []
+
+    lines = ["Operator Review Packet:"]
+    lines.append(
+        f"review_required: {_bool_text(operator_review_packet.get('review_required'))}"
+    )
+    lines.append(
+        f"blocked_by_review: {_bool_text(operator_review_packet.get('blocked_by_review'))}"
+    )
+
+    decision_scope = operator_review_packet.get("decision_scope")
+    if isinstance(decision_scope, str):
+        lines.append(f"decision_scope: {decision_scope}")
+
+    execution_mode = operator_review_packet.get("execution_mode")
+    if isinstance(execution_mode, str):
+        lines.append(f"execution_mode: {execution_mode}")
+
+    lines.append("included_sections:")
+    included_sections = operator_review_packet.get("included_sections")
+    if isinstance(included_sections, list):
+        for section_name in included_sections:
+            if isinstance(section_name, str):
+                lines.append(f"- {section_name}")
 
     return lines

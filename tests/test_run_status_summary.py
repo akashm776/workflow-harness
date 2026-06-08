@@ -38,6 +38,18 @@ INNOVATION_REVIEW_PROPOSED_TOOL_ACCESS = {
         },
     ],
 }
+INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET = {
+    "review_required": True,
+    "blocked_by_review": True,
+    "decision_scope": "current run/request only",
+    "execution_mode": "safe_noop_only",
+    "included_sections": [
+        "Review Gate",
+        "Candidate Workflow",
+        "Fixture Lineage",
+        "Proposed Tool Access",
+    ],
+}
 
 
 class SummarizeRunDirectoryTests(unittest.TestCase):
@@ -71,6 +83,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["approval_requests_path"])
             self.assertIsNone(summary["review_gate"])
             self.assertFalse(summary["candidate_dir_present"])
+            self.assertIsNone(summary["operator_review_packet"])
             self.assertIn("artifacts", summary)
             self.assertIn(
                 f"python -m cli.run_status_cli --run-dir {run_dir} --view",
@@ -247,6 +260,10 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 summary["proposed_tool_access"],
                 INNOVATION_REVIEW_PROPOSED_TOOL_ACCESS,
             )
+            self.assertEqual(
+                summary["operator_review_packet"],
+                INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET,
+            )
 
     def test_default_innovation_demo_run_does_not_include_fixture_lineage(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -261,6 +278,16 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
 
             self.assertIsNone(summary["fixture_lineage"])
             self.assertIsNone(summary["proposed_tool_access"])
+            self.assertEqual(
+                summary["operator_review_packet"],
+                {
+                    "review_required": True,
+                    "blocked_by_review": True,
+                    "decision_scope": "current run/request only",
+                    "execution_mode": "safe_noop_only",
+                    "included_sections": ["Review Gate", "Candidate Workflow"],
+                },
+            )
 
     def test_fixture_lineage_is_display_only_and_never_reads_fixture_paths(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -334,6 +361,10 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
 
             self.assertIsNotNone(summary["fixture_lineage"])
             self.assertIsNone(summary["proposed_tool_access"])
+            self.assertEqual(
+                summary["operator_review_packet"]["included_sections"],
+                ["Review Gate", "Candidate Workflow", "Fixture Lineage"],
+            )
 
     def test_missing_requested_auth_is_fail_soft_for_proposed_tool_access(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -350,6 +381,10 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
 
             self.assertIsNotNone(summary["fixture_lineage"])
             self.assertIsNone(summary["proposed_tool_access"])
+            self.assertEqual(
+                summary["operator_review_packet"]["included_sections"],
+                ["Review Gate", "Candidate Workflow", "Fixture Lineage"],
+            )
 
     def test_missing_candidate_workflow_is_none(self) -> None:
         # A completed safe_noop_run has no candidate/ directory.
@@ -362,6 +397,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["candidate_workflow"])
             self.assertIsNone(summary["fixture_lineage"])
             self.assertIsNone(summary["proposed_tool_access"])
+            self.assertIsNone(summary["operator_review_packet"])
 
     def test_missing_approval_requests_is_fail_soft_for_blocked_review_gate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -422,6 +458,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             summary = summarize_run_directory(run_dir)
             self.assertIsNone(summary["candidate_workflow"])
             self.assertIsNone(summary["proposed_tool_access"])
+            self.assertIsNone(summary["operator_review_packet"])
 
 
 if __name__ == "__main__":

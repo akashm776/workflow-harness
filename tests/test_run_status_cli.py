@@ -326,6 +326,14 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn("execution_status: blocked", rendered)
         self.assertIn("review_required: true", rendered)
         self.assertIn("blocked_by_review: true", rendered)
+        self.assertIn("Operator Review Packet:", rendered)
+        self.assertIn("decision_scope: current run/request only", rendered)
+        self.assertIn("execution_mode: safe_noop_only", rendered)
+        self.assertIn("included_sections:", rendered)
+        self.assertIn("- Review Gate", rendered)
+        self.assertIn("- Candidate Workflow", rendered)
+        self.assertNotIn("- Fixture Lineage", rendered)
+        self.assertNotIn("- Proposed Tool Access", rendered)
         self.assertIn("Review Gate:", rendered)
         self.assertIn("blocked_reason: review_required", rendered)
         self.assertIn("approval_request_count: 1", rendered)
@@ -356,6 +364,14 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn("Review Gate:", rendered)
         self.assertIn("Candidate Workflow:", rendered)
         self.assertIn("Fixture Lineage:", rendered)
+        self.assertIn("Operator Review Packet:", rendered)
+        self.assertIn("decision_scope: current run/request only", rendered)
+        self.assertIn("execution_mode: safe_noop_only", rendered)
+        self.assertIn("included_sections:", rendered)
+        self.assertIn("- Review Gate", rendered)
+        self.assertIn("- Candidate Workflow", rendered)
+        self.assertIn("- Fixture Lineage", rendered)
+        self.assertIn("- Proposed Tool Access", rendered)
         self.assertIn("display_only: true", rendered)
         self.assertIn("not_loaded: true", rendered)
         self.assertIn("not_control_plane_inputs: true", rendered)
@@ -422,6 +438,29 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertNotIn("fixtures/future/innovation-context/ProgramContext.json", rendered)
         self.assertNotIn("Proposed Tool Access:", rendered)
         self.assertNotIn("- tool: example-local-file-reader", rendered)
+        self.assertIn("Operator Review Packet:", rendered)
+
+    def test_summary_flag_completed_safe_noop_run_does_not_render_operator_review_packet(
+        self,
+    ) -> None:
+        output_dir = self._make_output_dir()
+        safe_noop_run(
+            SIMPLE_WORKFLOW / "WorkflowSpec.json",
+            SIMPLE_WORKFLOW / "NodeTypeRegistry.json",
+            SIMPLE_WORKFLOW / "RequestedAuth.json",
+            SIMPLE_WORKFLOW / "ApprovalRequests.json",
+            repo_root=ROOT,
+            output_dir=output_dir,
+            node_id="retrieve-1",
+        )
+
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            exit_code = main(["--run-dir", str(output_dir), "--summary"])
+        rendered = stdout.getvalue()
+
+        self.assertEqual(exit_code, 0)
+        self.assertNotIn("Operator Review Packet:", rendered)
 
     def test_default_json_does_not_include_summary_fields(self) -> None:
         output_dir = self._make_missing_output_dir()
