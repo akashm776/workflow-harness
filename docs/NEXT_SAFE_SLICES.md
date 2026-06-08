@@ -7,13 +7,14 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Baseline before this handoff slice: f7de8c4 Update safe noop milestone status`
 - `Implementation checkpoint before this docs update: f4f6873 Add deterministic innovation review template`
 - `V1 remains safe no-op only`
-- `424 tests passing`
+- `427 tests passing`
 
 ## Current Implemented Safety Runway
 
 - safe innovation demo
 - proposal-only skill/prompt registry design
 - explicit deterministic `innovation_review` template
+- inert future-only innovation context fixtures
 - Review Gate visibility
 - tool/MCP design boundary
 - inert side-effect class registry
@@ -27,9 +28,13 @@ selection remains unchanged, existing `innovation` behavior remains unchanged,
 and the example wrapper default remains the existing safe innovation demo
 behavior.
 
+Local fixture input artifacts now also exist as inert future-only fake data under
+`fixtures/future/innovation-context/`. V1 does not load them, execute anything
+from them, connect to tools/connectors/MCP from them, or grant any authority.
+
 ## Recommended Next Safe Slices
 
-1. Local fixture input artifacts
+1. Display-only fixture lineage
 2. Display-only proposed tool access
 
 ## Slice Boundaries
@@ -53,13 +58,13 @@ behavior.
 - no dynamic node creation
 - no LLM planner
 
-### 3. Local fixture input artifacts
+### 3. Display-only fixture lineage
 
-- local committed fake data only
-- no external reads
-- no credentials
-- no connector/MCP calls
-- fixture lineage can be display-only
+- summary/docs may show known future fixture paths as display-only
+- no fixture loading
+- no planner/compiler/runtime behavior
+- no connector/MCP/tools
+- no authority or approval changes
 
 ### 4. Display-only proposed tool access
 

@@ -1,0 +1,32 @@
+{
+  "project_summaries": [
+    {
+      "project_key": "NSTAR",
+      "issue_summaries": [
+        {
+          "issue_id": "NSTAR-101",
+          "title": "Queue handoff audit takes too long",
+          "status": "Backlog",
+          "summary": "Operators compile weekly handoff metrics by copying data between two internal views."
+        },
+        {
+          "issue_id": "NSTAR-118",
+          "title": "Pilot comparison notes are inconsistent",
+          "status": "Ready",
+          "summary": "Regional teams record pilot learnings, but the format varies too much for easy scoring."
+        },
+        {
+          "issue_id": "NSTAR-143",
+          "title": "Improvement ideas lack rollout sizing guidance",
+          "status": "In Review",
+          "summary": "Proposals often describe value well but do not explain how to stage a minimal pilot."
+        }
+      ]
+    }
+  ],
+  "recurring_request_patterns": [
+    "Need clearer comparisons between proposed ideas and current manual work.",
+    "Need simpler pilot-sizing guidance before requesting broader sponsorship.",
+    "Need one place to summarize impact, novelty, and delivery risk."
+  ]
+}

@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `424 tests` passing
+- `427 tests` passing
 
 ## Major Implemented Layers
 
@@ -149,6 +149,14 @@
     catalog schema validator.
   - it is not active governance input, not a control-plane input, not consumed by
     compile/runtime, and grants no authority.
+- future-only innovation context fixtures:
+  - `fixtures/future/innovation-context/` contains fake local
+    `ProgramContext.json`, `RepoContextSummary.json`,
+    `ConfluenceContextSummary.json`, `IssueTrackerContextSummary.json`, and
+    `Rubric.json` summaries plus a fixture-local `README.md`.
+  - they are inert example data only: not control-plane inputs, not loaded by
+    planner/compiler/runtime/CLI/examples, and they do not enable execution,
+    connector calls, MCP calls, or authority.
 - end-to-end safe no-op workflow demo CLI:
   - `cli/workflow_demo_cli.py` composes the deterministic planner candidate, the
     compiler, the safe no-op run, and the status-inspection command into one
