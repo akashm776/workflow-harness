@@ -20,6 +20,9 @@ CAPABILITY_ENVELOPE_V1_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_V1_DESIGN.md"
 AUTHORITY_ARTIFACT_OWNERSHIP_PATH = (
     ROOT / "docs" / "AUTHORITY_ARTIFACT_OWNERSHIP.md"
 )
+STATIC_VALIDATION_HARDENING_MAP_PATH = (
+    ROOT / "docs" / "STATIC_VALIDATION_HARDENING_MAP.md"
+)
 SAFEGUARD_ADVISORY_PATH = ROOT / "docs" / "SAFEGUARD_ADVISORY_DESIGN.md"
 SKILL_PROMPT_REGISTRY_PATH = ROOT / "docs" / "SKILL_PROMPT_REGISTRY_DESIGN.md"
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
@@ -108,7 +111,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("472 tests", content)
+        self.assertIn("473 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -214,6 +217,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("CAPABILITY_ENVELOPE_DESIGN.md", content)
         self.assertIn("CAPABILITY_ENVELOPE_V1_DESIGN.md", content)
         self.assertIn("AUTHORITY_ARTIFACT_OWNERSHIP.md", content)
+        self.assertIn("STATIC_VALIDATION_HARDENING_MAP.md", content)
         self.assertIn("SAFEGUARD_ADVISORY_DESIGN.md", content)
         self.assertIn("CompiledCapabilityEnvelope.example.json", content)
         self.assertIn("UNSUPPORTED_CAPABILITY_ENVELOPE", content)
@@ -678,6 +682,73 @@ class DocsTests(unittest.TestCase):
         self.assertIn("Do not depend on hidden chain-of-thought", content)
         self.assertIn("UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM", content)
 
+    def test_static_validation_hardening_map_doc_exists_and_records_current_order(
+        self,
+    ) -> None:
+        self.assertTrue(STATIC_VALIDATION_HARDENING_MAP_PATH.exists())
+        content = STATIC_VALIDATION_HARDENING_MAP_PATH.read_text(
+            encoding="utf-8"
+        )
+        lowered = content.lower()
+
+        self.assertIn("docs-only", lowered)
+        self.assertIn("validate_static_inputs(...)", content)
+        self.assertIn("not a public API", content)
+        self.assertIn("Phase 1: authority-value validation", content)
+        self.assertIn(
+            "Rejects invalid authority-bearing values before semantic interpretation.",
+            content,
+        )
+        self.assertIn("DISALLOWED_AUTHORITY_VALUE", content)
+        self.assertIn("Phase 2: schema validation", content)
+        self.assertIn(
+            "Rejects malformed control-plane artifacts before graph, scope, or approval",
+            content,
+        )
+        self.assertIn("INVALID_ARTIFACT_SCHEMA", content)
+        self.assertIn("Phase 3: interpretation validation", content)
+        self.assertIn(
+            "1. secret-field validator\n"
+            "2. capability-envelope validator\n"
+            "3. safeguard-authority-claim validator\n"
+            "4. authority-artifact-ownership validator\n"
+            "5. execution-binding validator\n"
+            "6. graph/scope/approval validators",
+            content,
+        )
+
+        for diagnostic in (
+            "UNSUPPORTED_SECRET_FIELD",
+            "UNSUPPORTED_CAPABILITY_ENVELOPE",
+            "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
+            "UNSUPPORTED_AUTHORITY_ARTIFACT",
+            "UNSUPPORTED_EXECUTION_BINDING",
+        ):
+            self.assertIn(diagnostic, content)
+
+        for rule in (
+            "Prefer exact-key rejection for early hardening.",
+            "Never grant authority.",
+            "Never add execution in a validator.",
+            "Never call tools, connectors, MCP, network, or models from validation.",
+            "Do not scan arbitrary prose unless explicitly designed and tested.",
+            "Place new validators according to ownership and diagnostic order.",
+            "Update ordering tests when order changes.",
+            "Keep validation deterministic and fail-closed.",
+        ):
+            self.assertIn(rule, content)
+
+        for non_goal in (
+            "no real execution",
+            "no connector/MCP/tool calls",
+            "no model inference",
+            "no broker/sandbox",
+            "no approval carryover",
+            "no authority subsumption",
+            "no canonical JSON/hashing changes",
+        ):
+            self.assertIn(non_goal, content)
+
     def test_skill_prompt_registry_design_doc_exists_and_is_design_only(
         self,
     ) -> None:
@@ -816,8 +887,12 @@ class DocsTests(unittest.TestCase):
             "Implementation checkpoint before this secret-field slice: 51a214f Reject unsupported authority artifacts",
             content,
         )
+        self.assertIn(
+            "Implementation checkpoint before this hardening-map slice: 0ae585c Reject unsupported secret fields",
+            content,
+        )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("472 tests passing", content)
+        self.assertIn("473 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -833,6 +908,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("authority artifact ownership contract", content)
         self.assertIn("fail-closed unsupported authority artifact rejection", content)
         self.assertIn("fail-closed unsupported secret field rejection", content)
+        self.assertIn("static validation hardening map", content)
         self.assertIn("fixtures/future/innovation-context/", content)
         self.assertIn(
             "fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json",
@@ -921,6 +997,14 @@ class DocsTests(unittest.TestCase):
             "it is not approval logic",
             "it is not execution behavior",
             "no authority is granted",
+            "STATIC_VALIDATION_HARDENING_MAP.md",
+            "Phase 1 authority-value",
+            "Phase 2 schema validation",
+            "Phase 3 interpretation",
+            "secret-field, capability-envelope, safeguard-authority-claim",
+            "UNSUPPORTED_EXECUTION_BINDING",
+            "deterministic and fail-closed",
+            "changes no compiler",
         ):
             self.assertIn(boundary, content)
 
@@ -966,6 +1050,7 @@ class DocsTests(unittest.TestCase):
             "CAPABILITY_ENVELOPE_DESIGN.md",
             "CAPABILITY_ENVELOPE_V1_DESIGN.md",
             "AUTHORITY_ARTIFACT_OWNERSHIP.md",
+            "STATIC_VALIDATION_HARDENING_MAP.md",
             "SAFEGUARD_ADVISORY_DESIGN.md",
             "SKILL_PROMPT_REGISTRY_DESIGN.md",
             "SANDBOX_BROKER_INTERFACE_DESIGN.md",

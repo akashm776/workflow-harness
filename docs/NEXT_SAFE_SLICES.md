@@ -8,8 +8,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Implementation checkpoint before this safeguard-advisory slice: 6c81a23 Reject unsupported capability envelopes`
 - `Implementation checkpoint before this authority-artifact slice: 4d9a468 Document static validation diagnostic order`
 - `Implementation checkpoint before this secret-field slice: 51a214f Reject unsupported authority artifacts`
+- `Implementation checkpoint before this hardening-map slice: 0ae585c Reject unsupported secret fields`
 - `V1 remains safe no-op only`
-- `472 tests passing`
+- `473 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -29,6 +30,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - inert future-only capability envelope example fixture
 - fail-closed unsupported capability envelope rejection
 - fail-closed unsupported secret field rejection
+- static validation hardening map
 - safeguard advisory design checkpoint
 - inert future-only safeguard advisory fixtures
 - fail-closed unsupported safeguard authority-claim rejection
@@ -127,6 +129,18 @@ audit or evidence artifacts, or approval-decision artifacts are rejected with
 `UNSUPPORTED_AUTHORITY_ARTIFACT`. This is rejection-only, does not create
 compiled artifacts, does not consume compiled artifacts, and does not change
 runtime, CLI summary, approval, or execution behavior.
+
+`STATIC_VALIDATION_HARDENING_MAP.md` now documents the current
+`validate_static_inputs(...)` hardening layers: Phase 1 authority-value
+validation, Phase 2 schema validation, and the current Phase 3 interpretation
+ordering of secret-field, capability-envelope, safeguard-authority-claim,
+authority-artifact-ownership, execution-binding, then graph/scope/approval
+validators. It also records validator ownership for
+`UNSUPPORTED_SECRET_FIELD`, `UNSUPPORTED_CAPABILITY_ENVELOPE`,
+`UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM`, `UNSUPPORTED_AUTHORITY_ARTIFACT`, and
+`UNSUPPORTED_EXECUTION_BINDING`, plus the rule that future validators remain
+deterministic and fail-closed. This is docs-only and changes no compiler
+behavior.
 
 ## Recommended Next Safe Slices
 

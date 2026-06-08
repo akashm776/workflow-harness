@@ -88,6 +88,10 @@ design gates. The design-only documents in this section are not implementations.
   non-authoritative, compiler remains the authority boundary, runtime reports
   results without inventing authority, and V1 rejects planner-supplied
   compiler/runtime/operator authority artifact fields fail-closed.
+- [`STATIC_VALIDATION_HARDENING_MAP.md`](STATIC_VALIDATION_HARDENING_MAP.md) -
+  a docs-only map of the current static validation phases, validator
+  ownership, deterministic diagnostic order, and the rules for adding future
+  fail-closed validators. It changes no compiler behavior.
 - [`SAFEGUARD_ADVISORY_DESIGN.md`](SAFEGUARD_ADVISORY_DESIGN.md) - the future
   advisory-only safeguard review boundary: safeguard output is not authority,
   cannot approve or grant capabilities, and V1 does not call, download, or run
