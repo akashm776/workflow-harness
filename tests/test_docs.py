@@ -651,10 +651,19 @@ class DocsTests(unittest.TestCase):
 
         for boundary in (
             "known future fixture paths as display-only",
+            "fixtures/future/innovation-context/ProgramContext.json",
+            "fixtures/future/innovation-context/RepoContextSummary.json",
+            "fixtures/future/innovation-context/ConfluenceContextSummary.json",
+            "fixtures/future/innovation-context/IssueTrackerContextSummary.json",
+            "fixtures/future/innovation-context/Rubric.json",
             "no fixture loading",
+            "no fixture content loading",
+            "not control-plane inputs",
             "no planner/compiler/runtime behavior",
             "no connector/MCP/tools",
             "no authority or approval changes",
+            "no fixture-driven planning",
+            "fail-soft and operator-facing only if later implemented",
             "proposal-only",
             "no tool execution",
         ):
