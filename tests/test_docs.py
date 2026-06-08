@@ -382,6 +382,18 @@ class DocsTests(unittest.TestCase):
         self.assertIn("retrieve-1 [retrieve] Load Program Data", content)
         self.assertIn("synthesize-3 [synthesize] Synthesize MVP Plans", content)
         self.assertIn("display only", content)
+        # Blocked summary includes display-only Review Gate guidance.
+        self.assertIn("Review Gate:", content)
+        self.assertIn("blocked_reason: review_required", content)
+        self.assertIn("approval_request_count: 1", content)
+        self.assertIn("approval_request_id:", content)
+        self.assertIn("approval request artifact:", content)
+        self.assertIn("candidate/ApprovalRequests.json", content)
+        self.assertIn("operator guidance only", content)
+        self.assertIn("fail-soft for display", content)
+        self.assertIn("does **not** validate", content)
+        self.assertIn("does **not** approve anything", content)
+        self.assertIn("artifact-existence view", content)
         # Explicit approval-decision path: blocked -> approved -> completed.
         self.assertIn("ApprovalDecisions.json", content)
         self.assertIn("safe_run_cli", content)
