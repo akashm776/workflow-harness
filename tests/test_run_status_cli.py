@@ -418,6 +418,46 @@ class RunStatusCliTests(unittest.TestCase):
             "reason: Innovation review template approval request.", rendered
         )
 
+    def test_summary_flag_innovation_review_blocked_run_matches_operator_surface_contract(
+        self,
+    ) -> None:
+        output_dir = self._make_output_dir()
+        run_workflow_demo(
+            goal="review innovation options",
+            node_type_registry_path=SIMPLE_WORKFLOW / "NodeTypeRegistry.json",
+            run_dir=output_dir,
+            planner_template="innovation_review",
+        )
+
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            exit_code = main(["--run-dir", str(output_dir), "--summary"])
+        rendered = stdout.getvalue()
+
+        self.assertEqual(exit_code, 0)
+        for section_name in (
+            "Review Gate:",
+            "Candidate Workflow:",
+            "Fixture Lineage:",
+            "Proposed Tool Access:",
+            "Operator Review Packet:",
+        ):
+            self.assertIn(section_name, rendered)
+
+        for required_text in (
+            "review_required: true",
+            "blocked_by_review: true",
+            "decision_scope: current run/request only",
+            "execution_mode: safe_noop_only",
+            "display_only: true",
+            "proposal_only: true",
+            "no_execution: true",
+            "no_connector_support: true",
+            "not_loaded: true",
+            "not_control_plane_inputs: true",
+        ):
+            self.assertIn(required_text, rendered)
+
     def test_summary_flag_default_innovation_run_does_not_render_fixture_lineage(
         self,
     ) -> None:
