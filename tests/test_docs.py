@@ -392,7 +392,19 @@ class DocsTests(unittest.TestCase):
         self.assertIn("no authority subsumption", content)
         # One-command example wrapper (kept out of cli/).
         self.assertIn("examples.safe_innovation_demo", content)
+        self.assertIn(
+            "python -m examples.safe_innovation_demo --run-root runs/manual-demo",
+            content,
+        )
+        self.assertIn("--allow-overwrite", content)
         self.assertIn("--demo-approve-current-request", content)
+        self.assertIn("review_required: true", content)
+        self.assertIn("blocked_by_review: true", content)
+        self.assertIn("review_required: false", content)
+        self.assertIn("blocked_by_review: false", content)
+        self.assertIn("side_effects == []", content)
+        self.assertIn("produced_evidence == []", content)
+        self.assertIn("current-request only", content)
         self.assertIn("demo-local", content)
         self.assertIn("not a general auto-approval", content)
 
