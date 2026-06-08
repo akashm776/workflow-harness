@@ -51,6 +51,27 @@ Candidate Workflow:
 - synthesize-3 [synthesize] Synthesize MVP Plans
 ```
 
+When a blocked run still requires review, the opt-in `run_status_cli --summary`
+output also shows a display-only `Review Gate:` section such as:
+
+```text
+Review Gate:
+blocked_reason: review_required
+approval_request_count: 1
+approval_request_id: ...
+node_id: retrieve-1
+reason: Innovation template approval request.
+approval request artifact: runs\manual-visibility\innovation-demo\candidate\ApprovalRequests.json
+unblock: supply a matching ApprovalDecisions.json for this run/request only
+```
+
+This is **operator guidance only**. It reads
+`candidate/ApprovalRequests.json` fail-soft for display, does **not** validate
+approval semantics, does **not** approve anything, creates **no approval
+carryover**, and implements **no authority subsumption**. Unblocking still
+requires a matching `ApprovalDecisions.json` for the **current run/request
+only**. `--view` remains the older artifact-existence view.
+
 ## Safety Boundary
 
 This walkthrough stays inside the safe boundary:
