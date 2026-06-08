@@ -82,6 +82,10 @@ design gates. The design-only documents in this section are not implementations.
   request capabilities but cannot authorize them, compiler remains the only
   future authority boundary that may produce compiled envelopes, and V1 rejects
   planner-supplied capability-envelope fields fail-closed.
+- [`SAFEGUARD_ADVISORY_DESIGN.md`](SAFEGUARD_ADVISORY_DESIGN.md) - the future
+  advisory-only safeguard review boundary: safeguard output is not authority,
+  cannot approve or grant capabilities, and V1 does not call, download, or run
+  any safeguard model.
 - [`SKILL_PROMPT_REGISTRY_DESIGN.md`](SKILL_PROMPT_REGISTRY_DESIGN.md) - the
   future design for `SkillRegistry` and `PromptTemplateRegistry`: planner
   proposals remain non-authoritative, prompts and skills stay versioned/reviewed
@@ -119,6 +123,11 @@ connectors, and are not wired into compile or runtime behavior.
 - `fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json`
   is an inert display-only example shape. It is not executable, not consumed by
   compile/runtime, and grants no authority.
+- `fixtures/future/safeguard-advisory/WorkflowHarnessSafeguardPolicy.md` and
+  `fixtures/future/safeguard-advisory/SafeguardAdvisory.example.json` hold
+  advisory-only future safeguard policy/output examples. They are not
+  control-plane inputs, not an approval mechanism, not an authority source,
+  and no model is run from them.
 
 ## 4. Handoff
 

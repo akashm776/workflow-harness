@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `442 tests` passing
+- `453 tests` passing
 
 ## Major Implemented Layers
 
@@ -305,6 +305,15 @@
   - `compiler/static_validation.py` now rejects planner-controlled capability or
     authority envelope fields in candidate artifacts with
     `UNSUPPORTED_CAPABILITY_ENVELOPE`.
+- safeguard advisory design checkpoint and fail-closed authority-claim rejection:
+  - `SAFEGUARD_ADVISORY_DESIGN.md` records that safeguard output is advisory
+    only, cannot approve or grant capabilities, and cannot unblock execution.
+  - `fixtures/future/safeguard-advisory/WorkflowHarnessSafeguardPolicy.md` and
+    `fixtures/future/safeguard-advisory/SafeguardAdvisory.example.json` are
+    inert advisory-only future examples only.
+  - `compiler/static_validation.py` now rejects planner-supplied or
+    model-supplied safeguard authority-claim keys in candidate artifacts with
+    `UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM`.
 
 ## Explicit Non-Goals
 

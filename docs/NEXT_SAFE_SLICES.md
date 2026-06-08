@@ -5,9 +5,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 ## Current Checkpoint
 
 - `Baseline before this handoff slice: f7de8c4 Update safe noop milestone status`
-- `Implementation checkpoint before this capability-envelope-v1 slice: a881b4f Add blocked review summary contract test`
+- `Implementation checkpoint before this safeguard-advisory slice: 6c81a23 Reject unsupported capability envelopes`
 - `V1 remains safe no-op only`
-- `442 tests passing`
+- `453 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -26,6 +26,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - capability envelope V1 design checkpoint
 - inert future-only capability envelope example fixture
 - fail-closed unsupported capability envelope rejection
+- safeguard advisory design checkpoint
+- inert future-only safeguard advisory fixtures
+- fail-closed unsupported safeguard authority-claim rejection
 - milestone docs updated
 
 The richer deterministic innovation template slice is now implemented as the
@@ -77,6 +80,24 @@ credential-bearing authority fields are rejected with
 `UNSUPPORTED_CAPABILITY_ENVELOPE`. This is rejection-only, does not generate
 capability envelopes, does not consume capability envelopes, and does not
 change runtime, CLI summary, approval, or execution behavior.
+
+Safeguard advisory design is now documented in `SAFEGUARD_ADVISORY_DESIGN.md`.
+It states that safeguard output is advisory only, is not authority, cannot approve,
+cannot grant capabilities, cannot unblock execution, and V1 does not call, download, or run any safeguard model.
+
+Inert future-only safeguard advisory fixtures now exist at
+`fixtures/future/safeguard-advisory/WorkflowHarnessSafeguardPolicy.md` and
+`fixtures/future/safeguard-advisory/SafeguardAdvisory.example.json`. They are
+advisory-only examples, not control-plane inputs, not an approval mechanism,
+not an authority source, and no model is run from them.
+
+Fail-closed unsupported safeguard authority-claim rejection is now implemented
+in `compiler/static_validation.py`. Planner-controlled artifacts that attempt
+to include safeguard approval, authorization, execution-unblock, or authority
+override claims are rejected with
+`UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM`. This is rejection-only, does not add
+model inference, does not add API/network behavior, and does not change
+runtime, CLI summary, approval, or execution behavior.
 
 ## Recommended Next Safe Slices
 
