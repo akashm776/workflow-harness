@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -12,6 +14,16 @@ VALID_FIXTURES = (
     "simple-workflow",
     "approval-required-workflow",
 )
+SIMPLE_FIXTURE_INPUT = ROOT / "fixtures" / "valid" / "simple-workflow" / "input"
+
+
+def _load_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _write_json(path: Path, value: object) -> Path:
+    path.write_text(json.dumps(value), encoding="utf-8")
+    return path
 
 
 class StaticValidationAggregateTests(unittest.TestCase):
@@ -276,6 +288,272 @@ class StaticValidationAggregateTests(unittest.TestCase):
                 unknown_node_type["diagnostic"],
                 invalid_endpoint["diagnostic"],
                 missing_scope["diagnostic"],
+            ],
+        )
+
+    def test_aggregate_static_validation_preserves_current_interpretation_order(
+        self,
+    ) -> None:
+        success = {"ok": True, "diagnostic": None}
+
+        def failure(
+            error_code: str,
+            component: str,
+            artifact: str,
+            message: str,
+        ) -> dict[str, object]:
+            return {
+                "ok": False,
+                "diagnostic": {
+                    "error_code": error_code,
+                    "component": component,
+                    "artifact": artifact,
+                    "message": message,
+                },
+            }
+
+        with patch(
+            "compiler.static_validation.validate_authority_values",
+            return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_workflow_spec_schema",
+            return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_node_type_registry_schema",
+            return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_requested_auth_schema",
+            return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_approval_requests_schema",
+            return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_capability_envelope_fields",
+            side_effect=[
+                failure(
+                    "UNSUPPORTED_CAPABILITY_ENVELOPE",
+                    "capability_envelope_validator",
+                    "WorkflowSpec.json",
+                    "capability workflow",
+                ),
+                failure(
+                    "UNSUPPORTED_CAPABILITY_ENVELOPE",
+                    "capability_envelope_validator",
+                    "RequestedAuth.json",
+                    "capability requested",
+                ),
+                failure(
+                    "UNSUPPORTED_CAPABILITY_ENVELOPE",
+                    "capability_envelope_validator",
+                    "ApprovalRequests.json",
+                    "capability approval",
+                ),
+            ],
+        ), patch(
+            "compiler.static_validation.validate_unsupported_safeguard_authority_claims",
+            side_effect=[
+                failure(
+                    "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
+                    "safeguard_authority_claim_validator",
+                    "WorkflowSpec.json",
+                    "safeguard workflow",
+                ),
+                failure(
+                    "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
+                    "safeguard_authority_claim_validator",
+                    "RequestedAuth.json",
+                    "safeguard requested",
+                ),
+                failure(
+                    "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
+                    "safeguard_authority_claim_validator",
+                    "ApprovalRequests.json",
+                    "safeguard approval",
+                ),
+            ],
+        ), patch(
+            "compiler.static_validation.validate_unsupported_execution_bindings",
+            return_value=failure(
+                "UNSUPPORTED_EXECUTION_BINDING",
+                "execution_binding_validator",
+                "WorkflowSpec.json",
+                "execution binding",
+            ),
+        ), patch(
+            "compiler.static_validation.validate_unknown_node_types",
+            return_value=failure(
+                "UNKNOWN_NODE_TYPE",
+                "graph_validator",
+                "WorkflowSpec.json",
+                "unknown node type",
+            ),
+        ), patch(
+            "compiler.static_validation.validate_invalid_edge_endpoints",
+            return_value=failure(
+                "INVALID_EDGE_ENDPOINT",
+                "graph_validator",
+                "WorkflowSpec.json",
+                "invalid endpoint",
+            ),
+        ), patch(
+            "compiler.static_validation.validate_illegal_graph_cycle",
+            return_value=failure(
+                "ILLEGAL_GRAPH_CYCLE",
+                "graph_validator",
+                "WorkflowSpec.json",
+                "illegal cycle",
+            ),
+        ), patch(
+            "compiler.static_validation.validate_disconnected_graph",
+            return_value=failure(
+                "DISCONNECTED_GRAPH",
+                "graph_validator",
+                "WorkflowSpec.json",
+                "disconnected graph",
+            ),
+        ), patch(
+            "compiler.static_validation.validate_invalid_fan_out",
+            return_value=failure(
+                "INVALID_FAN_OUT",
+                "graph_validator",
+                "WorkflowSpec.json",
+                "invalid fan out",
+            ),
+        ), patch(
+            "compiler.static_validation.validate_missing_required_scope",
+            return_value=failure(
+                "MISSING_REQUIRED_SCOPE",
+                "scope_validator",
+                "RequestedAuth.json",
+                "missing scope",
+            ),
+        ), patch(
+            "compiler.static_validation.validate_ambiguous_approval_subjects",
+            return_value=failure(
+                "AMBIGUOUS_APPROVAL_SUBJECT",
+                "approval_validator",
+                "ApprovalRequests.json",
+                "ambiguous approval",
+            ),
+        ):
+            result = validate_static_inputs(
+                "workflow.json",
+                "registry.json",
+                "requested.json",
+                "approval.json",
+                stop_on_first_error=False,
+            )
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(
+            [diagnostic["message"] for diagnostic in result["diagnostics"]],
+            [
+                "capability workflow",
+                "capability requested",
+                "capability approval",
+                "safeguard workflow",
+                "safeguard requested",
+                "safeguard approval",
+                "execution binding",
+                "unknown node type",
+                "invalid endpoint",
+                "illegal cycle",
+                "disconnected graph",
+                "invalid fan out",
+                "missing scope",
+                "ambiguous approval",
+            ],
+        )
+
+    def test_requested_auth_capability_and_safeguard_claims_keep_documented_order(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
+            requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
+            approval_requests = _load_json(
+                SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
+            )
+            requested_auth["approved_capabilities"] = ["future-only"]
+            requested_auth["unblock_execution"] = True
+
+            workflow_spec_path = _write_json(
+                Path(tmp) / "WorkflowSpec.json", workflow_spec
+            )
+            requested_auth_path = _write_json(
+                Path(tmp) / "RequestedAuth.json", requested_auth
+            )
+            approval_requests_path = _write_json(
+                Path(tmp) / "ApprovalRequests.json", approval_requests
+            )
+
+            result = validate_static_inputs(
+                workflow_spec_path,
+                SIMPLE_FIXTURE_INPUT / "NodeTypeRegistry.json",
+                requested_auth_path,
+                approval_requests_path,
+                stop_on_first_error=False,
+            )
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(
+            [diagnostic["error_code"] for diagnostic in result["diagnostics"]],
+            [
+                "UNSUPPORTED_CAPABILITY_ENVELOPE",
+                "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
+            ],
+        )
+        self.assertEqual(
+            [diagnostic["component"] for diagnostic in result["diagnostics"]],
+            [
+                "capability_envelope_validator",
+                "safeguard_authority_claim_validator",
+            ],
+        )
+
+    def test_workflow_safeguard_claim_and_execution_binding_keep_documented_order(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
+            requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
+            approval_requests = _load_json(
+                SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
+            )
+            workflow_spec["nodes"][0]["authorized_by_safeguard"] = True
+            workflow_spec["nodes"][0]["tool_binding"] = {"tool_name": "future-tool"}
+
+            workflow_spec_path = _write_json(
+                Path(tmp) / "WorkflowSpec.json", workflow_spec
+            )
+            requested_auth_path = _write_json(
+                Path(tmp) / "RequestedAuth.json", requested_auth
+            )
+            approval_requests_path = _write_json(
+                Path(tmp) / "ApprovalRequests.json", approval_requests
+            )
+
+            result = validate_static_inputs(
+                workflow_spec_path,
+                SIMPLE_FIXTURE_INPUT / "NodeTypeRegistry.json",
+                requested_auth_path,
+                approval_requests_path,
+                stop_on_first_error=False,
+            )
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(
+            [diagnostic["error_code"] for diagnostic in result["diagnostics"]],
+            [
+                "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
+                "UNSUPPORTED_EXECUTION_BINDING",
+            ],
+        )
+        self.assertEqual(
+            [diagnostic["component"] for diagnostic in result["diagnostics"]],
+            [
+                "safeguard_authority_claim_validator",
+                "execution_binding_validator",
             ],
         )
 

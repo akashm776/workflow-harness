@@ -7,7 +7,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Baseline before this handoff slice: f7de8c4 Update safe noop milestone status`
 - `Implementation checkpoint before this safeguard-advisory slice: 6c81a23 Reject unsupported capability envelopes`
 - `V1 remains safe no-op only`
-- `453 tests passing`
+- `456 tests passing`
 
 ## Current Implemented Safety Runway
 
