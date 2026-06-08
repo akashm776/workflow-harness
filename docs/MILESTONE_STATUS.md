@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `473 tests` passing
+- `477 tests` passing
 
 ## Major Implemented Layers
 
@@ -305,12 +305,21 @@
   artifacts remain non-authoritative, compiler remains the authority boundary,
   runtime reports results but does not invent authority, and operator approval
   remains explicit and current-run/request scoped.
+- `COMPILER_AUTHORIZATION_SUMMARY_DESIGN.md` records the future
+  compiler-owned authorization summary boundary: planner must not supply it,
+  it is derived only from compiler-validated candidate artifacts, it does not
+  grant runtime execution by itself, and V1 safe no-op does not generate or
+  consume it yet.
 - `STATIC_VALIDATION_HARDENING_MAP.md` records the current static validation
   phases, current interpretation-validator ownership and ordering, and the
   rules for adding future validators. It is docs-only hardening and changes no
   compiler behavior.
 - `fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json`
   is an inert display-only, not executable, compiler-owned example shape only.
+- `fixtures/future/compiler-authorization-summary/CompilerAuthorizationSummary.example.json`
+  is an inert display-only, compiler-owned authorization-summary example only.
+  It is not executable, not consumed by V1 safe no-op, contains no
+  credentials, and grants no runtime authority.
 - `compiler/static_validation.py` now rejects planner-controlled capability or
   authority envelope fields in candidate artifacts with
   `UNSUPPORTED_CAPABILITY_ENVELOPE`.

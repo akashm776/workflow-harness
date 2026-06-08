@@ -88,6 +88,10 @@ design gates. The design-only documents in this section are not implementations.
   non-authoritative, compiler remains the authority boundary, runtime reports
   results without inventing authority, and V1 rejects planner-supplied
   compiler/runtime/operator authority artifact fields fail-closed.
+- [`COMPILER_AUTHORIZATION_SUMMARY_DESIGN.md`](COMPILER_AUTHORIZATION_SUMMARY_DESIGN.md) -
+  the future compiler-owned authorization summary boundary: planner must not
+  supply it, it is derived only from compiler-validated candidate artifacts,
+  and V1 safe no-op does not generate or consume it yet.
 - [`STATIC_VALIDATION_HARDENING_MAP.md`](STATIC_VALIDATION_HARDENING_MAP.md) -
   a docs-only map of the current static validation phases, validator
   ownership, deterministic diagnostic order, and the rules for adding future
@@ -133,6 +137,10 @@ connectors, and are not wired into compile or runtime behavior.
 - `fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json`
   is an inert display-only example shape. It is not executable, not consumed by
   compile/runtime, and grants no authority.
+- `fixtures/future/compiler-authorization-summary/CompilerAuthorizationSummary.example.json`
+  is an inert compiler-owned future authorization-summary example. It is
+  display-only, not executable, not consumed by compile/runtime, and grants no
+  runtime authority.
 - `fixtures/future/safeguard-advisory/WorkflowHarnessSafeguardPolicy.md` and
   `fixtures/future/safeguard-advisory/SafeguardAdvisory.example.json` hold
   advisory-only future safeguard policy/output examples. They are not

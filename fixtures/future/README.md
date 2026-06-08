@@ -22,6 +22,11 @@ Current future-only fixture sets include:
   display-only, not executable, compiler-owned future capability-envelope
   example. It is not consumed by compile or runtime behavior. V1 does **not**
   compile it, consume it, execute it, or grant authority from it.
+- `compiler-authorization-summary/CompilerAuthorizationSummary.example.json`
+  for a display-only, not executable, compiler-owned future authorization
+  summary example. It is not consumed by compile or runtime behavior. V1 does
+  **not** generate it, consume it, execute it, or grant runtime authority from
+  it.
 - `safeguard-advisory/WorkflowHarnessSafeguardPolicy.md` and
   `safeguard-advisory/SafeguardAdvisory.example.json` for advisory-only future
   safeguard review examples. They are not control-plane inputs, not an approval mechanism,
