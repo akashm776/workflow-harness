@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `453 tests` passing
+- `456 tests` passing
 
 ## Major Implemented Layers
 
@@ -314,6 +314,24 @@
   - `compiler/static_validation.py` now rejects planner-supplied or
     model-supplied safeguard authority-claim keys in candidate artifacts with
     `UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM`.
+- static validation diagnostic ordering contract:
+  - `validate_static_inputs(...)` remains deterministic and fail-closed by
+    phase: authority-value validators, then schema validators, then
+    interpretation validators.
+  - current interpretation validator ownership is:
+    - capability-envelope validator:
+      `UNSUPPORTED_CAPABILITY_ENVELOPE` for unsupported capability/authority
+      envelope fields.
+    - safeguard-authority-claim validator:
+      `UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM` for safeguard approval,
+      authorization, or execution-unblock claims.
+    - execution-binding validator:
+      `UNSUPPORTED_EXECUTION_BINDING` for tool/connector/MCP/broker execution
+      binding claims.
+  - within the current interpretation phase, ordering is deterministic:
+    capability-envelope checks, then safeguard-authority-claim checks, then
+    execution-binding checks, then graph/scope/approval validators.
+  - this is a hardening contract for safety regression tests, not a public API.
 
 ## Explicit Non-Goals
 
