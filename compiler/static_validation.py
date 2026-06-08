@@ -407,6 +407,101 @@ def validate_unknown_node_types(
     }
 
 
+# This is not a final MCP schema. It is a V1 fail-closed guard that rejects
+# node-level tool/connector/broker/MCP execution intent until broker-mediated
+# execution is designed and implemented.
+_UNSUPPORTED_EXECUTION_BINDING_KEYS = frozenset(
+    {
+        "tool_binding",
+        "tool_access",
+        "connector_binding",
+        "connector_access",
+        "broker_binding",
+        "mcp",
+        "mcp_binding",
+        "mcp_server",
+        "mcp_tool",
+        "mcp_resource",
+        "mcp_prompt",
+        "mcp_transport",
+        "mcp_method",
+    }
+)
+
+
+def _find_unsupported_execution_binding_paths(
+    value: Any,
+    *,
+    path: str,
+) -> list[str]:
+    findings: list[str] = []
+
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            if key in _UNSUPPORTED_EXECUTION_BINDING_KEYS:
+                findings.append(child_path)
+            findings.extend(
+                _find_unsupported_execution_binding_paths(
+                    child,
+                    path=child_path,
+                )
+            )
+        return findings
+
+    if isinstance(value, list):
+        for index, child in enumerate(value):
+            findings.extend(
+                _find_unsupported_execution_binding_paths(
+                    child,
+                    path=f"{path}[{index}]",
+                )
+            )
+
+    return findings
+
+
+def validate_unsupported_execution_bindings(
+    workflow_spec_path: str | Path,
+) -> dict[str, Any]:
+    workflow_spec = _load_json(workflow_spec_path)
+
+    findings: list[str] = []
+    for index, node in enumerate(workflow_spec.get("nodes", [])):
+        if not isinstance(node, dict):
+            continue
+
+        node_id = node.get("node_id")
+        node_label = node_id if isinstance(node_id, str) else f"nodes[{index}]"
+        node_findings = _find_unsupported_execution_binding_paths(
+            node,
+            path=f"$.nodes[{index}]",
+        )
+        findings.extend(
+            f"{node_label}:{binding_path}" for binding_path in node_findings
+        )
+
+    if not findings:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "UNSUPPORTED_EXECUTION_BINDING",
+            "component": "execution_binding_validator",
+            "artifact": "WorkflowSpec.json",
+            "message": (
+                "unsupported execution/tool/MCP binding in WorkflowSpec.json; "
+                "V1 safe no-op does not support tool, connector, broker, or "
+                "MCP execution bindings: " + ", ".join(findings)
+            ),
+        },
+    }
+
+
 def validate_missing_required_scope(requested_auth_path: str | Path) -> dict[str, Any]:
     requested_auth = _load_json(requested_auth_path)
 
@@ -741,6 +836,7 @@ def validate_static_inputs(
 
     # Phase 3: interpretation validators.
     phase_interpretation = [
+        lambda: validate_unsupported_execution_bindings(workflow_spec_path),
         lambda: validate_unknown_node_types(
             workflow_spec_path, node_type_registry_path
         ),
