@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `484 tests` passing
+- `488 tests` passing
 
 ## Major Implemented Layers
 
@@ -276,6 +276,9 @@
     the current run only.
   - it does not load future fixtures, does not write artifacts, does not
     change approval resolution, and does not change execution behavior.
+  - regression tests now harden this as a display-only summary contract only;
+    it is not an artifact-generation milestone and does not create a compiler
+    authorization artifact.
 - display-only operator review packet in the opt-in summary:
   - when a safe no-op run is blocked by review,
     `cli.run_status_cli --summary` now also renders an

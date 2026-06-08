@@ -13,7 +13,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Implementation checkpoint before this projection slice: 07c100e Document compiler authorization summary design`
 - `Implementation checkpoint before this display-only compiler-authorization-projection slice: af7ca95 Document compiler authorization summary projection`
 - `V1 remains safe no-op only`
-- `484 tests passing`
+- `488 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -78,7 +78,9 @@ Display-only compiler authorization projection is now implemented as an opt-in
 `CompilationReport.json` diagnostics; it is display-only, compiler-owned
 summary metadata only, not executable, not persisted as an artifact, grants no
 runtime authority, does not load future fixtures, does not write artifacts,
-and does not change approval resolution or execution behavior.
+and does not change approval resolution or execution behavior. This is now
+hardened as a display-only summary contract only, not an artifact-generation
+milestone.
 
 Display-only Operator Review Packet is now implemented as an opt-in
 `cli.run_status_cli --summary` checklist for blocked safe no-op runs. It is

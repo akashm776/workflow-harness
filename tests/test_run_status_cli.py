@@ -10,6 +10,7 @@ from uuid import uuid4
 
 from cli.run_status_cli import main
 from cli.workflow_demo_cli import run_workflow_demo
+from examples.safe_innovation_demo import run_safe_innovation_demo
 from orchestrator.safe_run import safe_noop_run
 
 
@@ -521,6 +522,28 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertNotIn("- tool: example-local-file-reader", rendered)
         self.assertIn("Operator Review Packet:", rendered)
 
+    def test_summary_flag_blocked_stub_run_does_not_render_compiler_authorization_projection(
+        self,
+    ) -> None:
+        output_dir = self._make_output_dir()
+        run_workflow_demo(
+            goal="blocked demo",
+            node_type_registry_path=SIMPLE_WORKFLOW / "NodeTypeRegistry.json",
+            run_dir=output_dir,
+        )
+
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            exit_code = main(["--run-dir", str(output_dir), "--summary"])
+        rendered = stdout.getvalue()
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("Review Gate:", rendered)
+        self.assertIn("Operator Review Packet:", rendered)
+        self.assertNotIn("Proposed Tool Access:", rendered)
+        self.assertNotIn("Compiler Authorization Projection:", rendered)
+        self.assertNotIn("- Compiler Authorization Projection", rendered)
+
     def test_summary_flag_completed_safe_noop_run_does_not_render_operator_review_packet(
         self,
     ) -> None:
@@ -541,6 +564,31 @@ class RunStatusCliTests(unittest.TestCase):
         rendered = stdout.getvalue()
 
         self.assertEqual(exit_code, 0)
+        self.assertNotIn("Operator Review Packet:", rendered)
+
+    def test_summary_flag_approved_innovation_review_run_does_not_render_compiler_authorization_projection(
+        self,
+    ) -> None:
+        output_root = self._make_output_dir()
+        run_safe_innovation_demo(
+            run_root=output_root,
+            goal="review innovation options",
+            node_type_registry_path=SIMPLE_WORKFLOW / "NodeTypeRegistry.json",
+            planner_template="innovation_review",
+            demo_approve_current_request=True,
+            allow_overwrite=True,
+        )
+
+        approved_run_dir = output_root / "innovation-approved"
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            exit_code = main(["--run-dir", str(approved_run_dir), "--summary"])
+        rendered = stdout.getvalue()
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("execution_status: completed", rendered)
+        self.assertIn("review_required: false", rendered)
+        self.assertNotIn("Compiler Authorization Projection:", rendered)
         self.assertNotIn("Operator Review Packet:", rendered)
 
     def test_default_json_does_not_include_summary_fields(self) -> None:
