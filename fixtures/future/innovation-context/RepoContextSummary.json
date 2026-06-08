@@ -1,0 +1,36 @@
+{
+  "portfolio_name": "Northstar Demo Code Portfolio",
+  "repositories": [
+    {
+      "repository_id": "northstar-ui-demo",
+      "summary": "Frontend dashboard for intake, triage, and service planning views.",
+      "modules": [
+        "intake-panel",
+        "queue-heatmap",
+        "handoff-reporting"
+      ],
+      "known_gaps": [
+        "No side-by-side experiment comparison view.",
+        "Weekly planning exports still require manual copy steps."
+      ]
+    },
+    {
+      "repository_id": "northstar-ops-api-demo",
+      "summary": "Backend service that aggregates queue state and planning summaries.",
+      "modules": [
+        "queue-summary",
+        "capacity-planning",
+        "region-rollup"
+      ],
+      "known_gaps": [
+        "Pilot metrics are stored separately from baseline metrics.",
+        "Opportunity scoring data is not represented anywhere yet."
+      ]
+    }
+  ],
+  "cross_repo_themes": [
+    "Planning data exists, but comparisons across regions are hard to explain quickly.",
+    "Operators can inspect current state, yet proposal evaluation remains manual.",
+    "Reporting surfaces favor status snapshots over idea prioritization."
+  ]
+}

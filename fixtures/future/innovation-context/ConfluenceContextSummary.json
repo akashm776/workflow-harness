@@ -1,0 +1,37 @@
+{
+  "knowledge_spaces": [
+    {
+      "space_key": "OPS-DEMO",
+      "space_name": "Operations Playbooks",
+      "page_summaries": [
+        {
+          "title": "Regional Pilot Checklist",
+          "summary": "Checklist for introducing a one-region process change without disrupting service coverage."
+        },
+        {
+          "title": "Dispatch Handoff Guide",
+          "summary": "Describes the current triage-to-dispatch handoff steps and common pain points."
+        }
+      ]
+    },
+    {
+      "space_key": "PM-DEMO",
+      "space_name": "Program Management Notes",
+      "page_summaries": [
+        {
+          "title": "Quarterly Improvement Themes",
+          "summary": "Summarizes recurring requests for simpler pilot evaluation and clearer rollout criteria."
+        },
+        {
+          "title": "Innovation Intake Rubric Draft",
+          "summary": "Early notes on ranking proposed improvements by impact, feasibility, and alignment."
+        }
+      ]
+    }
+  ],
+  "common_guidance": [
+    "Prefer low-friction changes that can be piloted inside one region.",
+    "Make operator value visible with simple before-and-after comparisons.",
+    "Keep planning artifacts reusable across weekly review cycles."
+  ]
+}

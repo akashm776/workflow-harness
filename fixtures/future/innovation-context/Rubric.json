@@ -1,0 +1,56 @@
+{
+  "rubric_name": "Innovation Opportunity Rubric",
+  "scoring_scale": "1-5 per dimension",
+  "dimensions": [
+    {
+      "dimension_id": "impact",
+      "description": "Measures operator and mission value if the idea succeeds.",
+      "questions": [
+        "Does the idea remove a high-friction manual step?",
+        "Would the improvement help more than one team or region?"
+      ],
+      "weight_guidance": "high"
+    },
+    {
+      "dimension_id": "feasibility",
+      "description": "Measures how realistic the first pilot is within current delivery constraints.",
+      "questions": [
+        "Can the first version fit inside one region?",
+        "Can the idea build on data or workflows that already exist?"
+      ],
+      "weight_guidance": "high"
+    },
+    {
+      "dimension_id": "novelty",
+      "description": "Measures whether the proposal creates a meaningfully better approach than the current process.",
+      "questions": [
+        "Does the idea change how teams evaluate opportunities?",
+        "Does it avoid repeating an already available workflow?"
+      ],
+      "weight_guidance": "medium"
+    },
+    {
+      "dimension_id": "risk",
+      "description": "Measures rollout complexity and the chance of introducing operator confusion.",
+      "questions": [
+        "Does the pilot require extra coordination steps?",
+        "Could the idea create reporting ambiguity during rollout?"
+      ],
+      "weight_guidance": "medium"
+    },
+    {
+      "dimension_id": "alignment",
+      "description": "Measures consistency with current program goals and stakeholder priorities.",
+      "questions": [
+        "Does the idea support the stated mission context?",
+        "Does the idea address at least one current stakeholder priority?"
+      ],
+      "weight_guidance": "high"
+    }
+  ],
+  "decision_notes": [
+    "Favor ideas that can be piloted without new external dependencies.",
+    "Break ties by choosing the clearer one-region MVP path.",
+    "Document why a lower-risk pilot was preferred over a broader concept."
+  ]
+}

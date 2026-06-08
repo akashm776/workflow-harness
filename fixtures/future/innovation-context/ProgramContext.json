@@ -1,0 +1,45 @@
+{
+  "program_id": "northstar-modernization-demo",
+  "program_name": "Northstar Modernization Initiative",
+  "mission_context": "Improve planning support for regional field operations without expanding operator workload.",
+  "planning_horizon": "two quarters",
+  "constraints": [
+    "Budget growth is not assumed.",
+    "Pilot scope must fit within one service region.",
+    "Operational reporting cannot depend on manual spreadsheet merges."
+  ],
+  "stakeholders": [
+    {
+      "name": "Operations Lead",
+      "role": "field operations sponsor",
+      "priority": "reduce manual handoffs between triage and dispatch"
+    },
+    {
+      "name": "Program Analyst",
+      "role": "planning and reporting owner",
+      "priority": "compare improvement ideas against mission goals"
+    },
+    {
+      "name": "Regional Manager",
+      "role": "pilot approver",
+      "priority": "keep rollout simple for one-region adoption"
+    }
+  ],
+  "current_capabilities": [
+    {
+      "capability_name": "Dispatch dashboard",
+      "status": "available",
+      "notes": "Shows active work queues by region and shift."
+    },
+    {
+      "capability_name": "Weekly planning review",
+      "status": "manual",
+      "notes": "Operators assemble a summary packet from several internal views."
+    },
+    {
+      "capability_name": "Pilot measurement notes",
+      "status": "partial",
+      "notes": "Small pilot learnings are captured, but comparisons are inconsistent."
+    }
+  ]
+}

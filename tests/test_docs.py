@@ -86,7 +86,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("424 tests", content)
+        self.assertIn("427 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -126,6 +126,9 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn("example/future-only fixture", content)
         self.assertIn("not active governance input", content)
+        self.assertIn("fixtures/future/innovation-context/", content)
+        self.assertIn("fake local", content)
+        self.assertIn("not loaded by", content)
         # End-to-end safe no-op workflow demo CLI is mentioned.
         self.assertIn("cli/workflow_demo_cli.py", content)
         self.assertIn("effective_repo_root", content)
@@ -626,9 +629,13 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("424 tests passing", content)
+        self.assertIn("427 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
+        self.assertIn("inert future-only innovation context fixtures", content)
+        self.assertIn("fixtures/future/innovation-context/", content)
+        self.assertIn("does not load them", content)
+        self.assertIn("connect to tools/connectors/MCP", content)
         self.assertIn("--planner-template innovation_review", content)
         self.assertIn("Default goal-based", content)
         self.assertIn("existing `innovation`", content)
@@ -637,14 +644,17 @@ class DocsTests(unittest.TestCase):
         self.assertIn("behavior", content)
 
         for slice_name in (
-            "Local fixture input artifacts",
+            "Display-only fixture lineage",
             "Display-only proposed tool access",
         ):
             self.assertIn(slice_name, content)
 
         for boundary in (
-            "local committed fake data only",
-            "fixture lineage can be display-only",
+            "known future fixture paths as display-only",
+            "no fixture loading",
+            "no planner/compiler/runtime behavior",
+            "no connector/MCP/tools",
+            "no authority or approval changes",
             "proposal-only",
             "no tool execution",
         ):
