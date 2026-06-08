@@ -23,6 +23,9 @@ AUTHORITY_ARTIFACT_OWNERSHIP_PATH = (
 COMPILER_AUTHORIZATION_SUMMARY_PATH = (
     ROOT / "docs" / "COMPILER_AUTHORIZATION_SUMMARY_DESIGN.md"
 )
+COMPILER_AUTHORIZATION_SUMMARY_PROJECTION_PATH = (
+    ROOT / "docs" / "COMPILER_AUTHORIZATION_SUMMARY_PROJECTION.md"
+)
 STATIC_VALIDATION_HARDENING_MAP_PATH = (
     ROOT / "docs" / "STATIC_VALIDATION_HARDENING_MAP.md"
 )
@@ -114,7 +117,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("477 tests", content)
+        self.assertIn("481 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -221,9 +224,11 @@ class DocsTests(unittest.TestCase):
         self.assertIn("CAPABILITY_ENVELOPE_V1_DESIGN.md", content)
         self.assertIn("AUTHORITY_ARTIFACT_OWNERSHIP.md", content)
         self.assertIn("COMPILER_AUTHORIZATION_SUMMARY_DESIGN.md", content)
+        self.assertIn("COMPILER_AUTHORIZATION_SUMMARY_PROJECTION.md", content)
         self.assertIn("STATIC_VALIDATION_HARDENING_MAP.md", content)
         self.assertIn("SAFEGUARD_ADVISORY_DESIGN.md", content)
         self.assertIn("CompilerAuthorizationSummary.example.json", content)
+        self.assertIn("CompilerAuthorizationSummaryProjection.example.json", content)
         self.assertIn("CompiledCapabilityEnvelope.example.json", content)
         self.assertIn("UNSUPPORTED_CAPABILITY_ENVELOPE", content)
         self.assertIn("UNSUPPORTED_SECRET_FIELD", content)
@@ -691,6 +696,59 @@ class DocsTests(unittest.TestCase):
         self.assertIn("no connector, MCP, or tool calls", content)
         self.assertIn("no model inference", lowered)
 
+    def test_compiler_authorization_summary_projection_doc_exists_and_is_design_only(
+        self,
+    ) -> None:
+        self.assertTrue(COMPILER_AUTHORIZATION_SUMMARY_PROJECTION_PATH.exists())
+        content = COMPILER_AUTHORIZATION_SUMMARY_PROJECTION_PATH.read_text(
+            encoding="utf-8"
+        )
+        lowered = content.lower()
+
+        self.assertIn("design-only checkpoint", lowered)
+        self.assertIn("not implemented", lowered)
+        self.assertIn("compiler-validated `RequestedAuth.json`", content)
+        self.assertIn("compiler-validated `ApprovalRequests.json`", content)
+        self.assertIn("static validation diagnostics", lowered)
+        self.assertIn("current run, request, and artifact revision context", lowered)
+        self.assertIn("`requested_authority`", content)
+        self.assertIn("`approval_required`", content)
+        self.assertIn("`blocked_authority`", content)
+        self.assertIn("`unsupported_authority`", content)
+        self.assertIn("validated requested scopes or", lowered)
+        self.assertIn("capabilities only", lowered)
+        self.assertIn("explicit approval requests only", lowered)
+        self.assertIn("missing approvals", lowered)
+        self.assertIn("policy rejection", lowered)
+        for diagnostic in (
+            "UNSUPPORTED_SECRET_FIELD",
+            "UNSUPPORTED_CAPABILITY_ENVELOPE",
+            "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
+            "UNSUPPORTED_AUTHORITY_ARTIFACT",
+            "UNSUPPORTED_EXECUTION_BINDING",
+        ):
+            self.assertIn(diagnostic, content)
+        self.assertIn("Projection is deterministic.", content)
+        self.assertIn("Projection does not grant authority.", content)
+        self.assertIn("Projection does not execute.", content)
+        self.assertIn(
+            "Projection does not call tools, connectors, MCP, network, or models.",
+            content,
+        )
+        self.assertIn("Projection does not read secrets.", content)
+        self.assertIn("Projection does not replace `ApprovalDecisions.json`.", content)
+        self.assertIn("Projection does not enable approval carryover.", content)
+        self.assertIn("current run, current request, and current", lowered)
+        self.assertIn("artifact revision only", lowered)
+        self.assertIn("does not generate or consume this projection", lowered)
+        self.assertIn("no compiler generation yet", lowered)
+        self.assertIn("no runtime consumption", lowered)
+        self.assertIn("no planner behavior changes", lowered)
+        self.assertIn("no cli rendering", lowered)
+        self.assertIn("no execution", lowered)
+        self.assertIn("no tool, connector, mcp, or network behavior", lowered)
+        self.assertIn("no model inference", lowered)
+
     def test_safeguard_advisory_design_doc_exists_and_is_design_only(
         self,
     ) -> None:
@@ -935,8 +993,12 @@ class DocsTests(unittest.TestCase):
             "Implementation checkpoint before this authorization-summary slice: 2bac7e4 Document static validation hardening map",
             content,
         )
+        self.assertIn(
+            "Implementation checkpoint before this projection slice: 07c100e Document compiler authorization summary design",
+            content,
+        )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("477 tests passing", content)
+        self.assertIn("481 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -955,6 +1017,8 @@ class DocsTests(unittest.TestCase):
         self.assertIn("static validation hardening map", content)
         self.assertIn("compiler authorization summary design", content)
         self.assertIn("inert future-only compiler authorization summary fixture", content)
+        self.assertIn("compiler authorization summary projection design", content)
+        self.assertIn("inert future-only compiler authorization summary projection fixture", content)
         self.assertIn("fixtures/future/innovation-context/", content)
         self.assertIn(
             "fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json",
@@ -962,6 +1026,10 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn(
             "fixtures/future/compiler-authorization-summary/CompilerAuthorizationSummary.example.json",
+            content,
+        )
+        self.assertIn(
+            "fixtures/future/compiler-authorization-summary/CompilerAuthorizationSummaryProjection.example.json",
             content,
         )
         self.assertIn(
@@ -1064,6 +1132,17 @@ class DocsTests(unittest.TestCase):
             "CompilerAuthorizationSummary.example.json",
             "not consumed by V1",
             "grants no runtime authority",
+            "COMPILER_AUTHORIZATION_SUMMARY_PROJECTION.md",
+            "compiler-validated `RequestedAuth.json`",
+            "compiler-validated `ApprovalRequests.json`",
+            "static validation diagnostics",
+            "`requested_authority`, `approval_required`, `blocked_authority`, and",
+            "`unsupported_authority`",
+            "projection is deterministic",
+            "projection is deterministic and non-authoritative",
+            "does not generate or consume the projection yet",
+            "CompilerAuthorizationSummaryProjection.example.json",
+            "not generated by V1",
         ):
             self.assertIn(boundary, content)
 
@@ -1110,6 +1189,7 @@ class DocsTests(unittest.TestCase):
             "CAPABILITY_ENVELOPE_V1_DESIGN.md",
             "AUTHORITY_ARTIFACT_OWNERSHIP.md",
             "COMPILER_AUTHORIZATION_SUMMARY_DESIGN.md",
+            "COMPILER_AUTHORIZATION_SUMMARY_PROJECTION.md",
             "STATIC_VALIDATION_HARDENING_MAP.md",
             "SAFEGUARD_ADVISORY_DESIGN.md",
             "SKILL_PROMPT_REGISTRY_DESIGN.md",
@@ -1135,6 +1215,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("SideEffectCatalog.json", content)
         self.assertIn("CompiledCapabilityEnvelope.example.json", content)
         self.assertIn("CompilerAuthorizationSummary.example.json", content)
+        self.assertIn("CompilerAuthorizationSummaryProjection.example.json", content)
         self.assertIn("SafeguardAdvisory.example.json", content)
         self.assertIn("example/future-only artifacts", content)
         # Mentions the end-to-end demo CLI.

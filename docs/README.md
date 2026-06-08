@@ -92,6 +92,11 @@ design gates. The design-only documents in this section are not implementations.
   the future compiler-owned authorization summary boundary: planner must not
   supply it, it is derived only from compiler-validated candidate artifacts,
   and V1 safe no-op does not generate or consume it yet.
+- [`COMPILER_AUTHORIZATION_SUMMARY_PROJECTION.md`](COMPILER_AUTHORIZATION_SUMMARY_PROJECTION.md) -
+  the future projection contract for compiler-owned authorization summaries:
+  inputs come only from compiler-validated artifacts and diagnostics, output
+  sections stay deterministic and non-authoritative, and V1 safe no-op does
+  not generate or consume the projection yet.
 - [`STATIC_VALIDATION_HARDENING_MAP.md`](STATIC_VALIDATION_HARDENING_MAP.md) -
   a docs-only map of the current static validation phases, validator
   ownership, deterministic diagnostic order, and the rules for adding future
@@ -140,6 +145,10 @@ connectors, and are not wired into compile or runtime behavior.
 - `fixtures/future/compiler-authorization-summary/CompilerAuthorizationSummary.example.json`
   is an inert compiler-owned future authorization-summary example. It is
   display-only, not executable, not consumed by compile/runtime, and grants no
+  runtime authority.
+- `fixtures/future/compiler-authorization-summary/CompilerAuthorizationSummaryProjection.example.json`
+  is an inert future authorization-summary projection example. It is
+  display-only, not generated or consumed by V1, not executable, and grants no
   runtime authority.
 - `fixtures/future/safeguard-advisory/WorkflowHarnessSafeguardPolicy.md` and
   `fixtures/future/safeguard-advisory/SafeguardAdvisory.example.json` hold

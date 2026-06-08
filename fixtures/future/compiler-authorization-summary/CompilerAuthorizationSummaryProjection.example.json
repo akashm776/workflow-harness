@@ -1,0 +1,25 @@
+{
+  "schema_version": "compiler-authorization-summary-projection.v1.example",
+  "display_only": true,
+  "future_only_example": true,
+  "not_generated_by_v1": true,
+  "not_consumed_by_v1": true,
+  "no_runtime_authority": true,
+  "no_execution": true,
+  "no_credentials": true,
+  "run_scope": "example-current-run-only",
+  "request_scope": "example-current-request-only",
+  "artifact_revision_scope": "example-current-artifact-revision-only",
+  "source_artifacts": [
+    "RequestedAuth.json",
+    "ApprovalRequests.json",
+    "static_validation_diagnostics"
+  ],
+  "requested_authority": [],
+  "approval_required": [],
+  "blocked_authority": [],
+  "unsupported_authority": [],
+  "notes": [
+    "Future-only example projection shape. V1 safe no-op does not generate or consume this artifact."
+  ]
+}
