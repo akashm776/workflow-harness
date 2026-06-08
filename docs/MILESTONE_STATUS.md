@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `472 tests` passing
+- `473 tests` passing
 
 ## Major Implemented Layers
 
@@ -305,6 +305,10 @@
   artifacts remain non-authoritative, compiler remains the authority boundary,
   runtime reports results but does not invent authority, and operator approval
   remains explicit and current-run/request scoped.
+- `STATIC_VALIDATION_HARDENING_MAP.md` records the current static validation
+  phases, current interpretation-validator ownership and ordering, and the
+  rules for adding future validators. It is docs-only hardening and changes no
+  compiler behavior.
 - `fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json`
   is an inert display-only, not executable, compiler-owned example shape only.
 - `compiler/static_validation.py` now rejects planner-controlled capability or
