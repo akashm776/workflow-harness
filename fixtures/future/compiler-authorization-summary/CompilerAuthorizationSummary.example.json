@@ -1,0 +1,18 @@
+{
+  "schema_version": "compiler-authorization-summary.v1.example",
+  "compiler_owned": true,
+  "display_only": true,
+  "not_executable": true,
+  "not_consumed_by_v1": true,
+  "no_runtime_authority": true,
+  "no_credentials": true,
+  "run_scope": "example-current-run-only",
+  "artifact_revision_scope": "example-current-artifact-revision-only",
+  "requested_authority": [],
+  "approval_required": [],
+  "blocked_authority": [],
+  "unsupported_authority": [],
+  "notes": [
+    "Future-only example. V1 safe no-op does not generate or consume this artifact."
+  ]
+}

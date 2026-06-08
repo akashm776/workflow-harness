@@ -20,6 +20,9 @@ CAPABILITY_ENVELOPE_V1_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_V1_DESIGN.md"
 AUTHORITY_ARTIFACT_OWNERSHIP_PATH = (
     ROOT / "docs" / "AUTHORITY_ARTIFACT_OWNERSHIP.md"
 )
+COMPILER_AUTHORIZATION_SUMMARY_PATH = (
+    ROOT / "docs" / "COMPILER_AUTHORIZATION_SUMMARY_DESIGN.md"
+)
 STATIC_VALIDATION_HARDENING_MAP_PATH = (
     ROOT / "docs" / "STATIC_VALIDATION_HARDENING_MAP.md"
 )
@@ -111,7 +114,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("473 tests", content)
+        self.assertIn("477 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -217,8 +220,10 @@ class DocsTests(unittest.TestCase):
         self.assertIn("CAPABILITY_ENVELOPE_DESIGN.md", content)
         self.assertIn("CAPABILITY_ENVELOPE_V1_DESIGN.md", content)
         self.assertIn("AUTHORITY_ARTIFACT_OWNERSHIP.md", content)
+        self.assertIn("COMPILER_AUTHORIZATION_SUMMARY_DESIGN.md", content)
         self.assertIn("STATIC_VALIDATION_HARDENING_MAP.md", content)
         self.assertIn("SAFEGUARD_ADVISORY_DESIGN.md", content)
+        self.assertIn("CompilerAuthorizationSummary.example.json", content)
         self.assertIn("CompiledCapabilityEnvelope.example.json", content)
         self.assertIn("UNSUPPORTED_CAPABILITY_ENVELOPE", content)
         self.assertIn("UNSUPPORTED_SECRET_FIELD", content)
@@ -651,6 +656,41 @@ class DocsTests(unittest.TestCase):
         self.assertIn("no tools/connectors", lowered)
         self.assertIn("no mcp/network calls", lowered)
 
+    def test_compiler_authorization_summary_design_doc_exists_and_is_design_only(
+        self,
+    ) -> None:
+        self.assertTrue(COMPILER_AUTHORIZATION_SUMMARY_PATH.exists())
+        content = COMPILER_AUTHORIZATION_SUMMARY_PATH.read_text(
+            encoding="utf-8"
+        )
+        lowered = content.lower()
+
+        self.assertIn("design-only checkpoint", lowered)
+        self.assertIn("not implemented", lowered)
+        self.assertIn("compiler-owned", content)
+        self.assertIn("Planner must not supply it.", content)
+        self.assertIn(
+            "It is derived only from compiler-validated candidate artifacts.",
+            content,
+        )
+        self.assertIn("requested authority", lowered)
+        self.assertIn("blocked authority", lowered)
+        self.assertIn("approval-required authority", lowered)
+        self.assertIn("unsupported authority", lowered)
+        self.assertIn("does not grant runtime", lowered)
+        self.assertIn("execution by itself", lowered)
+        self.assertIn("does not contain credentials or secrets", lowered)
+        self.assertIn("does not replace `ApprovalDecisions.json`", content)
+        self.assertIn("does not enable approval carryover", lowered)
+        self.assertIn("current run, current request, and current artifact", lowered)
+        self.assertIn("never planner-supplied ones", content)
+        self.assertIn("safe no-op does not generate or consume this", lowered)
+        self.assertIn("summary yet", lowered)
+        self.assertIn("no runtime execution", lowered)
+        self.assertIn("no broker", lowered)
+        self.assertIn("no connector, MCP, or tool calls", content)
+        self.assertIn("no model inference", lowered)
+
     def test_safeguard_advisory_design_doc_exists_and_is_design_only(
         self,
     ) -> None:
@@ -891,8 +931,12 @@ class DocsTests(unittest.TestCase):
             "Implementation checkpoint before this hardening-map slice: 0ae585c Reject unsupported secret fields",
             content,
         )
+        self.assertIn(
+            "Implementation checkpoint before this authorization-summary slice: 2bac7e4 Document static validation hardening map",
+            content,
+        )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("473 tests passing", content)
+        self.assertIn("477 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -909,9 +953,15 @@ class DocsTests(unittest.TestCase):
         self.assertIn("fail-closed unsupported authority artifact rejection", content)
         self.assertIn("fail-closed unsupported secret field rejection", content)
         self.assertIn("static validation hardening map", content)
+        self.assertIn("compiler authorization summary design", content)
+        self.assertIn("inert future-only compiler authorization summary fixture", content)
         self.assertIn("fixtures/future/innovation-context/", content)
         self.assertIn(
             "fixtures/future/capability-envelope/CompiledCapabilityEnvelope.example.json",
+            content,
+        )
+        self.assertIn(
+            "fixtures/future/compiler-authorization-summary/CompilerAuthorizationSummary.example.json",
             content,
         )
         self.assertIn(
@@ -1005,6 +1055,15 @@ class DocsTests(unittest.TestCase):
             "UNSUPPORTED_EXECUTION_BINDING",
             "deterministic and fail-closed",
             "changes no compiler",
+            "COMPILER_AUTHORIZATION_SUMMARY_DESIGN.md",
+            "compiler-owned authorization summary",
+            "requested authority, blocked authority, approval-required authority",
+            "does not replace `ApprovalDecisions.json`",
+            "current run/request/artifact revision",
+            "safe no-op does not generate or consume it yet",
+            "CompilerAuthorizationSummary.example.json",
+            "not consumed by V1",
+            "grants no runtime authority",
         ):
             self.assertIn(boundary, content)
 
@@ -1050,6 +1109,7 @@ class DocsTests(unittest.TestCase):
             "CAPABILITY_ENVELOPE_DESIGN.md",
             "CAPABILITY_ENVELOPE_V1_DESIGN.md",
             "AUTHORITY_ARTIFACT_OWNERSHIP.md",
+            "COMPILER_AUTHORIZATION_SUMMARY_DESIGN.md",
             "STATIC_VALIDATION_HARDENING_MAP.md",
             "SAFEGUARD_ADVISORY_DESIGN.md",
             "SKILL_PROMPT_REGISTRY_DESIGN.md",
@@ -1074,6 +1134,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("fixtures/future/", content)
         self.assertIn("SideEffectCatalog.json", content)
         self.assertIn("CompiledCapabilityEnvelope.example.json", content)
+        self.assertIn("CompilerAuthorizationSummary.example.json", content)
         self.assertIn("SafeguardAdvisory.example.json", content)
         self.assertIn("example/future-only artifacts", content)
         # Mentions the end-to-end demo CLI.

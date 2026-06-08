@@ -9,8 +9,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Implementation checkpoint before this authority-artifact slice: 4d9a468 Document static validation diagnostic order`
 - `Implementation checkpoint before this secret-field slice: 51a214f Reject unsupported authority artifacts`
 - `Implementation checkpoint before this hardening-map slice: 0ae585c Reject unsupported secret fields`
+- `Implementation checkpoint before this authorization-summary slice: 2bac7e4 Document static validation hardening map`
 - `V1 remains safe no-op only`
-- `473 tests passing`
+- `477 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -31,6 +32,8 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - fail-closed unsupported capability envelope rejection
 - fail-closed unsupported secret field rejection
 - static validation hardening map
+- compiler authorization summary design
+- inert future-only compiler authorization summary fixture
 - safeguard advisory design checkpoint
 - inert future-only safeguard advisory fixtures
 - fail-closed unsupported safeguard authority-claim rejection
@@ -141,6 +144,21 @@ validators. It also records validator ownership for
 `UNSUPPORTED_EXECUTION_BINDING`, plus the rule that future validators remain
 deterministic and fail-closed. This is docs-only and changes no compiler
 behavior.
+
+`COMPILER_AUTHORIZATION_SUMMARY_DESIGN.md` now documents a future
+compiler-owned authorization summary. It states that planner must not supply
+it, it is derived only from compiler-validated candidate artifacts, it may
+summarize requested authority, blocked authority, approval-required authority,
+and unsupported authority, it does not grant runtime execution by itself, it
+does not replace `ApprovalDecisions.json`, it does not enable approval
+carryover, it is scoped to the current run/request/artifact revision, and V1
+safe no-op does not generate or consume it yet.
+
+An inert future-only compiler authorization summary fixture now exists at
+`fixtures/future/compiler-authorization-summary/CompilerAuthorizationSummary.example.json`.
+It is compiler-owned, display-only, not executable, not consumed by V1,
+contains no credentials, grants no runtime authority, and is fixture/test data
+only.
 
 ## Recommended Next Safe Slices
 
