@@ -6,8 +6,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 
 - `Baseline before this handoff slice: f7de8c4 Update safe noop milestone status`
 - `Implementation checkpoint before this safeguard-advisory slice: 6c81a23 Reject unsupported capability envelopes`
+- `Implementation checkpoint before this authority-artifact slice: 4d9a468 Document static validation diagnostic order`
 - `V1 remains safe no-op only`
-- `456 tests passing`
+- `465 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -29,6 +30,8 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - safeguard advisory design checkpoint
 - inert future-only safeguard advisory fixtures
 - fail-closed unsupported safeguard authority-claim rejection
+- authority artifact ownership contract
+- fail-closed unsupported authority artifact rejection
 - milestone docs updated
 
 The richer deterministic innovation template slice is now implemented as the
@@ -97,6 +100,22 @@ to include safeguard approval, authorization, execution-unblock, or authority
 override claims are rejected with
 `UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM`. This is rejection-only, does not add
 model inference, does not add API/network behavior, and does not change
+runtime, CLI summary, approval, or execution behavior.
+
+Authority artifact ownership is now documented in
+`AUTHORITY_ARTIFACT_OWNERSHIP.md`. It states that candidate
+`WorkflowSpec.json`, `RequestedAuth.json`, and `ApprovalRequests.json` remain
+planner proposals only, compiler-owned and runtime-owned authority artifacts
+must not be planner-supplied, operator approval remains explicit and
+current-run/request scoped, and V1 safe no-op does not generate or consume
+compiled capability envelopes.
+
+Fail-closed unsupported authority artifact rejection is now implemented in
+`compiler/static_validation.py`. Planner-controlled artifacts that attempt to
+include compiler-owned diagnostics, compiled plans/manifests, runtime results,
+audit or evidence artifacts, or approval-decision artifacts are rejected with
+`UNSUPPORTED_AUTHORITY_ARTIFACT`. This is rejection-only, does not create
+compiled artifacts, does not consume compiled artifacts, and does not change
 runtime, CLI summary, approval, or execution behavior.
 
 ## Recommended Next Safe Slices

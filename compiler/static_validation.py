@@ -461,6 +461,26 @@ _UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM_KEYS = frozenset(
     }
 )
 
+_UNSUPPORTED_AUTHORITY_ARTIFACT_KEYS = frozenset(
+    {
+        "compiled_execution_plan",
+        "compiled_execution_plans",
+        "compiled_authority_manifest",
+        "compiled_authority_manifests",
+        "authority_manifest",
+        "authority_manifests",
+        "compiler_diagnostics",
+        "validation_diagnostics",
+        "execution_manifest",
+        "execution_result",
+        "runtime_result",
+        "audit_log",
+        "verifier_output",
+        "evidence_lineage",
+        "approval_decisions",
+    }
+)
+
 
 def _find_unsupported_execution_binding_paths(
     value: Any,
@@ -558,6 +578,38 @@ def _find_unsupported_safeguard_authority_claim_paths(
     return findings
 
 
+def _find_unsupported_authority_artifact_paths(
+    value: Any,
+    *,
+    path: str,
+) -> list[str]:
+    findings: list[str] = []
+
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            if key in _UNSUPPORTED_AUTHORITY_ARTIFACT_KEYS:
+                findings.append(child_path)
+            findings.extend(
+                _find_unsupported_authority_artifact_paths(
+                    child,
+                    path=child_path,
+                )
+            )
+        return findings
+
+    if isinstance(value, list):
+        for index, child in enumerate(value):
+            findings.extend(
+                _find_unsupported_authority_artifact_paths(
+                    child,
+                    path=f"{path}[{index}]",
+                )
+            )
+
+    return findings
+
+
 def validate_unsupported_capability_envelope_fields(
     artifact_path: str | Path,
     artifact_name: str,
@@ -614,6 +666,39 @@ def validate_unsupported_safeguard_authority_claims(
                 "V1 safe no-op does not accept safeguard approval, authorization, "
                 "execution-unblock, or authority-override claims: "
                 + ", ".join(findings)
+            ),
+        },
+    }
+
+
+def validate_unsupported_authority_artifacts(
+    artifact_path: str | Path,
+    artifact_name: str,
+) -> dict[str, Any]:
+    artifact = _load_json(artifact_path)
+    findings = _find_unsupported_authority_artifact_paths(
+        artifact,
+        path="$",
+    )
+
+    if not findings:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "UNSUPPORTED_AUTHORITY_ARTIFACT",
+            "component": "authority_artifact_ownership_validator",
+            "artifact": artifact_name,
+            "message": (
+                f"unsupported compiler/runtime/operator-owned authority artifact "
+                f"field in {artifact_name}; V1 safe no-op does not accept "
+                "planner-supplied compiled plans, authority manifests, "
+                "diagnostics, execution results, audit artifacts, evidence "
+                "lineage, or approval decisions: " + ", ".join(findings)
             ),
         },
     }
@@ -960,7 +1045,10 @@ def validate_static_inputs(
     #
     # Phase 1: authority-value validators (do not interpret bad authority values)
     # Phase 2: schema validators (graph validators must not see malformed shapes)
-    # Phase 3: interpretation validators (graph, scope, approval semantics)
+    # Phase 3: interpretation validators (graph, scope, approval semantics).
+    # Ordering within the phase is deterministic and fail-closed:
+    # capability-envelope, safeguard-authority-claim,
+    # authority-artifact-ownership, execution-binding, then graph/scope/approval.
 
     # Phase 1: authority-value validators.
     phase_authority_values = [
@@ -1010,6 +1098,15 @@ def validate_static_inputs(
             requested_auth_path, "RequestedAuth.json"
         ),
         lambda: validate_unsupported_safeguard_authority_claims(
+            approval_requests_path, "ApprovalRequests.json"
+        ),
+        lambda: validate_unsupported_authority_artifacts(
+            workflow_spec_path, "WorkflowSpec.json"
+        ),
+        lambda: validate_unsupported_authority_artifacts(
+            requested_auth_path, "RequestedAuth.json"
+        ),
+        lambda: validate_unsupported_authority_artifacts(
             approval_requests_path, "ApprovalRequests.json"
         ),
         lambda: validate_unsupported_execution_bindings(workflow_spec_path),
