@@ -66,6 +66,13 @@ design gates. The design-only documents in this section are not implementations.
 - [`SANDBOX_BROKER_INTERFACE_DESIGN.md`](SANDBOX_BROKER_INTERFACE_DESIGN.md) — the
   future interface between the harness and an isolated execution broker/sandbox.
 
+- [`TOOL_CONNECTOR_CATALOG_DESIGN.md`](TOOL_CONNECTOR_CATALOG_DESIGN.md) - the
+  future trust-boundary design for tool, connector, and MCP-style integration:
+  planner proposals remain non-authoritative, compiler remains the sole
+  authority boundary, runtime does not call tools directly, and any future tool
+  execution must be brokered/sandboxed. No real connectors or MCP/network calls
+  are enabled in V1 safe no-op.
+
 ## 3. Implementation Checkpoints / Safe Code Surfaces
 
 These are pure, inspection-only code surfaces. They build or validate data

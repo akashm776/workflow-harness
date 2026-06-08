@@ -13,6 +13,7 @@ PLANNER_SKELETON_PATH = ROOT / "docs" / "PLANNER_SKELETON.md"
 AUTHORITY_SUBSUMPTION_PATH = ROOT / "docs" / "AUTHORITY_SUBSUMPTION_DESIGN.md"
 REAL_EXECUTION_THREAT_MODEL_PATH = ROOT / "docs" / "REAL_EXECUTION_THREAT_MODEL.md"
 SIDE_EFFECT_CATALOG_PATH = ROOT / "docs" / "SIDE_EFFECT_CATALOG_DESIGN.md"
+TOOL_CONNECTOR_CATALOG_PATH = ROOT / "docs" / "TOOL_CONNECTOR_CATALOG_DESIGN.md"
 SANDBOX_BROKER_INTERFACE_PATH = ROOT / "docs" / "SANDBOX_BROKER_INTERFACE_DESIGN.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
@@ -354,6 +355,47 @@ class DocsTests(unittest.TestCase):
         # Non-goals.
         self.assertIn("Non-Goals", content)
 
+    def test_tool_connector_catalog_design_doc_exists_and_is_design_only(
+        self,
+    ) -> None:
+        self.assertTrue(TOOL_CONNECTOR_CATALOG_PATH.exists())
+        content = TOOL_CONNECTOR_CATALOG_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        self.assertIn("design only", lowered)
+        self.assertIn("safe no-op only", lowered)
+        self.assertIn("MCP/tool servers are **not authority boundaries**", content)
+        self.assertIn("Planner may propose tool use but cannot authorize it", content)
+        self.assertIn("sole authority boundary", content)
+        self.assertIn("Runtime must **not call tools directly**", content)
+        self.assertIn("isolated broker/sandbox", content)
+        self.assertIn("connector ID", content)
+        self.assertIn("operation", content)
+        self.assertIn("side-effect class", content)
+        self.assertIn("credential requirement", content)
+        self.assertIn("requested scope", content)
+        self.assertIn("fail closed", lowered)
+        self.assertIn("explicit current-run/request approval", content)
+        self.assertIn("no approval carryover", lowered)
+        self.assertIn("no authority subsumption", lowered)
+        self.assertIn("No real connectors in V1 safe no-op", content)
+        self.assertIn("No MCP/network calls in the current milestone", content)
+        self.assertIn("No credentials should appear in planner output", content)
+        self.assertIn("No credentials should appear in compiled artifacts", content)
+        self.assertIn("No credentials should appear in logs", content)
+        self.assertIn("No credentials should appear in summaries", content)
+
+        for roadmap_item in (
+            "proposal-only connector metadata",
+            "compiler rejection diagnostics",
+            "display-only proposed tool access",
+            "fixture-backed fake connector",
+            "brokered local mock MCP",
+            "brokered read-only real MCP",
+            "approved write-capable connector",
+        ):
+            self.assertIn(roadmap_item, content)
+
     def test_safe_innovation_demo_doc_exists_and_preserves_safety_claims(
         self,
     ) -> None:
@@ -435,6 +477,7 @@ class DocsTests(unittest.TestCase):
             "AUTHORITY_SUBSUMPTION_DESIGN.md",
             "REAL_EXECUTION_THREAT_MODEL.md",
             "SIDE_EFFECT_CATALOG_DESIGN.md",
+            "TOOL_CONNECTOR_CATALOG_DESIGN.md",
             "SANDBOX_BROKER_INTERFACE_DESIGN.md",
         ):
             self.assertIn(doc_name, content)
