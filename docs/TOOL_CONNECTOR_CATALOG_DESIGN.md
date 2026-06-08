@@ -46,6 +46,18 @@ credential-bearing connection details.
 - No broker or sandbox implementation is enabled.
 - No runtime tool invocation is enabled.
 
+Current V1 safe no-op also rejects workflow-node execution bindings such as
+`tool_binding`, `tool_access`, `connector_binding`, `connector_access`,
+`broker_binding`, `mcp`, `mcp_binding`, `mcp_server`, or `mcp_tool`. This is
+not a final MCP schema. It is a V1 fail-closed guard that rejects node-level
+tool/connector/broker/MCP execution intent until broker-mediated execution is
+designed and implemented. It preserves compatibility with future standard MCP integration rather than treating workflow-harness policy fields as MCP wire-protocol fields.
+
+Any future MCP support must remain broker-mediated and use standard MCP
+transports and methods such as `stdio`, Streamable HTTP, `tools/list`,
+`tools/call`, `resources/list`, `resources/read`, `prompts/list`, and
+`prompts/get`.
+
 ## Fail-Closed Rules
 
 - If connector metadata is missing, execution must fail closed.

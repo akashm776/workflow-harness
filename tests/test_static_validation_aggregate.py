@@ -63,6 +63,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
         ), patch(
             "compiler.static_validation.validate_approval_requests_schema",
             return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_execution_bindings",
+            return_value=success,
         ), patch("compiler.static_validation.validate_unknown_node_types", return_value=success), patch(
             "compiler.static_validation.validate_invalid_edge_endpoints", return_value=invalid_endpoint
         ), patch(
@@ -155,6 +158,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
         ), patch(
             "compiler.static_validation.validate_approval_requests_schema",
             return_value={"ok": True, "diagnostic": None},
+        ), patch(
+            "compiler.static_validation.validate_unsupported_execution_bindings",
+            return_value={"ok": True, "diagnostic": None},
         ):
             result = validate_static_inputs(
                 "workflow.json",
@@ -211,6 +217,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_approval_requests_schema",
+            return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_execution_bindings",
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_unknown_node_types",
