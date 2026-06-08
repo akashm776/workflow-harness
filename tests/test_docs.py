@@ -54,6 +54,15 @@ class DocsTests(unittest.TestCase):
         self.assertIn("read-only and fail-soft", content)
         # Planner template selection is surfaced in the demo summary.
         self.assertIn("planner_template", content)
+        self.assertIn("innovation_review", content)
+        self.assertIn("--planner-template innovation_review", content)
+        self.assertIn("goal-based selection remains unchanged", content)
+        self.assertIn("existing `innovation`", content)
+        self.assertIn("remains unchanged", content)
+        self.assertIn("retrieve` and `synthesize`", content)
+        self.assertIn("dedupe against existing work", content)
+        self.assertIn("scoring against a rubric", content)
+        self.assertIn("critiquing top ideas", content)
         # Optional candidate workflow graph section in the summary.
         self.assertIn("Candidate Workflow", content)
         self.assertIn("display only", content)
@@ -77,7 +86,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("411 tests", content)
+        self.assertIn("424 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -137,12 +146,24 @@ class DocsTests(unittest.TestCase):
         self.assertIn("build_innovation_planner_candidate", content)
         self.assertIn("select_planner_candidate", content)
         self.assertIn("planner_template", content)
+        self.assertIn("innovation_review", content)
+        self.assertIn("--planner-template innovation_review", content)
+        self.assertIn("default goal-based selection remains unchanged", content)
+        self.assertIn("existing `innovation`", content)
+        self.assertIn("behavior remains unchanged", content)
+        self.assertIn("existing `retrieve` and `synthesize` node types", content)
+        self.assertIn("dedupe against existing work", content)
+        self.assertIn("scoring against a rubric", content)
+        self.assertIn("critiquing top ideas", content)
+        self.assertIn("synthesizing MVP plans", content)
+        self.assertIn("compiles against the existing simple registry", content)
         # Candidate workflow graph visibility in the opt-in summary.
         self.assertIn("Candidate Workflow", content)
         self.assertIn("display-only proposal data", content)
         # Safe innovation demo example wrapper.
         self.assertIn("examples/safe_innovation_demo.py", content)
         self.assertIn("tests/test_safe_innovation_demo_example.py", content)
+        self.assertIn("existing safe innovation demo behavior", content)
         self.assertIn("TOOL_CONNECTOR_CATALOG_DESIGN.md", content)
         self.assertIn("standard MCP transports/methods", content)
         self.assertIn("registry/SideEffectClasses.json", content)
@@ -175,6 +196,8 @@ class DocsTests(unittest.TestCase):
         self.assertIn("no MCP/network calls", content)
         self.assertIn("no sandbox/broker implementation", content)
         self.assertIn("no dynamic node creation", content)
+        self.assertIn("no skill/prompt registry implementation", content)
+        self.assertIn("no fixture input artifact implementation", content)
         self.assertNotIn("C:\\Users\\", content)
 
     def test_security_limits_doc_exists_and_mentions_current_boundary(self) -> None:
@@ -598,24 +621,28 @@ class DocsTests(unittest.TestCase):
             "Baseline before this handoff slice: f7de8c4 Update safe noop milestone status",
             content,
         )
+        self.assertIn(
+            "Implementation checkpoint before this docs update: f4f6873 Add deterministic innovation review template",
+            content,
+        )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("411 tests passing", content)
+        self.assertIn("424 tests passing", content)
+        self.assertIn("proposal-only skill/prompt registry design", content)
+        self.assertIn("explicit deterministic `innovation_review` template", content)
+        self.assertIn("--planner-template innovation_review", content)
+        self.assertIn("Default goal-based", content)
+        self.assertIn("existing `innovation`", content)
+        self.assertIn("behavior remains unchanged", content)
+        self.assertIn("existing safe innovation demo", content)
+        self.assertIn("behavior", content)
 
         for slice_name in (
-            "Proposal-only skill/prompt registry design",
-            "Richer deterministic innovation template",
             "Local fixture input artifacts",
             "Display-only proposed tool access",
         ):
             self.assertIn(slice_name, content)
 
         for boundary in (
-            "docs/design only first",
-            "SkillRegistry",
-            "PromptTemplateRegistry",
-            "no arbitrary planner prompts becoming executable",
-            "deterministic template only",
-            "dedupe/critique/scoring/MVP-plan nodes",
             "local committed fake data only",
             "fixture lineage can be display-only",
             "proposal-only",

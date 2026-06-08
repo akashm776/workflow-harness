@@ -5,12 +5,15 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 ## Current Checkpoint
 
 - `Baseline before this handoff slice: f7de8c4 Update safe noop milestone status`
+- `Implementation checkpoint before this docs update: f4f6873 Add deterministic innovation review template`
 - `V1 remains safe no-op only`
-- `411 tests passing`
+- `424 tests passing`
 
 ## Current Implemented Safety Runway
 
 - safe innovation demo
+- proposal-only skill/prompt registry design
+- explicit deterministic `innovation_review` template
 - Review Gate visibility
 - tool/MCP design boundary
 - inert side-effect class registry
@@ -18,12 +21,16 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - capability envelope design
 - milestone docs updated
 
+The richer deterministic innovation template slice is now implemented as the
+explicit `--planner-template innovation_review` path. Default goal-based
+selection remains unchanged, existing `innovation` behavior remains unchanged,
+and the example wrapper default remains the existing safe innovation demo
+behavior.
+
 ## Recommended Next Safe Slices
 
-1. Proposal-only skill/prompt registry design
-2. Richer deterministic innovation template
-3. Local fixture input artifacts
-4. Display-only proposed tool access
+1. Local fixture input artifacts
+2. Display-only proposed tool access
 
 ## Slice Boundaries
 
