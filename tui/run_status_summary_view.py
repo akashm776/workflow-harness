@@ -63,6 +63,13 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(fixture_lineage_lines)
 
+    proposed_tool_access_lines = _proposed_tool_access_lines(
+        summary.get("proposed_tool_access")
+    )
+    if proposed_tool_access_lines:
+        lines.append("")
+        lines.extend(proposed_tool_access_lines)
+
     status_command = summary.get("status_command")
     if status_command:
         lines.append("")
@@ -157,4 +164,50 @@ def _fixture_lineage_lines(fixture_lineage: Any) -> list[str]:
         for path in paths:
             if isinstance(path, str):
                 lines.append(f"- {path}")
+    return lines
+
+
+def _proposed_tool_access_lines(proposed_tool_access: Any) -> list[str]:
+    if not isinstance(proposed_tool_access, Mapping):
+        return []
+
+    lines = ["Proposed Tool Access:"]
+    lines.append(
+        f"display_only: {_bool_text(proposed_tool_access.get('display_only'))}"
+    )
+    lines.append(
+        f"proposal_only: {_bool_text(proposed_tool_access.get('proposal_only'))}"
+    )
+    lines.append(
+        f"no_execution: {_bool_text(proposed_tool_access.get('no_execution'))}"
+    )
+    lines.append(
+        "no_connector_support: "
+        f"{_bool_text(proposed_tool_access.get('no_connector_support'))}"
+    )
+
+    tools = proposed_tool_access.get("tools")
+    if isinstance(tools, list):
+        for tool in tools:
+            if not isinstance(tool, Mapping):
+                continue
+            tool_name = tool.get("tool_name")
+            if not isinstance(tool_name, str):
+                continue
+            access_mode = tool.get("access_mode")
+            suffix = f" access_mode={access_mode}" if isinstance(access_mode, str) else ""
+            lines.append(f"- tool: {tool_name}{suffix}")
+
+    connectors = proposed_tool_access.get("connectors")
+    if isinstance(connectors, list):
+        for connector in connectors:
+            if not isinstance(connector, Mapping):
+                continue
+            connector_name = connector.get("connector_name")
+            if not isinstance(connector_name, str):
+                continue
+            scope = connector.get("scope")
+            suffix = f" scope={scope}" if isinstance(scope, str) else ""
+            lines.append(f"- connector proposal: {connector_name}{suffix}")
+
     return lines

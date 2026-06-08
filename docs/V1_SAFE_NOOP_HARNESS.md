@@ -194,6 +194,12 @@ approval helper.
   already-read candidate workflow metadata only, does not load fixture
   contents, does not make fixtures control-plane inputs, remains fail-soft and
   operator-facing only, and grants no authority.
+- For explicit `innovation_review` proposals, `cli.run_status_cli --summary`
+  also renders a display-only `Proposed Tool Access:` section derived from the
+  local candidate `RequestedAuth.json` proposal only. It remains proposal-only,
+  does not execute tools, does not enable connector support, does not change
+  approval semantics, remains fail-soft and operator-facing only, and grants no
+  authority.
 - When a safe no-op run is blocked by review, `cli.run_status_cli --summary`
   also renders a display-only `Review Gate:` section. It reads
   `candidate/ApprovalRequests.json` fail-soft for operator guidance only, does

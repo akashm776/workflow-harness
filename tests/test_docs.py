@@ -79,6 +79,13 @@ class DocsTests(unittest.TestCase):
         self.assertIn("already-read candidate workflow metadata only", content)
         self.assertIn("does not load fixture", content)
         self.assertIn("does not make fixtures control-plane inputs", content)
+        self.assertIn("Proposed Tool Access:", content)
+        self.assertIn("RequestedAuth.json", content)
+        self.assertIn("proposal-only", content)
+        self.assertIn("does not execute tools", content)
+        self.assertIn("does not enable connector support", content)
+        self.assertIn("does not change", content)
+        self.assertIn("approval semantics", content)
         self.assertIn("UNSUPPORTED_EXECUTION_BINDING", content)
         self.assertIn("No MCP/network calls", content)
         self.assertIn("No sandbox/broker implementation", content)
@@ -91,7 +98,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("430 tests", content)
+        self.assertIn("432 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -154,6 +161,14 @@ class DocsTests(unittest.TestCase):
         self.assertIn("already-read candidate workflow metadata only", content)
         self.assertIn("does not load fixture contents", content)
         self.assertIn("does not make fixtures control-plane", content)
+        self.assertIn("Proposed Tool Access:", content)
+        self.assertIn("RequestedAuth.json", content)
+        self.assertIn("display-only", content)
+        self.assertIn("proposal-only operator guidance", content)
+        self.assertIn("does not execute tools", content)
+        self.assertIn("does not enable connector support", content)
+        self.assertIn("does not change", content)
+        self.assertIn("approval semantics", content)
         # Deterministic innovation-agent planner template is mentioned.
         self.assertIn("build_innovation_planner_candidate", content)
         self.assertIn("select_planner_candidate", content)
@@ -634,15 +649,16 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn(
-            "Implementation checkpoint before this fixture-lineage summary slice: bd6873d Add inert innovation context fixtures",
+            "Implementation checkpoint before this proposed-tool-access slice: c94cb58 Show display-only fixture lineage",
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("430 tests passing", content)
+        self.assertIn("432 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
         self.assertIn("display-only fixture lineage for `innovation_review` summary", content)
+        self.assertIn("display-only proposed tool access for `innovation_review` summary", content)
         self.assertIn("fixtures/future/innovation-context/", content)
         self.assertIn("does not load them", content)
         self.assertIn("connect to tools/connectors/MCP", content)
@@ -653,14 +669,16 @@ class DocsTests(unittest.TestCase):
         self.assertIn("existing safe innovation demo", content)
         self.assertIn("behavior", content)
 
-        for slice_name in (
-            "Display-only proposed tool access",
-        ):
-            self.assertIn(slice_name, content)
+        self.assertIn(
+            "No new next safe slice is recorded in this handoff", content
+        )
 
         for boundary in (
             "Display-only fixture lineage is now implemented",
             "`cli.run_status_cli --summary` now shows known future fixture paths as",
+            "Display-only proposed tool access is now implemented",
+            "RequestedAuth.json",
+            "shows proposed tools and connector metadata as display-only",
             "fixtures/future/innovation-context/ProgramContext.json",
             "fixtures/future/innovation-context/RepoContextSummary.json",
             "fixtures/future/innovation-context/ConfluenceContextSummary.json",
@@ -676,6 +694,8 @@ class DocsTests(unittest.TestCase):
             "fail-soft and operator-facing only",
             "proposal-only",
             "no tool execution",
+            "no connector support",
+            "no approval semantics changes",
         ):
             self.assertIn(boundary, content)
 

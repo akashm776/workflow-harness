@@ -21,6 +21,23 @@ INNOVATION_CONTEXT_FIXTURE_PATHS = (
     "fixtures/future/innovation-context/IssueTrackerContextSummary.json",
     "fixtures/future/innovation-context/Rubric.json",
 )
+INNOVATION_REVIEW_PROPOSED_TOOL_ACCESS = {
+    "display_only": True,
+    "proposal_only": True,
+    "no_execution": True,
+    "no_connector_support": True,
+    "tools": [
+        {"tool_name": "example-local-file-reader", "access_mode": "read"},
+    ],
+    "connectors": [
+        {"connector_name": "example-bitbucket", "scope": "read:example/repo"},
+        {"connector_name": "example-confluence", "scope": "read:example/space"},
+        {
+            "connector_name": "example-issue-tracker",
+            "scope": "read:example/project",
+        },
+    ],
+}
 
 
 class SummarizeRunDirectoryTests(unittest.TestCase):
@@ -226,6 +243,10 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                     "paths": list(INNOVATION_CONTEXT_FIXTURE_PATHS),
                 },
             )
+            self.assertEqual(
+                summary["proposed_tool_access"],
+                INNOVATION_REVIEW_PROPOSED_TOOL_ACCESS,
+            )
 
     def test_default_innovation_demo_run_does_not_include_fixture_lineage(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -239,6 +260,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             summary = summarize_run_directory(run_dir)
 
             self.assertIsNone(summary["fixture_lineage"])
+            self.assertIsNone(summary["proposed_tool_access"])
 
     def test_fixture_lineage_is_display_only_and_never_reads_fixture_paths(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -295,6 +317,40 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 list(INNOVATION_CONTEXT_FIXTURE_PATHS),
             )
 
+    def test_malformed_requested_auth_is_fail_soft_for_proposed_tool_access(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+            (run_dir / "candidate" / "RequestedAuth.json").write_text(
+                "{ not valid json", encoding="utf-8"
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+            self.assertIsNotNone(summary["fixture_lineage"])
+            self.assertIsNone(summary["proposed_tool_access"])
+
+    def test_missing_requested_auth_is_fail_soft_for_proposed_tool_access(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+            (run_dir / "candidate" / "RequestedAuth.json").unlink()
+
+            summary = summarize_run_directory(run_dir)
+
+            self.assertIsNotNone(summary["fixture_lineage"])
+            self.assertIsNone(summary["proposed_tool_access"])
+
     def test_missing_candidate_workflow_is_none(self) -> None:
         # A completed safe_noop_run has no candidate/ directory.
         with tempfile.TemporaryDirectory() as tmp:
@@ -305,6 +361,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             summary = summarize_run_directory(run_dir)
             self.assertIsNone(summary["candidate_workflow"])
             self.assertIsNone(summary["fixture_lineage"])
+            self.assertIsNone(summary["proposed_tool_access"])
 
     def test_missing_approval_requests_is_fail_soft_for_blocked_review_gate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -364,6 +421,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
 
             summary = summarize_run_directory(run_dir)
             self.assertIsNone(summary["candidate_workflow"])
+            self.assertIsNone(summary["proposed_tool_access"])
 
 
 if __name__ == "__main__":
