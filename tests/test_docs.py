@@ -347,6 +347,8 @@ class DocsTests(unittest.TestCase):
         # Deny-by-default / fail-closed behavior.
         self.assertIn("deny-by-default", lowered)
         self.assertIn("fail closed", lowered)
+        self.assertIn("registry/SideEffectClasses.json", content)
+        self.assertIn("does not enable execution or approval", content)
 
         # Relationships to the other design checkpoints.
         self.assertIn("REAL_EXECUTION_THREAT_MODEL.md", content)

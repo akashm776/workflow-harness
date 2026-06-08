@@ -1,0 +1,46 @@
+{
+  "schema_version": "m1",
+  "registry_version": "side-effect-classes-001",
+  "field_name": "side_effect_class",
+  "note": "This registry is inert governance data only. It defines stable side-effect class IDs and descriptions only. It does not enable execution, approve anything, or change compiler, runtime, or CLI behavior.",
+  "classes": [
+    {
+      "id": "none",
+      "description": "No side effect. Safe no-op classification only."
+    },
+    {
+      "id": "read_local_fixture",
+      "description": "Read from committed local fixture data only, with no external access."
+    },
+    {
+      "id": "read_external",
+      "description": "Read data from an external system or service boundary."
+    },
+    {
+      "id": "write_external",
+      "description": "Write or mutate data in an external system or service boundary."
+    },
+    {
+      "id": "credentialed_read",
+      "description": "External read that requires credentials or brokered identity material."
+    },
+    {
+      "id": "credentialed_write",
+      "description": "External write that requires credentials or brokered identity material."
+    },
+    {
+      "id": "network",
+      "description": "Outbound network communication or remote procedure access."
+    },
+    {
+      "id": "human_review",
+      "description": "Human review or approval gate requirement, without implying automated approval."
+    }
+  ],
+  "non_goals": [
+    "Does not enable execution.",
+    "Does not approve anything.",
+    "Does not create approval carryover.",
+    "Does not implement authority subsumption."
+  ]
+}
