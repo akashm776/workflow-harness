@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `430 tests` passing
+- `432 tests` passing
 
 ## Major Implemented Layers
 
@@ -255,6 +255,16 @@
   - it does not load fixture contents, does not make fixtures control-plane
     inputs, grants no authority, and remains fail-soft and operator-facing
     only.
+- display-only proposed tool access in the opt-in summary:
+  - for explicit `innovation_review` proposals,
+    `cli.run_status_cli --summary` now also renders a
+    `Proposed Tool Access:` section derived from the local candidate
+    `RequestedAuth.json` proposal only.
+  - it shows proposed tools and connector metadata as display-only,
+    proposal-only operator guidance.
+  - it does not execute tools, does not enable connector support, does not
+    change approval semantics, grants no authority, and remains fail-soft and
+    operator-facing only.
 - tool/connector/MCP trust-boundary design checkpoint:
   - `TOOL_CONNECTOR_CATALOG_DESIGN.md` documents that tool and MCP proposals
   remain non-authoritative, the compiler remains the sole authority boundary,

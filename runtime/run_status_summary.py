@@ -195,6 +195,66 @@ def _extract_fixture_lineage(
     }
 
 
+def _extract_proposed_tool_access(
+    run_path: Path,
+    candidate_workflow: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Return display-only proposed tool access for innovation_review only.
+
+    This reads the local candidate RequestedAuth proposal fail-soft. It remains
+    proposal metadata only: no tool execution, no connector support, no
+    approval semantics, and no authority.
+    """
+
+    workflow_id = _get_str(candidate_workflow, "workflow_id")
+    if workflow_id is None or not workflow_id.startswith(
+        INNOVATION_REVIEW_WORKFLOW_PREFIX
+    ):
+        return None
+
+    requested_auth = _safe_load_json(run_path / "candidate" / "RequestedAuth.json")
+    if not isinstance(requested_auth, dict):
+        return None
+
+    tools: list[dict[str, str]] = []
+    raw_tools = requested_auth.get("requested_tools")
+    if isinstance(raw_tools, list):
+        for raw_tool in raw_tools:
+            tool_name = _get_str(raw_tool, "tool_name")
+            if tool_name is None:
+                continue
+            tool: dict[str, str] = {"tool_name": tool_name}
+            access_mode = _get_str(raw_tool, "access_mode")
+            if access_mode is not None:
+                tool["access_mode"] = access_mode
+            tools.append(tool)
+
+    connectors: list[dict[str, str]] = []
+    raw_connectors = requested_auth.get("requested_connectors")
+    if isinstance(raw_connectors, list):
+        for raw_connector in raw_connectors:
+            connector_name = _get_str(raw_connector, "connector_name")
+            scope = _get_str(raw_connector, "scope")
+            if connector_name is None:
+                continue
+            connector: dict[str, str] = {"connector_name": connector_name}
+            if scope is not None:
+                connector["scope"] = scope
+            connectors.append(connector)
+
+    if not tools and not connectors:
+        return None
+
+    return {
+        "display_only": True,
+        "proposal_only": True,
+        "no_execution": True,
+        "no_connector_support": True,
+        "tools": tools,
+        "connectors": connectors,
+    }
+
+
 def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
     run_path = Path(run_dir)
     inspection = inspect_run_directory(run_path)
@@ -243,6 +303,9 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "review_gate": review_gate,
         "candidate_workflow": candidate_workflow,
         "fixture_lineage": _extract_fixture_lineage(candidate_workflow),
+        "proposed_tool_access": _extract_proposed_tool_access(
+            run_path, candidate_workflow
+        ),
         "status_command": (
             f"python -m cli.run_status_cli --run-dir {run_path} --view"
         ),

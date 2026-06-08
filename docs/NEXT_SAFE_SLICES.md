@@ -5,9 +5,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 ## Current Checkpoint
 
 - `Baseline before this handoff slice: f7de8c4 Update safe noop milestone status`
-- `Implementation checkpoint before this fixture-lineage summary slice: bd6873d Add inert innovation context fixtures`
+- `Implementation checkpoint before this proposed-tool-access slice: c94cb58 Show display-only fixture lineage`
 - `V1 remains safe no-op only`
-- `430 tests passing`
+- `432 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -16,6 +16,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - explicit deterministic `innovation_review` template
 - inert future-only innovation context fixtures
 - display-only fixture lineage for `innovation_review` summary
+- display-only proposed tool access for `innovation_review` summary
 - Review Gate visibility
 - tool/MCP design boundary
 - inert side-effect class registry
@@ -40,9 +41,18 @@ lists known future fixture paths as display-only strings, does not load fixture
 contents, does not make fixtures control-plane inputs, and remains fail-soft
 and operator-facing only.
 
+Display-only proposed tool access is now implemented as an opt-in
+`cli.run_status_cli --summary` section for explicit `innovation_review`
+proposals. It is derived from the local candidate `RequestedAuth.json`
+proposal only, shows proposed tools and connector metadata as display-only
+operator guidance, does not execute tools, does not enable connector support,
+does not change approval semantics, and remains fail-soft and operator-facing
+only.
+
 ## Recommended Next Safe Slices
 
-1. Display-only proposed tool access
+No new next safe slice is recorded in this handoff. Re-evaluate after this
+display-only operator-surface checkpoint.
 
 ## Slice Boundaries
 
@@ -84,9 +94,12 @@ and operator-facing only.
 - no fixture-driven planning
 - fail-soft and operator-facing only
 
-### 4. Display-only proposed tool access
+### Implemented checkpoint: Display-only proposed tool access
 
-- summary may show proposed future tool needs as proposal-only
+- `cli.run_status_cli --summary` now shows proposed future tool needs as
+  display-only for explicit `innovation_review` proposals
+- it is derived from the local candidate `RequestedAuth.json` proposal only
+- proposal-only
 - no connector support
 - no tool execution
 - no approval semantics changes

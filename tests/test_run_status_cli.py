@@ -359,6 +359,10 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn("display_only: true", rendered)
         self.assertIn("not_loaded: true", rendered)
         self.assertIn("not_control_plane_inputs: true", rendered)
+        self.assertIn("Proposed Tool Access:", rendered)
+        self.assertIn("proposal_only: true", rendered)
+        self.assertIn("no_execution: true", rendered)
+        self.assertIn("no_connector_support: true", rendered)
         self.assertIn("retrieve-1 [retrieve] Load Program Data", rendered)
         self.assertIn("dedupe-1 [synthesize] Dedupe Against Existing Work", rendered)
         self.assertIn("score-1 [synthesize] Score Against Rubric", rendered)
@@ -379,6 +383,21 @@ class RunStatusCliTests(unittest.TestCase):
             rendered,
         )
         self.assertIn("fixtures/future/innovation-context/Rubric.json", rendered)
+        self.assertIn(
+            "- tool: example-local-file-reader access_mode=read", rendered
+        )
+        self.assertIn(
+            "- connector proposal: example-bitbucket scope=read:example/repo",
+            rendered,
+        )
+        self.assertIn(
+            "- connector proposal: example-confluence scope=read:example/space",
+            rendered,
+        )
+        self.assertIn(
+            "- connector proposal: example-issue-tracker scope=read:example/project",
+            rendered,
+        )
         self.assertIn(
             "reason: Innovation review template approval request.", rendered
         )
@@ -401,6 +420,8 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         self.assertNotIn("Fixture Lineage:", rendered)
         self.assertNotIn("fixtures/future/innovation-context/ProgramContext.json", rendered)
+        self.assertNotIn("Proposed Tool Access:", rendered)
+        self.assertNotIn("- tool: example-local-file-reader", rendered)
 
     def test_default_json_does_not_include_summary_fields(self) -> None:
         output_dir = self._make_missing_output_dir()
