@@ -61,10 +61,20 @@ from them, connect to tools/connectors/MCP from them, or grant any authority.
 ### 3. Display-only fixture lineage
 
 - summary/docs may show known future fixture paths as display-only
+- known fixture paths may include:
+  - `fixtures/future/innovation-context/ProgramContext.json`
+  - `fixtures/future/innovation-context/RepoContextSummary.json`
+  - `fixtures/future/innovation-context/ConfluenceContextSummary.json`
+  - `fixtures/future/innovation-context/IssueTrackerContextSummary.json`
+  - `fixtures/future/innovation-context/Rubric.json`
 - no fixture loading
+- no fixture content loading
+- not control-plane inputs
 - no planner/compiler/runtime behavior
 - no connector/MCP/tools
 - no authority or approval changes
+- no fixture-driven planning
+- fail-soft and operator-facing only if later implemented
 
 ### 4. Display-only proposed tool access
 
