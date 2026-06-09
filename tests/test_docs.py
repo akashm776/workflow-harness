@@ -40,6 +40,23 @@ APPROVAL_BINDING_FIXTURE_PATH = (
     / "approval-binding"
     / "ApprovalBinding.example.json"
 )
+EVIDENCE_LINEAGE_VERIFIER_OUTPUT_CONTRACT_PATH = (
+    ROOT / "docs" / "EVIDENCE_LINEAGE_VERIFIER_OUTPUT_CONTRACT.md"
+)
+EVIDENCE_LINEAGE_FIXTURE_PATH = (
+    ROOT
+    / "fixtures"
+    / "future"
+    / "evidence-lineage"
+    / "EvidenceLineage.example.json"
+)
+VERIFIER_OUTPUT_FIXTURE_PATH = (
+    ROOT
+    / "fixtures"
+    / "future"
+    / "verifier-output"
+    / "VerifierOutput.example.json"
+)
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
@@ -130,7 +147,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("505 tests", content)
+        self.assertIn("508 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -1031,7 +1048,7 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("505 tests passing", content)
+        self.assertIn("508 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -1317,6 +1334,119 @@ class DocsTests(unittest.TestCase):
         # Grants no ambient/requested authority.
         self.assertEqual(data["requested_authority_scope"], [])
 
+    def test_evidence_lineage_verifier_output_contract_doc_exists_and_is_design_only(
+        self,
+    ) -> None:
+        self.assertTrue(EVIDENCE_LINEAGE_VERIFIER_OUTPUT_CONTRACT_PATH.exists())
+        content = EVIDENCE_LINEAGE_VERIFIER_OUTPUT_CONTRACT_PATH.read_text(
+            encoding="utf-8"
+        )
+        lowered = content.lower()
+
+        # Status/scope: design/contract only; reporting only; runtime safe no-op.
+        self.assertIn(
+            "design/contract documentation only unless otherwise stated", lowered
+        )
+        self.assertIn(
+            "does not generate or consume future evidence lineage artifacts yet",
+            lowered,
+        )
+        self.assertIn("Runtime remains safe no-op.", content)
+        self.assertIn("Verifier output is reporting only.", content)
+        self.assertIn("Evidence lineage is reporting only.", content)
+
+        # Ownership: planner cannot supply as authority; compiler is the boundary.
+        self.assertIn(
+            "Planner may not supply verifier output as authority.", content
+        )
+        self.assertIn(
+            "Planner may not supply evidence lineage as authority.", content
+        )
+        self.assertIn("Compiler remains the authority boundary.", content)
+        self.assertIn(
+            "Runtime/verifier may report observations but cannot invent authority.",
+            content,
+        )
+        self.assertIn(
+            "Operator approval remains explicit and current-run/request scoped.",
+            content,
+        )
+
+        # Authority boundaries: cannot authorize/approve/grant/override/carryover.
+        self.assertIn("Verifier output does not authorize execution.", content)
+        self.assertIn("Evidence lineage does not authorize execution.", content)
+        self.assertIn("Verifier output does not approve anything.", content)
+        self.assertIn("Evidence lineage does not approve anything.", content)
+        self.assertIn("Verifier output does not grant capabilities.", content)
+        self.assertIn("Evidence lineage does not grant capabilities.", content)
+        self.assertIn("Neither can override compiler diagnostics.", content)
+        self.assertIn("Neither can override operator approval.", content)
+        self.assertIn("Neither enables approval carryover.", content)
+        self.assertIn("Neither enables authority subsumption.", content)
+        self.assertIn("Neither creates reusable authority.", content)
+        self.assertIn(
+            "Future broker/sandbox execution still requires compiler-owned "
+            "authority plus",
+            content,
+        )
+
+        # V1 non-goals.
+        for non_goal in (
+            "no real execution",
+            "no broker/sandbox",
+            "no MCP/tool/connector calls",
+            "no model inference",
+            "no credentials/secrets",
+            "no network behavior",
+            "no new run artifact writes",
+            "no verifier implementation",
+            "no evidence generation implementation",
+        ):
+            self.assertIn(non_goal, content)
+
+    def test_evidence_lineage_example_fixture_is_inert_future_only(self) -> None:
+        self.assertTrue(EVIDENCE_LINEAGE_FIXTURE_PATH.exists())
+        data = json.loads(
+            EVIDENCE_LINEAGE_FIXTURE_PATH.read_text(encoding="utf-8")
+        )
+
+        self.assertEqual(data["schema_version"], "evidence-lineage.v1.example")
+        for flag in (
+            "display_only",
+            "future_only_example",
+            "not_consumed_by_v1",
+            "not_control_plane_input",
+            "not_authority",
+            "no_runtime_authority",
+            "no_execution",
+            "no_approval",
+        ):
+            self.assertTrue(data[flag])
+
+        self.assertEqual(data["run_scope"], "example-current-run-only")
+
+    def test_verifier_output_example_fixture_is_inert_future_only(self) -> None:
+        self.assertTrue(VERIFIER_OUTPUT_FIXTURE_PATH.exists())
+        data = json.loads(
+            VERIFIER_OUTPUT_FIXTURE_PATH.read_text(encoding="utf-8")
+        )
+
+        self.assertEqual(data["schema_version"], "verifier-output.v1.example")
+        for flag in (
+            "display_only",
+            "future_only_example",
+            "not_consumed_by_v1",
+            "not_control_plane_input",
+            "not_authority",
+            "no_runtime_authority",
+            "no_execution",
+            "no_approval",
+        ):
+            self.assertTrue(data[flag])
+
+        self.assertEqual(data["run_scope"], "example-current-run-only")
+        self.assertEqual(data["fail_closed_findings"], [])
+
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())
         content = DOCS_INDEX_PATH.read_text(encoding="utf-8")
@@ -1344,6 +1474,7 @@ class DocsTests(unittest.TestCase):
             "SKILL_PROMPT_REGISTRY_DESIGN.md",
             "SANDBOX_BROKER_INTERFACE_DESIGN.md",
             "APPROVAL_BINDING_CONTRACT.md",
+            "EVIDENCE_LINEAGE_VERIFIER_OUTPUT_CONTRACT.md",
         ):
             self.assertIn(doc_name, content)
 
@@ -1368,6 +1499,8 @@ class DocsTests(unittest.TestCase):
         self.assertIn("CompilerAuthorizationSummaryProjection.example.json", content)
         self.assertIn("SafeguardAdvisory.example.json", content)
         self.assertIn("ApprovalBinding.example.json", content)
+        self.assertIn("EvidenceLineage.example.json", content)
+        self.assertIn("VerifierOutput.example.json", content)
         self.assertIn("example/future-only artifacts", content)
         # Mentions the end-to-end demo CLI.
         self.assertIn("cli/workflow_demo_cli.py", content)
