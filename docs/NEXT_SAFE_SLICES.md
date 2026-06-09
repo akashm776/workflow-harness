@@ -16,8 +16,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Implementation checkpoint before this approval-binding-summary slice: 4a6edcf Reject unsupported approval binding claims`
 - `Implementation checkpoint before this verifier-evidence-status slice: c98d66a Document evidence lineage verifier output contract`
 - `Implementation checkpoint before this broker-boundary-status slice: 5ca5d17 Document noop broker boundary contract`
+- `Implementation checkpoint before this operator-cockpit-contract slice: 5afdcc1 Show display-only broker boundary status`
 - `V1 remains safe no-op only`
-- `519 tests passing`
+- `520 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -53,6 +54,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - display-only approval binding summary for blocked `innovation_review` summaries
 - display-only verifier / evidence status for blocked `innovation_review` summaries
 - display-only broker boundary status for blocked `innovation_review` summaries
+- operator cockpit contract checkpoint
 - milestone docs updated
 
 The richer deterministic innovation template slice is now implemented as the

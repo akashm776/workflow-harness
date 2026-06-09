@@ -133,6 +133,15 @@ design gates. The design-only documents in this section are not implementations.
   compiler diagnostics or operator approval, enable approval carryover/authority
   subsumption, or create reusable authority. V1 safe no-op has no broker,
   sandbox, or fake/no-op broker interface.
+- [`OPERATOR_COCKPIT_CONTRACT.md`](OPERATOR_COCKPIT_CONTRACT.md) - the current
+  contract for the V1 safe no-op operator cockpit: it records the exact
+  display-only section order for blocked explicit `innovation_review` rich
+  summaries (Review Gate → Candidate Workflow → Fixture Lineage → Proposed Tool
+  Access → Compiler Authorization Projection → Approval Binding Summary →
+  Verifier / Evidence Status → Broker Boundary Status → Operator Review Packet),
+  each section's responsibility, and the read-only/no-execution safety boundary.
+  Planner stays non-authoritative, the compiler remains the sole authority
+  boundary, and the sections grant no authority and write no artifacts.
 
 ## 3. Implementation Checkpoints / Safe Code Surfaces
 

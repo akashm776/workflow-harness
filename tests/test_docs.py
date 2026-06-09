@@ -69,6 +69,9 @@ BROKER_DECISION_FIXTURE_PATH = (
 BROKER_RESULT_FIXTURE_PATH = (
     ROOT / "fixtures" / "future" / "noop-broker" / "BrokerResult.example.json"
 )
+OPERATOR_COCKPIT_CONTRACT_PATH = (
+    ROOT / "docs" / "OPERATOR_COCKPIT_CONTRACT.md"
+)
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
@@ -170,7 +173,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("519 tests", content)
+        self.assertIn("520 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -1077,7 +1080,7 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("519 tests passing", content)
+        self.assertIn("520 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -1602,6 +1605,95 @@ class DocsTests(unittest.TestCase):
         self.assertEqual(data["side_effects_completed"], [])
         self.assertEqual(data["fail_closed_findings"], [])
 
+    def test_operator_cockpit_contract_doc_exists_and_records_current_order(
+        self,
+    ) -> None:
+        self.assertTrue(OPERATOR_COCKPIT_CONTRACT_PATH.exists())
+        content = OPERATOR_COCKPIT_CONTRACT_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        # Status/scope: V1 safe no-op only; display-only/read-only; no artifacts.
+        self.assertIn("V1 remains safe no-op only.", content)
+        self.assertIn("No real execution.", content)
+        self.assertIn(
+            "Display-only / read-only reporting unless otherwise stated.", content
+        )
+        self.assertIn(
+            "No new artifacts are written by the rich summary.", content
+        )
+
+        # Applicability.
+        self.assertIn(
+            "Applies to blocked explicit `innovation_review` rich summaries.",
+            content,
+        )
+        self.assertIn(
+            "Default / non-rich / generic summaries are not required to show the "
+            "full",
+            content,
+        )
+        self.assertIn(
+            "Approved runs do not show blocked-review cockpit sections", content
+        )
+
+        # Exact current section order.
+        self.assertIn(
+            "```text\n"
+            "Review Gate:\n"
+            "Candidate Workflow:\n"
+            "Fixture Lineage:\n"
+            "Proposed Tool Access:\n"
+            "Compiler Authorization Projection:\n"
+            "Approval Binding Summary:\n"
+            "Verifier / Evidence Status:\n"
+            "Broker Boundary Status:\n"
+            "Operator Review Packet:\n"
+            "```",
+            content,
+        )
+
+        # Authority boundary.
+        self.assertIn("Planner remains non-authoritative.", content)
+        self.assertIn(
+            "Compiler remains the sole authority boundary.", content
+        )
+        self.assertIn("Runtime remains safe no-op.", content)
+        self.assertIn("do not authorize, approve, grant", content)
+        self.assertIn("capabilities, or execute.", content)
+        self.assertIn(
+            "Summary sections do not override compiler diagnostics.", content
+        )
+        self.assertIn(
+            "Summary sections do not override operator approval.", content
+        )
+        self.assertIn(
+            "Summary sections do not enable approval carryover.", content
+        )
+        self.assertIn(
+            "Summary sections do not enable authority subsumption.", content
+        )
+        self.assertIn(
+            "Summary sections do not create reusable authority.", content
+        )
+
+        # Input/read boundary: no future fixtures, no control-plane inputs.
+        self.assertIn("No future fixtures are read.", content)
+        self.assertIn(
+            "No future fixtures become control-plane inputs.", content
+        )
+        self.assertIn("No credentials/secrets are read.", content)
+
+        # V1 non-goals.
+        for non_goal in (
+            "no real execution",
+            "no broker/sandbox",
+            "no fake/no-op broker interface",
+            "no verifier implementation",
+            "no evidence generation implementation",
+            "no canonical JSON/hashing changes",
+        ):
+            self.assertIn(non_goal, content)
+
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())
         content = DOCS_INDEX_PATH.read_text(encoding="utf-8")
@@ -1631,6 +1723,7 @@ class DocsTests(unittest.TestCase):
             "APPROVAL_BINDING_CONTRACT.md",
             "EVIDENCE_LINEAGE_VERIFIER_OUTPUT_CONTRACT.md",
             "NOOP_BROKER_BOUNDARY_CONTRACT.md",
+            "OPERATOR_COCKPIT_CONTRACT.md",
         ):
             self.assertIn(doc_name, content)
 
