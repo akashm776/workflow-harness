@@ -38,6 +38,24 @@ resolution behavior.
 - Future broker/sandbox execution must require compiler-owned authority plus
   explicit approval where required.
 
+## Implemented Guard (Exact-Key Rejection)
+
+One narrow fail-closed guard from this contract is now implemented. The
+compiler static validator (`compiler/static_validation.py`,
+`approval_binding_validator`) rejects planner-controlled
+`WorkflowSpec.json`, `RequestedAuth.json`, and `ApprovalRequests.json`
+artifacts that carry approval-binding or reusable-approval claims, emitting the
+`UNSUPPORTED_APPROVAL_BINDING` diagnostic. It rejects these exact object keys
+wherever they appear: `approval_binding`, `approval_bindings`,
+`approval_token`, `approval_tokens`, `approval_carryover`, `reusable_approval`,
+`reusable_approvals`, `standing_approval`, and `standing_approvals`.
+
+This guard is exact-key rejection only. It does not scan ordinary words inside
+string values, does not implement approval binding, does not implement approval
+carryover, does not implement authority subsumption, does not change approval
+resolution, and does not authorize runtime/broker execution. V1 remains safe
+no-op only.
+
 ## V1 Non-Goals
 
 This document does not implement:

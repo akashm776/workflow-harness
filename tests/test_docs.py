@@ -126,7 +126,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("488 tests", content)
+        self.assertIn("499 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -830,8 +830,9 @@ class DocsTests(unittest.TestCase):
             "2. capability-envelope validator\n"
             "3. safeguard-authority-claim validator\n"
             "4. authority-artifact-ownership validator\n"
-            "5. execution-binding validator\n"
-            "6. graph/scope/approval validators",
+            "5. approval-binding validator\n"
+            "6. execution-binding validator\n"
+            "7. graph/scope/approval validators",
             content,
         )
 
@@ -840,6 +841,7 @@ class DocsTests(unittest.TestCase):
             "UNSUPPORTED_CAPABILITY_ENVELOPE",
             "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
             "UNSUPPORTED_AUTHORITY_ARTIFACT",
+            "UNSUPPORTED_APPROVAL_BINDING",
             "UNSUPPORTED_EXECUTION_BINDING",
         ):
             self.assertIn(diagnostic, content)
@@ -1022,7 +1024,7 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("488 tests passing", content)
+        self.assertIn("499 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
