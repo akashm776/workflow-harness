@@ -82,6 +82,7 @@ INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET = {
         "Compiler Authorization Projection",
         "Approval Binding Summary",
         "Verifier / Evidence Status",
+        "Broker Boundary Status",
     ],
 }
 
@@ -799,6 +800,93 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             verifier_evidence_status["verification_status"], "not_implemented"
         )
 
+    def test_broker_boundary_status_present_for_blocked_innovation_review(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+        broker_boundary_status = summary["broker_boundary_status"]
+        self.assertIsNotNone(broker_boundary_status)
+        for flag in (
+            "display_only",
+            "reporting_only",
+            "not_authority",
+            "not_broker_request_artifact",
+            "not_broker_decision_artifact",
+            "not_broker_result_artifact",
+            "no_broker_implementation",
+            "no_sandbox_implementation",
+            "no_runtime_authority",
+            "no_execution",
+            "no_approval",
+            "current_run_scope_only",
+        ):
+            self.assertIs(broker_boundary_status[flag], True)
+
+        self.assertEqual(
+            broker_boundary_status["broker_request_status"], "not_generated"
+        )
+        self.assertEqual(
+            broker_boundary_status["broker_decision_status"], "not_generated"
+        )
+        self.assertEqual(
+            broker_boundary_status["broker_result_status"], "not_generated"
+        )
+        self.assertEqual(broker_boundary_status["sandbox_status"], "not_implemented")
+        self.assertEqual(
+            broker_boundary_status["execution_status"], "safe_noop_only"
+        )
+        self.assertEqual(len(broker_boundary_status["findings"]), 1)
+
+        # The packet enumerates the new section after the verifier/evidence status.
+        included_sections = summary["operator_review_packet"]["included_sections"]
+        self.assertIn("Broker Boundary Status", included_sections)
+        self.assertGreater(
+            included_sections.index("Broker Boundary Status"),
+            included_sections.index("Verifier / Evidence Status"),
+        )
+
+    def test_broker_boundary_status_not_present_for_approved_innovation_review_run(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_safe_innovation_demo(
+                run_root=Path(tmp),
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                planner_template="innovation_review",
+                demo_approve_current_request=True,
+            )
+
+            approved_run_dir = Path(tmp) / "innovation-approved"
+            summary = summarize_run_directory(approved_run_dir)
+
+        self.assertEqual(summary["execution_status"], "completed")
+        self.assertIsNone(summary["broker_boundary_status"])
+
+    def test_broker_boundary_status_not_present_for_blocked_stub_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="generate innovation ideas from program data",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+        self.assertTrue(summary["blocked_by_review"])
+        self.assertIsNone(summary["broker_boundary_status"])
+
     def test_blocked_innovation_review_summary_writes_no_new_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp) / "demo"
@@ -869,6 +957,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                     "Compiler Authorization Projection",
                     "Approval Binding Summary",
                     "Verifier / Evidence Status",
+                    "Broker Boundary Status",
                 ],
             )
 
@@ -897,6 +986,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                     "Compiler Authorization Projection",
                     "Approval Binding Summary",
                     "Verifier / Evidence Status",
+                    "Broker Boundary Status",
                 ],
             )
 
