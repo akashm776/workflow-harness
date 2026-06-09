@@ -124,6 +124,15 @@ design gates. The design-only documents in this section are not implementations.
   diagnostics or operator approval, enable approval carryover/authority
   subsumption, or create reusable authority. V1 safe no-op does not generate or
   consume them yet.
+- [`NOOP_BROKER_BOUNDARY_CONTRACT.md`](NOOP_BROKER_BOUNDARY_CONTRACT.md) - the
+  future broker boundary contract: the broker is a future isolated execution
+  boundary, not an authority boundary; it must not trust planner output or
+  consume planner-supplied compiled artifacts, may eventually execute only
+  compiler-approved capabilities with explicit approval where required, and its
+  decisions/results cannot approve, authorize, grant capabilities, override
+  compiler diagnostics or operator approval, enable approval carryover/authority
+  subsumption, or create reusable authority. V1 safe no-op has no broker,
+  sandbox, or fake/no-op broker interface.
 
 ## 3. Implementation Checkpoints / Safe Code Surfaces
 
@@ -178,6 +187,13 @@ connectors, and are not wired into compile or runtime behavior.
   display-only, reporting-only future evidence-lineage and verifier-output
   examples. They are not authority, not control-plane inputs, not executable,
   not consumed by compile/runtime, and grant no runtime authority.
+- `fixtures/future/noop-broker/BrokerRequest.example.json`,
+  `fixtures/future/noop-broker/BrokerDecision.example.json`, and
+  `fixtures/future/noop-broker/BrokerResult.example.json` are inert display-only
+  future broker request/decision/result examples. They are not authority, not
+  control-plane inputs, not executable, not consumed by compile/runtime, and
+  grant no runtime authority. There is no broker, sandbox, or fake/no-op broker
+  interface.
 
 ## 4. Handoff
 

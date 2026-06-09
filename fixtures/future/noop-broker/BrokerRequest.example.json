@@ -1,0 +1,24 @@
+{
+  "schema_version": "broker-request.v1.example",
+  "display_only": true,
+  "future_only_example": true,
+  "not_consumed_by_v1": true,
+  "not_control_plane_input": true,
+  "not_authority": true,
+  "no_runtime_authority": true,
+  "no_execution": true,
+  "no_approval": true,
+  "run_scope": "example-current-run-only",
+  "request_scope": "example-current-request-only",
+  "node_id": "example-node-id",
+  "node_type": "example-node-type",
+  "compiler_owned_authority_ref": "example-future-compiler-owned-authority-only",
+  "approval_subject_hash": "example-current-approval-subject-only",
+  "side_effect_class": "example-read-only",
+  "allowed_inputs": [],
+  "allowed_outputs": [],
+  "denied_by_default": true,
+  "notes": [
+    "Future-only example. V1 safe no-op does not generate, consume, execute, or authorize from this artifact."
+  ]
+}

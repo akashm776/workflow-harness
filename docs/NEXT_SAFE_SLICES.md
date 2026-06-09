@@ -16,7 +16,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Implementation checkpoint before this approval-binding-summary slice: 4a6edcf Reject unsupported approval binding claims`
 - `Implementation checkpoint before this verifier-evidence-status slice: c98d66a Document evidence lineage verifier output contract`
 - `V1 remains safe no-op only`
-- `512 tests passing`
+- `516 tests passing`
 
 ## Current Implemented Safety Runway
 

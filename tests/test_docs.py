@@ -57,6 +57,18 @@ VERIFIER_OUTPUT_FIXTURE_PATH = (
     / "verifier-output"
     / "VerifierOutput.example.json"
 )
+NOOP_BROKER_BOUNDARY_CONTRACT_PATH = (
+    ROOT / "docs" / "NOOP_BROKER_BOUNDARY_CONTRACT.md"
+)
+BROKER_REQUEST_FIXTURE_PATH = (
+    ROOT / "fixtures" / "future" / "noop-broker" / "BrokerRequest.example.json"
+)
+BROKER_DECISION_FIXTURE_PATH = (
+    ROOT / "fixtures" / "future" / "noop-broker" / "BrokerDecision.example.json"
+)
+BROKER_RESULT_FIXTURE_PATH = (
+    ROOT / "fixtures" / "future" / "noop-broker" / "BrokerResult.example.json"
+)
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
@@ -152,7 +164,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("512 tests", content)
+        self.assertIn("516 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -1056,7 +1068,7 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("512 tests passing", content)
+        self.assertIn("516 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -1455,6 +1467,132 @@ class DocsTests(unittest.TestCase):
         self.assertEqual(data["run_scope"], "example-current-run-only")
         self.assertEqual(data["fail_closed_findings"], [])
 
+    def test_noop_broker_boundary_contract_doc_exists_and_is_design_only(
+        self,
+    ) -> None:
+        self.assertTrue(NOOP_BROKER_BOUNDARY_CONTRACT_PATH.exists())
+        content = NOOP_BROKER_BOUNDARY_CONTRACT_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        # Status/scope: design/contract only; no broker/sandbox/execution; no
+        # fake/no-op broker interface implemented by this slice.
+        self.assertIn(
+            "design/contract documentation only unless otherwise stated", lowered
+        )
+        self.assertIn("V1 safe no-op has no broker implementation.", content)
+        self.assertIn("V1 safe no-op has no sandbox implementation.", content)
+        self.assertIn("V1 safe no-op performs no real execution.", content)
+        self.assertIn(
+            "No fake/no-op broker interface is implemented by this slice.", content
+        )
+        self.assertIn(
+            "No real broker or sandbox behavior is implemented by this slice.",
+            content,
+        )
+
+        # Future broker role: isolated execution boundary, not authority.
+        self.assertIn(
+            "The broker is a future isolated execution boundary.", content
+        )
+        self.assertIn("The broker is not an authority boundary.", content)
+        self.assertIn("The broker must not trust planner output.", content)
+        self.assertIn(
+            "The broker must not consume planner-supplied compiled artifacts.",
+            content,
+        )
+        self.assertIn(
+            "The broker may eventually execute only compiler-approved capabilities.",
+            content,
+        )
+        self.assertIn(
+            "The broker must require explicit approval where required.", content
+        )
+
+        # Authority boundaries.
+        self.assertIn("A broker decision does not approve anything.", content)
+        self.assertIn("A broker result does not approve anything.", content)
+        self.assertIn(
+            "A broker decision/result does not override compiler diagnostics.",
+            content,
+        )
+        self.assertIn(
+            "A broker decision/result does not override operator approval.", content
+        )
+        self.assertIn(
+            "A broker decision/result does not enable approval carryover.", content
+        )
+        self.assertIn(
+            "A broker decision/result does not enable authority subsumption.",
+            content,
+        )
+        self.assertIn(
+            "A broker decision/result does not create reusable authority.", content
+        )
+        self.assertIn(
+            "Future real execution still requires compiler-owned authority plus "
+            "explicit",
+            content,
+        )
+
+        # V1 non-goals.
+        for non_goal in (
+            "no broker",
+            "no sandbox",
+            "no fake/no-op broker interface",
+            "no real execution",
+            "no MCP/tool/connector calls",
+            "no model inference",
+            "no credentials/secrets",
+            "no network behavior",
+            "no new run artifact writes",
+            "no verifier/evidence generation implementation",
+        ):
+            self.assertIn(non_goal, content)
+
+    def _assert_inert_broker_fixture(self, path: Path, schema_version: str) -> dict:
+        self.assertTrue(path.exists())
+        data = json.loads(path.read_text(encoding="utf-8"))
+
+        self.assertEqual(data["schema_version"], schema_version)
+        for flag in (
+            "display_only",
+            "future_only_example",
+            "not_consumed_by_v1",
+            "not_control_plane_input",
+            "not_authority",
+            "no_runtime_authority",
+            "no_execution",
+            "no_approval",
+        ):
+            self.assertTrue(data[flag])
+
+        self.assertEqual(data["run_scope"], "example-current-run-only")
+        return data
+
+    def test_broker_request_example_fixture_is_inert_future_only(self) -> None:
+        data = self._assert_inert_broker_fixture(
+            BROKER_REQUEST_FIXTURE_PATH, "broker-request.v1.example"
+        )
+        self.assertTrue(data["denied_by_default"])
+        self.assertEqual(data["allowed_inputs"], [])
+        self.assertEqual(data["allowed_outputs"], [])
+
+    def test_broker_decision_example_fixture_is_inert_future_only(self) -> None:
+        data = self._assert_inert_broker_fixture(
+            BROKER_DECISION_FIXTURE_PATH, "broker-decision.v1.example"
+        )
+        self.assertEqual(data["decision"], "denied")
+        self.assertEqual(data["sandbox_attestation_status"], "not_implemented")
+        self.assertEqual(data["effective_allowed_capabilities"], [])
+
+    def test_broker_result_example_fixture_is_inert_future_only(self) -> None:
+        data = self._assert_inert_broker_fixture(
+            BROKER_RESULT_FIXTURE_PATH, "broker-result.v1.example"
+        )
+        self.assertEqual(data["status"], "not_executed")
+        self.assertEqual(data["side_effects_completed"], [])
+        self.assertEqual(data["fail_closed_findings"], [])
+
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())
         content = DOCS_INDEX_PATH.read_text(encoding="utf-8")
@@ -1483,6 +1621,7 @@ class DocsTests(unittest.TestCase):
             "SANDBOX_BROKER_INTERFACE_DESIGN.md",
             "APPROVAL_BINDING_CONTRACT.md",
             "EVIDENCE_LINEAGE_VERIFIER_OUTPUT_CONTRACT.md",
+            "NOOP_BROKER_BOUNDARY_CONTRACT.md",
         ):
             self.assertIn(doc_name, content)
 
@@ -1509,6 +1648,9 @@ class DocsTests(unittest.TestCase):
         self.assertIn("ApprovalBinding.example.json", content)
         self.assertIn("EvidenceLineage.example.json", content)
         self.assertIn("VerifierOutput.example.json", content)
+        self.assertIn("BrokerRequest.example.json", content)
+        self.assertIn("BrokerDecision.example.json", content)
+        self.assertIn("BrokerResult.example.json", content)
         self.assertIn("example/future-only artifacts", content)
         # Mentions the end-to-end demo CLI.
         self.assertIn("cli/workflow_demo_cli.py", content)
