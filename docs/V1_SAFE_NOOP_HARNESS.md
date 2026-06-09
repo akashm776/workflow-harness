@@ -226,6 +226,18 @@ approval helper.
   `VerifierOutput.json`, reads no future fixtures, writes nothing, grants no
   runtime authority, and changes no approval or execution behavior. It remains
   fail-soft and operator-facing only.
+- For blocked explicit `innovation_review` proposals, `cli.run_status_cli
+  --summary` also renders a display-only `Broker Boundary Status:` section,
+  placed after `Verifier / Evidence Status:` and before `Operator Review
+  Packet:`. It is reporting-only and not authority: it reports that V1 safe
+  no-op has no broker implementation and no sandbox implementation
+  (`broker_request_status`, `broker_decision_status`, `broker_result_status` all
+  `not_generated`; `sandbox_status: not_implemented`;
+  `execution_status: safe_noop_only`). It is not a broker, not a fake/no-op
+  broker interface, and not a sandbox: it does not generate `BrokerRequest.json`,
+  `BrokerDecision.json`, or `BrokerResult.json`, reads no future fixtures, writes
+  nothing, grants no runtime authority, and changes no approval or execution
+  behavior. It remains fail-soft and operator-facing only.
 - When a safe no-op run is blocked by review, `cli.run_status_cli --summary`
   also renders a display-only `Operator Review Packet:` checklist derived only
   from already-computed summary fields such as `review_required`,

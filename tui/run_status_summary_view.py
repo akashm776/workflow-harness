@@ -91,6 +91,13 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(verifier_evidence_status_lines)
 
+    broker_boundary_status_lines = _broker_boundary_status_lines(
+        summary.get("broker_boundary_status")
+    )
+    if broker_boundary_status_lines:
+        lines.append("")
+        lines.extend(broker_boundary_status_lines)
+
     operator_review_packet_lines = _operator_review_packet_lines(
         summary.get("operator_review_packet")
     )
@@ -416,6 +423,52 @@ def _verifier_evidence_status_lines(verifier_evidence_status: Any) -> list[str]:
 
     lines.append("findings:")
     findings = verifier_evidence_status.get("findings")
+    if isinstance(findings, list) and findings:
+        for finding in findings:
+            if isinstance(finding, str):
+                lines.append(f"- {finding}")
+    else:
+        lines.append("- []")
+
+    return lines
+
+
+def _broker_boundary_status_lines(broker_boundary_status: Any) -> list[str]:
+    if not isinstance(broker_boundary_status, Mapping):
+        return []
+
+    lines = ["Broker Boundary Status:"]
+    for flag_name in (
+        "display_only",
+        "reporting_only",
+        "not_authority",
+        "not_broker_request_artifact",
+        "not_broker_decision_artifact",
+        "not_broker_result_artifact",
+        "no_broker_implementation",
+        "no_sandbox_implementation",
+        "no_runtime_authority",
+        "no_execution",
+        "no_approval",
+        "current_run_scope_only",
+    ):
+        lines.append(
+            f"{flag_name}: {_bool_text(broker_boundary_status.get(flag_name))}"
+        )
+
+    for field_name in (
+        "broker_request_status",
+        "broker_decision_status",
+        "broker_result_status",
+        "sandbox_status",
+        "execution_status",
+    ):
+        lines.append(
+            f"{field_name}: {_field_text(broker_boundary_status.get(field_name))}"
+        )
+
+    lines.append("findings:")
+    findings = broker_boundary_status.get("findings")
     if isinstance(findings, list) and findings:
         for finding in findings:
             if isinstance(finding, str):

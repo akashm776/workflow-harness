@@ -74,6 +74,21 @@ no real broker or sandbox behavior is implemented by this slice.
 - Future real execution still requires compiler-owned authority plus explicit
   approval where required.
 
+## Display-Only Operator Status (Implemented)
+
+For blocked explicit `innovation_review` runs, `cli.run_status_cli --summary`
+renders a display-only `Broker Boundary Status:` section (placed after
+`Verifier / Evidence Status:` and before `Operator Review Packet:`). It is
+reporting-only and not authority: it reports that V1 safe no-op has no broker
+implementation and no sandbox implementation (`broker_request_status`,
+`broker_decision_status`, `broker_result_status` all `not_generated`;
+`sandbox_status: not_implemented`; `execution_status: safe_noop_only`). It is
+**not** a broker, **not** a fake/no-op broker interface, and **not** a sandbox:
+it does not generate `BrokerRequest.json`, `BrokerDecision.json`, or
+`BrokerResult.json`, reads no future fixtures, writes nothing, grants no
+authority, and changes no approval or execution behavior. V1 remains safe no-op
+only.
+
 ## V1 Non-Goals
 
 - no broker

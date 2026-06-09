@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `516 tests` passing
+- `519 tests` passing
 
 ## Major Implemented Layers
 
@@ -312,6 +312,21 @@
     `EvidenceLineage.json` or `VerifierOutput.json`, reads no future fixtures,
     writes nothing, grants no runtime authority, and changes no approval or
     execution behavior. It remains fail-soft and operator-facing only.
+- display-only broker boundary status in the opt-in summary:
+  - for blocked explicit `innovation_review` proposals,
+    `cli.run_status_cli --summary` now also renders a
+    `Broker Boundary Status:` section, placed after
+    `Verifier / Evidence Status:` and before `Operator Review Packet:`.
+  - it is reporting-only and not authority: it reports that V1 safe no-op has no
+    broker implementation and no sandbox implementation
+    (`broker_request_status`, `broker_decision_status`, `broker_result_status`
+    all `not_generated`; `sandbox_status: not_implemented`;
+    `execution_status: safe_noop_only`).
+  - it is not a broker, not a fake/no-op broker interface, and not a sandbox: it
+    does not generate `BrokerRequest.json`, `BrokerDecision.json`, or
+    `BrokerResult.json`, reads no future fixtures, writes nothing, grants no
+    runtime authority, and changes no approval or execution behavior. It remains
+    fail-soft and operator-facing only.
 - display-only operator review packet in the opt-in summary:
   - when a safe no-op run is blocked by review,
     `cli.run_status_cli --summary` now also renders an
@@ -319,8 +334,8 @@
   - it is derived only from already-computed summary fields such as
     `review_required`, `blocked_by_review`, `review_gate`,
     `candidate_workflow`, `fixture_lineage`, `proposed_tool_access`,
-    `compiler_authorization_projection`, `approval_binding_summary`, and
-    `verifier_evidence_status`.
+    `compiler_authorization_projection`, `approval_binding_summary`,
+    `verifier_evidence_status`, and `broker_boundary_status`.
   - it is operator-facing only, not a new artifact, not approval logic, not
     execution behavior, grants no authority, and remains fail-soft.
 - tool/connector/MCP trust-boundary design checkpoint:

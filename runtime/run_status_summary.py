@@ -557,6 +557,54 @@ def _build_verifier_evidence_status(
     }
 
 
+def _build_broker_boundary_status(
+    candidate_workflow: dict[str, Any] | None,
+    review_required: bool | None,
+    blocked_by_review: bool,
+) -> dict[str, Any] | None:
+    """Return a display-only broker boundary status for blocked innovation_review runs.
+
+    This is a read-only reporting section, not a broker, not a fake/no-op broker
+    interface, and not a sandbox. It reports only that V1 safe no-op has no
+    broker or sandbox implementation and generates no broker artifacts. It writes
+    nothing, generates no ``BrokerRequest.json`` / ``BrokerDecision.json`` /
+    ``BrokerResult.json``, reads no future fixtures, and grants no authority.
+    """
+
+    workflow_id = _get_str(candidate_workflow, "workflow_id")
+    if workflow_id is None or not workflow_id.startswith(
+        INNOVATION_REVIEW_WORKFLOW_PREFIX
+    ):
+        return None
+
+    if review_required is not True or not blocked_by_review:
+        return None
+
+    return {
+        "display_only": True,
+        "reporting_only": True,
+        "not_authority": True,
+        "not_broker_request_artifact": True,
+        "not_broker_decision_artifact": True,
+        "not_broker_result_artifact": True,
+        "no_broker_implementation": True,
+        "no_sandbox_implementation": True,
+        "no_runtime_authority": True,
+        "no_execution": True,
+        "no_approval": True,
+        "current_run_scope_only": True,
+        "broker_request_status": "not_generated",
+        "broker_decision_status": "not_generated",
+        "broker_result_status": "not_generated",
+        "sandbox_status": "not_implemented",
+        "execution_status": "safe_noop_only",
+        "findings": [
+            "V1 safe no-op has no broker or sandbox implementation; no broker "
+            "artifacts are generated."
+        ],
+    }
+
+
 def _build_operator_review_packet(
     review_required: bool | None,
     blocked_by_review: bool,
@@ -567,6 +615,7 @@ def _build_operator_review_packet(
     compiler_authorization_projection: dict[str, Any] | None,
     approval_binding_summary: dict[str, Any] | None,
     verifier_evidence_status: dict[str, Any] | None,
+    broker_boundary_status: dict[str, Any] | None,
 ) -> dict[str, Any] | None:
     """Return a display-only operator review checklist for blocked runs only."""
 
@@ -588,6 +637,8 @@ def _build_operator_review_packet(
         included_sections.append("Approval Binding Summary")
     if verifier_evidence_status is not None:
         included_sections.append("Verifier / Evidence Status")
+    if broker_boundary_status is not None:
+        included_sections.append("Broker Boundary Status")
 
     return {
         "review_required": True,
@@ -655,6 +706,11 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         review_required,
         blocked_by_review,
     )
+    broker_boundary_status = _build_broker_boundary_status(
+        candidate_workflow,
+        review_required,
+        blocked_by_review,
+    )
 
     return {
         "run_dir": str(run_path),
@@ -675,6 +731,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "compiler_authorization_projection": compiler_authorization_projection,
         "approval_binding_summary": approval_binding_summary,
         "verifier_evidence_status": verifier_evidence_status,
+        "broker_boundary_status": broker_boundary_status,
         "operator_review_packet": _build_operator_review_packet(
             review_required,
             blocked_by_review,
@@ -685,6 +742,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
             compiler_authorization_projection,
             approval_binding_summary,
             verifier_evidence_status,
+            broker_boundary_status,
         ),
         "status_command": (
             f"python -m cli.run_status_cli --run-dir {run_path} --view"

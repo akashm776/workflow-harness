@@ -496,8 +496,29 @@ class RunStatusCliTests(unittest.TestCase):
             rendered.index("Approval Binding Summary:"),
             rendered.index("Verifier / Evidence Status:"),
         )
+        # New display-only section rendered after the verifier/evidence status
+        # and before the operator review packet.
+        self.assertIn("Broker Boundary Status:", rendered)
+        self.assertIn("- Broker Boundary Status", rendered)
+        self.assertIn("no_broker_implementation: true", rendered)
+        self.assertIn("no_sandbox_implementation: true", rendered)
+        self.assertIn("not_broker_request_artifact: true", rendered)
+        self.assertIn("not_broker_decision_artifact: true", rendered)
+        self.assertIn("not_broker_result_artifact: true", rendered)
+        self.assertIn("broker_request_status: not_generated", rendered)
+        self.assertIn("broker_decision_status: not_generated", rendered)
+        self.assertIn("broker_result_status: not_generated", rendered)
+        self.assertIn("sandbox_status: not_implemented", rendered)
+        self.assertIn("execution_status: safe_noop_only", rendered)
+        self.assertIn(
+            "V1 safe no-op has no broker or sandbox implementation", rendered
+        )
         self.assertLess(
             rendered.index("Verifier / Evidence Status:"),
+            rendered.index("Broker Boundary Status:"),
+        )
+        self.assertLess(
+            rendered.index("Broker Boundary Status:"),
             rendered.index("Operator Review Packet:"),
         )
 
@@ -526,6 +547,7 @@ class RunStatusCliTests(unittest.TestCase):
             "Compiler Authorization Projection:",
             "Approval Binding Summary:",
             "Verifier / Evidence Status:",
+            "Broker Boundary Status:",
             "Operator Review Packet:",
         ):
             self.assertIn(section_name, rendered)
@@ -554,6 +576,10 @@ class RunStatusCliTests(unittest.TestCase):
             "not_verifier_output_artifact: true",
             "not_evidence_lineage_artifact: true",
             "verification_status: not_implemented",
+            "no_broker_implementation: true",
+            "no_sandbox_implementation: true",
+            "sandbox_status: not_implemented",
+            "execution_status: safe_noop_only",
         ):
             self.assertIn(required_text, rendered)
 
@@ -579,6 +605,7 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertNotIn("Compiler Authorization Projection:", rendered)
         self.assertNotIn("Approval Binding Summary:", rendered)
         self.assertNotIn("Verifier / Evidence Status:", rendered)
+        self.assertNotIn("Broker Boundary Status:", rendered)
         self.assertNotIn("- tool: example-local-file-reader", rendered)
         self.assertIn("Operator Review Packet:", rendered)
 
@@ -607,6 +634,8 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertNotIn("- Approval Binding Summary", rendered)
         self.assertNotIn("Verifier / Evidence Status:", rendered)
         self.assertNotIn("- Verifier / Evidence Status", rendered)
+        self.assertNotIn("Broker Boundary Status:", rendered)
+        self.assertNotIn("- Broker Boundary Status", rendered)
 
     def test_summary_flag_completed_safe_noop_run_does_not_render_operator_review_packet(
         self,
@@ -655,6 +684,7 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertNotIn("Compiler Authorization Projection:", rendered)
         self.assertNotIn("Approval Binding Summary:", rendered)
         self.assertNotIn("Verifier / Evidence Status:", rendered)
+        self.assertNotIn("Broker Boundary Status:", rendered)
         self.assertNotIn("Operator Review Packet:", rendered)
 
     def test_default_json_does_not_include_summary_fields(self) -> None:
