@@ -476,6 +476,87 @@ def _build_approval_binding_summary(
     }
 
 
+def _artifact_presence_status(value: Any, path: Path) -> str:
+    """Fail-soft presence status: present (parsed), unknown (exists but
+    unreadable/malformed), or missing."""
+
+    if isinstance(value, dict):
+        return "present"
+    if path.exists():
+        return "unknown"
+    return "missing"
+
+
+def _list_field_len(value: Any, key: str) -> int:
+    if isinstance(value, dict):
+        items = value.get(key)
+        if isinstance(items, list):
+            return len(items)
+    return 0
+
+
+def _build_verifier_evidence_status(
+    run_path: Path,
+    candidate_workflow: dict[str, Any] | None,
+    execution_manifest: Any,
+    execution_result: Any,
+    review_required: bool | None,
+    blocked_by_review: bool,
+) -> dict[str, Any] | None:
+    """Return a display-only verifier/evidence status for blocked innovation_review runs.
+
+    This is a read-only reporting section, not a verifier and not evidence
+    generation. It reports only the presence of local run artifacts already part
+    of the run/status model (``ExecutionManifest.json``, ``ExecutionResult.json``,
+    ``AuditLog.jsonl``) and the existing safe no-op produced-evidence/side-effect
+    counts. It writes nothing, generates no ``EvidenceLineage.json`` or
+    ``VerifierOutput.json``, reads no future fixtures, and grants no authority.
+    """
+
+    workflow_id = _get_str(candidate_workflow, "workflow_id")
+    if workflow_id is None or not workflow_id.startswith(
+        INNOVATION_REVIEW_WORKFLOW_PREFIX
+    ):
+        return None
+
+    if review_required is not True or not blocked_by_review:
+        return None
+
+    # Counts reflect the existing safe no-op result; the executed result is
+    # preferred, falling back to the manifest, defaulting to zero.
+    count_source: Any = (
+        execution_result if isinstance(execution_result, dict) else execution_manifest
+    )
+
+    return {
+        "display_only": True,
+        "reporting_only": True,
+        "not_authority": True,
+        "not_verifier_output_artifact": True,
+        "not_evidence_lineage_artifact": True,
+        "no_runtime_authority": True,
+        "no_execution": True,
+        "no_approval": True,
+        "current_run_scope_only": True,
+        "manifest_status": _artifact_presence_status(
+            execution_manifest, run_path / "ExecutionManifest.json"
+        ),
+        "execution_result_status": _artifact_presence_status(
+            execution_result, run_path / "ExecutionResult.json"
+        ),
+        "audit_log_status": (
+            "present" if (run_path / "AuditLog.jsonl").exists() else "missing"
+        ),
+        "produced_evidence_count": _list_field_len(count_source, "produced_evidence"),
+        "side_effect_count": _list_field_len(count_source, "side_effects"),
+        "verification_status": "not_implemented",
+        "findings": [
+            "V1 safe no-op reports artifact presence only; no verifier behavior "
+            "is implemented."
+        ],
+    }
+
+
 def _build_operator_review_packet(
     review_required: bool | None,
     blocked_by_review: bool,
@@ -485,6 +566,7 @@ def _build_operator_review_packet(
     proposed_tool_access: dict[str, Any] | None,
     compiler_authorization_projection: dict[str, Any] | None,
     approval_binding_summary: dict[str, Any] | None,
+    verifier_evidence_status: dict[str, Any] | None,
 ) -> dict[str, Any] | None:
     """Return a display-only operator review checklist for blocked runs only."""
 
@@ -504,6 +586,8 @@ def _build_operator_review_packet(
         included_sections.append("Compiler Authorization Projection")
     if approval_binding_summary is not None:
         included_sections.append("Approval Binding Summary")
+    if verifier_evidence_status is not None:
+        included_sections.append("Verifier / Evidence Status")
 
     return {
         "review_required": True,
@@ -563,6 +647,14 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         blocked_by_review,
         compiler_authorization_projection,
     )
+    verifier_evidence_status = _build_verifier_evidence_status(
+        run_path,
+        candidate_workflow,
+        execution_manifest,
+        execution_result,
+        review_required,
+        blocked_by_review,
+    )
 
     return {
         "run_dir": str(run_path),
@@ -582,6 +674,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "proposed_tool_access": proposed_tool_access,
         "compiler_authorization_projection": compiler_authorization_projection,
         "approval_binding_summary": approval_binding_summary,
+        "verifier_evidence_status": verifier_evidence_status,
         "operator_review_packet": _build_operator_review_packet(
             review_required,
             blocked_by_review,
@@ -591,6 +684,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
             proposed_tool_access,
             compiler_authorization_projection,
             approval_binding_summary,
+            verifier_evidence_status,
         ),
         "status_command": (
             f"python -m cli.run_status_cli --run-dir {run_path} --view"

@@ -473,8 +473,31 @@ class RunStatusCliTests(unittest.TestCase):
             rendered.index("Compiler Authorization Projection:"),
             rendered.index("Approval Binding Summary:"),
         )
+        # New display-only section rendered after the approval binding summary
+        # and before the operator review packet.
+        self.assertIn("Verifier / Evidence Status:", rendered)
+        self.assertIn("- Verifier / Evidence Status", rendered)
+        self.assertIn("reporting_only: true", rendered)
+        self.assertIn("not_authority: true", rendered)
+        self.assertIn("not_verifier_output_artifact: true", rendered)
+        self.assertIn("not_evidence_lineage_artifact: true", rendered)
+        self.assertIn("no_approval: true", rendered)
+        self.assertIn("manifest_status: present", rendered)
+        self.assertIn("execution_result_status: present", rendered)
+        self.assertIn("audit_log_status: present", rendered)
+        self.assertIn("produced_evidence_count: 0", rendered)
+        self.assertIn("side_effect_count: 0", rendered)
+        self.assertIn("verification_status: not_implemented", rendered)
+        self.assertIn(
+            "V1 safe no-op reports artifact presence only; no verifier behavior",
+            rendered,
+        )
         self.assertLess(
             rendered.index("Approval Binding Summary:"),
+            rendered.index("Verifier / Evidence Status:"),
+        )
+        self.assertLess(
+            rendered.index("Verifier / Evidence Status:"),
             rendered.index("Operator Review Packet:"),
         )
 
@@ -502,6 +525,7 @@ class RunStatusCliTests(unittest.TestCase):
             "Proposed Tool Access:",
             "Compiler Authorization Projection:",
             "Approval Binding Summary:",
+            "Verifier / Evidence Status:",
             "Operator Review Packet:",
         ):
             self.assertIn(section_name, rendered)
@@ -526,6 +550,10 @@ class RunStatusCliTests(unittest.TestCase):
             "not_reusable_authority: true",
             "no_approval_carryover: true",
             "current_request_scope_only: true",
+            "reporting_only: true",
+            "not_verifier_output_artifact: true",
+            "not_evidence_lineage_artifact: true",
+            "verification_status: not_implemented",
         ):
             self.assertIn(required_text, rendered)
 
@@ -550,6 +578,7 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertNotIn("Proposed Tool Access:", rendered)
         self.assertNotIn("Compiler Authorization Projection:", rendered)
         self.assertNotIn("Approval Binding Summary:", rendered)
+        self.assertNotIn("Verifier / Evidence Status:", rendered)
         self.assertNotIn("- tool: example-local-file-reader", rendered)
         self.assertIn("Operator Review Packet:", rendered)
 
@@ -576,6 +605,8 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertNotIn("- Compiler Authorization Projection", rendered)
         self.assertNotIn("Approval Binding Summary:", rendered)
         self.assertNotIn("- Approval Binding Summary", rendered)
+        self.assertNotIn("Verifier / Evidence Status:", rendered)
+        self.assertNotIn("- Verifier / Evidence Status", rendered)
 
     def test_summary_flag_completed_safe_noop_run_does_not_render_operator_review_packet(
         self,
@@ -623,6 +654,7 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn("review_required: false", rendered)
         self.assertNotIn("Compiler Authorization Projection:", rendered)
         self.assertNotIn("Approval Binding Summary:", rendered)
+        self.assertNotIn("Verifier / Evidence Status:", rendered)
         self.assertNotIn("Operator Review Packet:", rendered)
 
     def test_default_json_does_not_include_summary_fields(self) -> None:

@@ -214,6 +214,18 @@ approval helper.
   present. It does not change approval resolution or matching, implements no real
   approval binding, approval carryover, or reusable approvals, writes nothing,
   and grants no authority.
+- For blocked explicit `innovation_review` proposals, `cli.run_status_cli
+  --summary` also renders a display-only `Verifier / Evidence Status:` section,
+  placed after `Approval Binding Summary:` and before `Operator Review Packet:`.
+  It is reporting-only and not authority: it reports only the presence of local
+  run artifacts already in the run/status model (`ExecutionManifest.json`,
+  `ExecutionResult.json`, `AuditLog.jsonl`) and the existing safe no-op
+  produced-evidence / side-effect counts (both `0`), with
+  `verification_status: not_implemented`. It is not a verifier and not evidence
+  generation: it does not generate `EvidenceLineage.json` or
+  `VerifierOutput.json`, reads no future fixtures, writes nothing, grants no
+  runtime authority, and changes no approval or execution behavior. It remains
+  fail-soft and operator-facing only.
 - When a safe no-op run is blocked by review, `cli.run_status_cli --summary`
   also renders a display-only `Operator Review Packet:` checklist derived only
   from already-computed summary fields such as `review_required`,

@@ -66,6 +66,21 @@ Future verifier output should report (reporting only, never authority):
 - Future broker/sandbox execution still requires compiler-owned authority plus
   explicit approval where required.
 
+## Display-Only Operator Status (Implemented)
+
+For blocked explicit `innovation_review` runs, `cli.run_status_cli --summary`
+renders a display-only `Verifier / Evidence Status:` section (placed after
+`Approval Binding Summary:` and before `Operator Review Packet:`). It is
+reporting-only and not authority: it reports only the presence of local run
+artifacts already in the run/status model (`ExecutionManifest.json`,
+`ExecutionResult.json`, `AuditLog.jsonl`) and the existing safe no-op
+produced-evidence / side-effect counts, with
+`verification_status: not_implemented`. It is **not** a verifier and **not**
+evidence generation: it does not generate `EvidenceLineage.json` or
+`VerifierOutput.json`, reads no future fixtures, writes nothing, grants no
+authority, and changes no approval or execution behavior. V1 remains safe no-op
+only.
+
 ## V1 Non-Goals
 
 - no real execution

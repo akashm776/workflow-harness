@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `508 tests` passing
+- `512 tests` passing
 
 ## Major Implemented Layers
 
@@ -298,6 +298,20 @@
   - it does not change approval resolution or matching, implements no real
     approval binding/carryover/reusable approvals, does not write artifacts, and
     grants no authority.
+- display-only verifier / evidence status in the opt-in summary:
+  - for blocked explicit `innovation_review` proposals,
+    `cli.run_status_cli --summary` now also renders a
+    `Verifier / Evidence Status:` section, placed after
+    `Approval Binding Summary:` and before `Operator Review Packet:`.
+  - it is reporting-only and not authority: it reports only the presence of
+    local run artifacts already in the run/status model
+    (`ExecutionManifest.json`, `ExecutionResult.json`, `AuditLog.jsonl`) and the
+    existing safe no-op produced-evidence / side-effect counts, with
+    `verification_status: not_implemented`.
+  - it is not a verifier and not evidence generation: it does not generate
+    `EvidenceLineage.json` or `VerifierOutput.json`, reads no future fixtures,
+    writes nothing, grants no runtime authority, and changes no approval or
+    execution behavior. It remains fail-soft and operator-facing only.
 - display-only operator review packet in the opt-in summary:
   - when a safe no-op run is blocked by review,
     `cli.run_status_cli --summary` now also renders an
@@ -305,7 +319,8 @@
   - it is derived only from already-computed summary fields such as
     `review_required`, `blocked_by_review`, `review_gate`,
     `candidate_workflow`, `fixture_lineage`, `proposed_tool_access`,
-    `compiler_authorization_projection`, and `approval_binding_summary`.
+    `compiler_authorization_projection`, `approval_binding_summary`, and
+    `verifier_evidence_status`.
   - it is operator-facing only, not a new artifact, not approval logic, not
     execution behavior, grants no authority, and remains fail-soft.
 - tool/connector/MCP trust-boundary design checkpoint:

@@ -81,6 +81,7 @@ INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET = {
         "Proposed Tool Access",
         "Compiler Authorization Projection",
         "Approval Binding Summary",
+        "Verifier / Evidence Status",
     ],
 }
 
@@ -696,6 +697,108 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
         self.assertEqual(approval_binding_summary["approval_subjects"], [])
         self.assertIs(approval_binding_summary["display_only"], True)
 
+    def test_verifier_evidence_status_present_for_blocked_innovation_review(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+        verifier_evidence_status = summary["verifier_evidence_status"]
+        self.assertIsNotNone(verifier_evidence_status)
+        for flag in (
+            "display_only",
+            "reporting_only",
+            "not_authority",
+            "not_verifier_output_artifact",
+            "not_evidence_lineage_artifact",
+            "no_runtime_authority",
+            "no_execution",
+            "no_approval",
+            "current_run_scope_only",
+        ):
+            self.assertIs(verifier_evidence_status[flag], True)
+
+        self.assertEqual(verifier_evidence_status["manifest_status"], "present")
+        self.assertEqual(
+            verifier_evidence_status["execution_result_status"], "present"
+        )
+        self.assertEqual(verifier_evidence_status["audit_log_status"], "present")
+        self.assertEqual(verifier_evidence_status["produced_evidence_count"], 0)
+        self.assertEqual(verifier_evidence_status["side_effect_count"], 0)
+        self.assertEqual(
+            verifier_evidence_status["verification_status"], "not_implemented"
+        )
+        self.assertEqual(len(verifier_evidence_status["findings"]), 1)
+
+        # The packet enumerates the new section after the approval binding summary.
+        included_sections = summary["operator_review_packet"]["included_sections"]
+        self.assertIn("Verifier / Evidence Status", included_sections)
+        self.assertGreater(
+            included_sections.index("Verifier / Evidence Status"),
+            included_sections.index("Approval Binding Summary"),
+        )
+
+    def test_verifier_evidence_status_not_present_for_approved_innovation_review_run(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_safe_innovation_demo(
+                run_root=Path(tmp),
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                planner_template="innovation_review",
+                demo_approve_current_request=True,
+            )
+
+            approved_run_dir = Path(tmp) / "innovation-approved"
+            summary = summarize_run_directory(approved_run_dir)
+
+        self.assertEqual(summary["execution_status"], "completed")
+        self.assertIsNone(summary["verifier_evidence_status"])
+
+    def test_verifier_evidence_status_not_present_for_blocked_stub_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="generate innovation ideas from program data",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+        self.assertTrue(summary["blocked_by_review"])
+        self.assertIsNone(summary["verifier_evidence_status"])
+
+    def test_verifier_evidence_status_is_fail_soft_for_missing_audit_log(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+            (run_dir / "AuditLog.jsonl").unlink()
+
+            summary = summarize_run_directory(run_dir)
+
+        verifier_evidence_status = summary["verifier_evidence_status"]
+        self.assertIsNotNone(verifier_evidence_status)
+        self.assertEqual(verifier_evidence_status["audit_log_status"], "missing")
+        self.assertIs(verifier_evidence_status["display_only"], True)
+        self.assertEqual(
+            verifier_evidence_status["verification_status"], "not_implemented"
+        )
+
     def test_blocked_innovation_review_summary_writes_no_new_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp) / "demo"
@@ -765,6 +868,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                     "Fixture Lineage",
                     "Compiler Authorization Projection",
                     "Approval Binding Summary",
+                    "Verifier / Evidence Status",
                 ],
             )
 
@@ -792,6 +896,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                     "Fixture Lineage",
                     "Compiler Authorization Projection",
                     "Approval Binding Summary",
+                    "Verifier / Evidence Status",
                 ],
             )
 
