@@ -110,6 +110,12 @@ design gates. The design-only documents in this section are not implementations.
   proposals remain non-authoritative, prompts and skills stay versioned/reviewed
   artifacts, and any future LLM/subagent skill execution must remain
   broker/sandbox mediated.
+- [`APPROVAL_BINDING_CONTRACT.md`](APPROVAL_BINDING_CONTRACT.md) - the future
+  contract for how operator-owned approvals bind to the current run, request,
+  approval subject, candidate artifact revision/digest, and requested authority
+  shape: approvals grant no authority outside the current request, do not carry
+  over across runs, are not reusable ambient authority, and V1 safe no-op does
+  not use approvals for real execution.
 
 ## 3. Implementation Checkpoints / Safe Code Surfaces
 
@@ -155,6 +161,10 @@ connectors, and are not wired into compile or runtime behavior.
   advisory-only future safeguard policy/output examples. They are not
   control-plane inputs, not an approval mechanism, not an authority source,
   and no model is run from them.
+- `fixtures/future/approval-binding/ApprovalBinding.example.json` is an inert
+  display-only, operator-owned future approval-binding example. It is not
+  executable, not consumed by compile/runtime, not reusable ambient authority,
+  and grants no runtime authority.
 
 ## 4. Handoff
 

@@ -35,6 +35,10 @@ Current future-only fixture sets include:
   `safeguard-advisory/SafeguardAdvisory.example.json` for advisory-only future
   safeguard review examples. They are not control-plane inputs, not an approval mechanism,
   not an authority source, and V1 does **not** run any model from them.
+- `approval-binding/ApprovalBinding.example.json` for a display-only,
+  operator-owned future approval-binding example. It is not consumed by compile
+  or runtime behavior. V1 does **not** consume it, execute it, reuse it as
+  ambient authority, or carry it over across runs.
 
 Nothing here grants authority or enables any capability. The compiler remains the
 sole authority boundary, and V1 remains safe no-op only.
