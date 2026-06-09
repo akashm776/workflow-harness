@@ -39,6 +39,12 @@ Current future-only fixture sets include:
   operator-owned future approval-binding example. It is not consumed by compile
   or runtime behavior. V1 does **not** consume it, execute it, reuse it as
   ambient authority, or carry it over across runs.
+- `evidence-lineage/EvidenceLineage.example.json` and
+  `verifier-output/VerifierOutput.example.json` for display-only, reporting-only
+  future evidence-lineage and verifier-output examples. They are not authority,
+  not control-plane inputs, and not consumed by compile or runtime behavior. V1
+  does **not** generate, consume, execute, approve from, or grant authority from
+  them.
 
 Nothing here grants authority or enables any capability. The compiler remains the
 sole authority boundary, and V1 remains safe no-op only.

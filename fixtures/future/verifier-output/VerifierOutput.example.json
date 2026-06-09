@@ -1,0 +1,25 @@
+{
+  "schema_version": "verifier-output.v1.example",
+  "display_only": true,
+  "future_only_example": true,
+  "not_consumed_by_v1": true,
+  "not_control_plane_input": true,
+  "not_authority": true,
+  "no_runtime_authority": true,
+  "no_execution": true,
+  "no_approval": true,
+  "run_scope": "example-current-run-only",
+  "verifier_checks": [
+    {
+      "check_id": "example-check-id",
+      "check_type": "example-evidence-presence",
+      "status": "unknown",
+      "evidence_refs": [],
+      "finding": "Future-only example; no V1 verifier behavior is implemented."
+    }
+  ],
+  "fail_closed_findings": [],
+  "notes": [
+    "Future-only example. V1 safe no-op does not generate, consume, or authorize from this artifact."
+  ]
+}

@@ -15,7 +15,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Implementation checkpoint before this approval-binding-rejection slice: ad83cad Document approval binding contract`
 - `Implementation checkpoint before this approval-binding-summary slice: 4a6edcf Reject unsupported approval binding claims`
 - `V1 remains safe no-op only`
-- `505 tests passing`
+- `508 tests passing`
 
 ## Current Implemented Safety Runway
 

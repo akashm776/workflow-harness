@@ -116,6 +116,14 @@ design gates. The design-only documents in this section are not implementations.
   shape: approvals grant no authority outside the current request, do not carry
   over across runs, are not reusable ambient authority, and V1 safe no-op does
   not use approvals for real execution.
+- [`EVIDENCE_LINEAGE_VERIFIER_OUTPUT_CONTRACT.md`](EVIDENCE_LINEAGE_VERIFIER_OUTPUT_CONTRACT.md) -
+  the future reporting-only contract for evidence lineage and verifier output:
+  both are reporting only and non-authoritative, planner may not supply them as
+  authority, the compiler remains the authority boundary, and neither can
+  approve, authorize execution, grant capabilities, override compiler
+  diagnostics or operator approval, enable approval carryover/authority
+  subsumption, or create reusable authority. V1 safe no-op does not generate or
+  consume them yet.
 
 ## 3. Implementation Checkpoints / Safe Code Surfaces
 
@@ -165,6 +173,11 @@ connectors, and are not wired into compile or runtime behavior.
   display-only, operator-owned future approval-binding example. It is not
   executable, not consumed by compile/runtime, not reusable ambient authority,
   and grants no runtime authority.
+- `fixtures/future/evidence-lineage/EvidenceLineage.example.json` and
+  `fixtures/future/verifier-output/VerifierOutput.example.json` are inert
+  display-only, reporting-only future evidence-lineage and verifier-output
+  examples. They are not authority, not control-plane inputs, not executable,
+  not consumed by compile/runtime, and grant no runtime authority.
 
 ## 4. Handoff
 
