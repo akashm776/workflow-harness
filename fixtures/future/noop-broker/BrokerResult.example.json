@@ -1,0 +1,25 @@
+{
+  "schema_version": "broker-result.v1.example",
+  "display_only": true,
+  "future_only_example": true,
+  "not_consumed_by_v1": true,
+  "not_control_plane_input": true,
+  "not_authority": true,
+  "no_runtime_authority": true,
+  "no_execution": true,
+  "no_approval": true,
+  "run_scope": "example-current-run-only",
+  "request_scope": "example-current-request-only",
+  "node_id": "example-node-id",
+  "status": "not_executed",
+  "produced_output_refs": [],
+  "evidence_refs": [],
+  "side_effects_attempted": [],
+  "side_effects_denied": [],
+  "side_effects_completed": [],
+  "audit_refs": [],
+  "fail_closed_findings": [],
+  "notes": [
+    "Future-only example. V1 safe no-op does not generate, consume, execute, or authorize from this artifact."
+  ]
+}

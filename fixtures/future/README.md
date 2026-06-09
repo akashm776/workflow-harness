@@ -45,6 +45,13 @@ Current future-only fixture sets include:
   not control-plane inputs, and not consumed by compile or runtime behavior. V1
   does **not** generate, consume, execute, approve from, or grant authority from
   them.
+- `noop-broker/BrokerRequest.example.json`,
+  `noop-broker/BrokerDecision.example.json`, and
+  `noop-broker/BrokerResult.example.json` for display-only future broker
+  request/decision/result examples. They are not authority, not control-plane
+  inputs, and not consumed by compile or runtime behavior. There is no broker,
+  sandbox, or fake/no-op broker interface; V1 does **not** generate, consume,
+  execute, approve from, or grant authority from them.
 
 Nothing here grants authority or enables any capability. The compiler remains the
 sole authority boundary, and V1 remains safe no-op only.
