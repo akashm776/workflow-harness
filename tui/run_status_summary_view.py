@@ -84,6 +84,13 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(approval_binding_summary_lines)
 
+    verifier_evidence_status_lines = _verifier_evidence_status_lines(
+        summary.get("verifier_evidence_status")
+    )
+    if verifier_evidence_status_lines:
+        lines.append("")
+        lines.extend(verifier_evidence_status_lines)
+
     operator_review_packet_lines = _operator_review_packet_lines(
         summary.get("operator_review_packet")
     )
@@ -369,6 +376,50 @@ def _approval_binding_summary_lines(approval_binding_summary: Any) -> list[str]:
         for claim in unsupported_binding_claims:
             if isinstance(claim, str):
                 lines.append(f"- {claim}")
+    else:
+        lines.append("- []")
+
+    return lines
+
+
+def _verifier_evidence_status_lines(verifier_evidence_status: Any) -> list[str]:
+    if not isinstance(verifier_evidence_status, Mapping):
+        return []
+
+    lines = ["Verifier / Evidence Status:"]
+    for flag_name in (
+        "display_only",
+        "reporting_only",
+        "not_authority",
+        "not_verifier_output_artifact",
+        "not_evidence_lineage_artifact",
+        "no_runtime_authority",
+        "no_execution",
+        "no_approval",
+        "current_run_scope_only",
+    ):
+        lines.append(
+            f"{flag_name}: {_bool_text(verifier_evidence_status.get(flag_name))}"
+        )
+
+    for field_name in (
+        "manifest_status",
+        "execution_result_status",
+        "audit_log_status",
+        "produced_evidence_count",
+        "side_effect_count",
+        "verification_status",
+    ):
+        lines.append(
+            f"{field_name}: {_field_text(verifier_evidence_status.get(field_name))}"
+        )
+
+    lines.append("findings:")
+    findings = verifier_evidence_status.get("findings")
+    if isinstance(findings, list) and findings:
+        for finding in findings:
+            if isinstance(finding, str):
+                lines.append(f"- {finding}")
     else:
         lines.append("- []")
 
