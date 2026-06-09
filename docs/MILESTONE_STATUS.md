@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `519 tests` passing
+- `520 tests` passing
 
 ## Major Implemented Layers
 
@@ -338,6 +338,18 @@
     `verifier_evidence_status`, and `broker_boundary_status`.
   - it is operator-facing only, not a new artifact, not approval logic, not
     execution behavior, grants no authority, and remains fail-soft.
+- operator cockpit contract checkpoint:
+  - `OPERATOR_COCKPIT_CONTRACT.md` records the current display-only operator
+    cockpit for blocked explicit `innovation_review` rich summaries: the exact
+    section order (Review Gate, Candidate Workflow, Fixture Lineage, Proposed
+    Tool Access, Compiler Authorization Projection, Approval Binding Summary,
+    Verifier / Evidence Status, Broker Boundary Status, Operator Review Packet),
+    each section's responsibility, and the read-only/no-execution safety
+    boundary.
+  - it is docs-only: planner remains non-authoritative, the compiler remains the
+    sole authority boundary, runtime remains safe no-op, the sections grant no
+    authority and write no artifacts, and no future fixtures are read or made
+    control-plane inputs.
 - tool/connector/MCP trust-boundary design checkpoint:
   - `TOOL_CONNECTOR_CATALOG_DESIGN.md` documents that tool and MCP proposals
   remain non-authoritative, the compiler remains the sole authority boundary,

@@ -1,0 +1,93 @@
+# Operator Cockpit Contract
+
+This is the current contract documentation for the V1 safe no-op operator
+cockpit: the display-only governance sections rendered by
+`cli.run_status_cli --summary` for blocked explicit `innovation_review` runs. It
+records the current section order and safety boundary before any pure broker
+data-shape module or future broker-related code surface is added.
+
+## Status / Scope
+
+- Current contract documentation for the V1 safe no-op operator cockpit.
+- V1 remains safe no-op only.
+- No real execution.
+- No tools/connectors/MCP/network/model/broker/sandbox behavior.
+- Display-only / read-only reporting unless otherwise stated.
+- No new artifacts are written by the rich summary.
+
+## Applicability
+
+- Applies to blocked explicit `innovation_review` rich summaries.
+- Default / non-rich / generic summaries are not required to show the full
+  cockpit.
+- Approved runs do not show blocked-review cockpit sections unless existing
+  behavior already does so.
+- The cockpit is operator guidance only.
+
+## Current Section Order
+
+```text
+Review Gate:
+Candidate Workflow:
+Fixture Lineage:
+Proposed Tool Access:
+Compiler Authorization Projection:
+Approval Binding Summary:
+Verifier / Evidence Status:
+Broker Boundary Status:
+Operator Review Packet:
+```
+
+## Section Responsibilities
+
+- **Review Gate:** blocked review status and current approval requirement.
+- **Candidate Workflow:** display-only candidate graph summary.
+- **Fixture Lineage:** display-only future fixture path lineage, not fixture
+  loading.
+- **Proposed Tool Access:** display-only requested tool/connector proposal data.
+- **Compiler Authorization Projection:** display-only requested / approval-required
+  / blocked / unsupported authority view.
+- **Approval Binding Summary:** display-only current-run/request approval binding
+  explanation, not approval logic.
+- **Verifier / Evidence Status:** display-only safe no-op artifact presence and
+  evidence/verifier status, not verifier output or evidence lineage generation.
+- **Broker Boundary Status:** display-only statement that no broker/sandbox/artifacts
+  exist in V1.
+- **Operator Review Packet:** display-only section inventory and review packet
+  summary.
+
+## Authority Boundary
+
+- Planner remains non-authoritative.
+- Compiler remains the sole authority boundary.
+- Operator approval remains explicit and current-run/request scoped.
+- Runtime remains safe no-op.
+- The verifier/evidence/broker status sections do not authorize, approve, grant
+  capabilities, or execute.
+- Summary sections do not override compiler diagnostics.
+- Summary sections do not override operator approval.
+- Summary sections do not enable approval carryover.
+- Summary sections do not enable authority subsumption.
+- Summary sections do not create reusable authority.
+
+## Input / Read Boundary
+
+- The rich summary reads only existing local run/candidate artifacts already used
+  by the current status model.
+- No future fixtures are read.
+- No future fixtures become control-plane inputs.
+- No external systems are called.
+- No credentials/secrets are read.
+- No network behavior.
+
+## V1 Non-Goals
+
+- no real execution
+- no broker/sandbox
+- no fake/no-op broker interface
+- no MCP/tool/connector calls
+- no model inference
+- no verifier implementation
+- no evidence generation implementation
+- no approval carryover/reusable approvals/authority subsumption
+- no canonical JSON/hashing changes
