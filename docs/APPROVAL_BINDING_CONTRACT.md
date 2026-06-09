@@ -56,6 +56,19 @@ carryover, does not implement authority subsumption, does not change approval
 resolution, and does not authorize runtime/broker execution. V1 remains safe
 no-op only.
 
+## Display-Only Operator Summary
+
+For blocked explicit `innovation_review` runs, `cli.run_status_cli --summary`
+renders a display-only `Approval Binding Summary:` section (placed after
+`Compiler Authorization Projection:` and before `Operator Review Packet:`). It
+explains, for the current blocked request only, what an approval would bind to,
+derived solely from already-read local run data (candidate workflow identity,
+`candidate/ApprovalRequests.json` read fail-soft, and existing
+`CompilationReport.json` diagnostics). It is display-only and operator-owned;
+it changes no approval resolution or matching, implements no real approval
+binding, approval carryover, or reusable approvals, writes no artifacts, and
+grants no authority.
+
 ## V1 Non-Goals
 
 This document does not implement:

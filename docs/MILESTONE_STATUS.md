@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `499 tests` passing
+- `505 tests` passing
 
 ## Major Implemented Layers
 
@@ -279,14 +279,33 @@
   - regression tests now harden this as a display-only summary contract only;
     it is not an artifact-generation milestone and does not create a compiler
     authorization artifact.
+- display-only approval binding summary in the opt-in summary:
+  - for blocked explicit `innovation_review` proposals,
+    `cli.run_status_cli --summary` now also renders an
+    `Approval Binding Summary:` section, placed after
+    `Compiler Authorization Projection:` and before `Operator Review Packet:`.
+  - it explains, for the current blocked request only, what an approval would
+    bind to (approval `request_id`/`node_id`/`approval_subject_hash` where
+    available, with fail-soft unknowns, and `binds_to_current_request` /
+    `binds_to_candidate_artifact` / `binds_to_requested_authority` facts).
+  - it is derived only from already-read local run data: the candidate workflow
+    identity, `candidate/ApprovalRequests.json` read fail-soft, and existing
+    `CompilationReport.json` diagnostics (surfacing any
+    `UNSUPPORTED_APPROVAL_BINDING`).
+  - it is display-only, operator-owned, not reusable authority, has no approval
+    carryover, grants no runtime authority, and is current run/request scope
+    only.
+  - it does not change approval resolution or matching, implements no real
+    approval binding/carryover/reusable approvals, does not write artifacts, and
+    grants no authority.
 - display-only operator review packet in the opt-in summary:
   - when a safe no-op run is blocked by review,
     `cli.run_status_cli --summary` now also renders an
     `Operator Review Packet:` checklist.
   - it is derived only from already-computed summary fields such as
     `review_required`, `blocked_by_review`, `review_gate`,
-    `candidate_workflow`, `fixture_lineage`, `proposed_tool_access`, and
-    `compiler_authorization_projection`.
+    `candidate_workflow`, `fixture_lineage`, `proposed_tool_access`,
+    `compiler_authorization_projection`, and `approval_binding_summary`.
   - it is operator-facing only, not a new artifact, not approval logic, not
     execution behavior, grants no authority, and remains fail-soft.
 - tool/connector/MCP trust-boundary design checkpoint:

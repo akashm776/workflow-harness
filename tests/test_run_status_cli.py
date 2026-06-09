@@ -448,8 +448,33 @@ class RunStatusCliTests(unittest.TestCase):
             rendered.index("Proposed Tool Access:"),
             rendered.index("Compiler Authorization Projection:"),
         )
+        # New display-only section is rendered after the projection and before
+        # the operator review packet.
+        self.assertIn("Approval Binding Summary:", rendered)
+        self.assertIn("- Approval Binding Summary", rendered)
+        self.assertIn("operator_owned: true", rendered)
+        self.assertIn("not_reusable_authority: true", rendered)
+        self.assertIn("no_approval_carryover: true", rendered)
+        self.assertIn("current_request_scope_only: true", rendered)
+        self.assertIn("approval_subjects:", rendered)
+        self.assertIn(
+            "- request_id: planner-innovation-review-approval-request-", rendered
+        )
+        self.assertIn("node_id: retrieve-1", rendered)
+        self.assertIn(
+            "approval_subject_hash: planner-innovation-review-approval-subject-",
+            rendered,
+        )
+        self.assertIn("binds_to_current_request: true", rendered)
+        self.assertIn("binds_to_candidate_artifact: true", rendered)
+        self.assertIn("binds_to_requested_authority: true", rendered)
+        self.assertIn("unsupported_binding_claims:", rendered)
         self.assertLess(
             rendered.index("Compiler Authorization Projection:"),
+            rendered.index("Approval Binding Summary:"),
+        )
+        self.assertLess(
+            rendered.index("Approval Binding Summary:"),
             rendered.index("Operator Review Packet:"),
         )
 
@@ -476,6 +501,7 @@ class RunStatusCliTests(unittest.TestCase):
             "Fixture Lineage:",
             "Proposed Tool Access:",
             "Compiler Authorization Projection:",
+            "Approval Binding Summary:",
             "Operator Review Packet:",
         ):
             self.assertIn(section_name, rendered)
@@ -496,6 +522,10 @@ class RunStatusCliTests(unittest.TestCase):
             "not_persisted_as_artifact: true",
             "no_runtime_authority: true",
             "current_run_scope_only: true",
+            "operator_owned: true",
+            "not_reusable_authority: true",
+            "no_approval_carryover: true",
+            "current_request_scope_only: true",
         ):
             self.assertIn(required_text, rendered)
 
@@ -519,6 +549,7 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertNotIn("fixtures/future/innovation-context/ProgramContext.json", rendered)
         self.assertNotIn("Proposed Tool Access:", rendered)
         self.assertNotIn("Compiler Authorization Projection:", rendered)
+        self.assertNotIn("Approval Binding Summary:", rendered)
         self.assertNotIn("- tool: example-local-file-reader", rendered)
         self.assertIn("Operator Review Packet:", rendered)
 
@@ -543,6 +574,8 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertNotIn("Proposed Tool Access:", rendered)
         self.assertNotIn("Compiler Authorization Projection:", rendered)
         self.assertNotIn("- Compiler Authorization Projection", rendered)
+        self.assertNotIn("Approval Binding Summary:", rendered)
+        self.assertNotIn("- Approval Binding Summary", rendered)
 
     def test_summary_flag_completed_safe_noop_run_does_not_render_operator_review_packet(
         self,
@@ -589,6 +622,7 @@ class RunStatusCliTests(unittest.TestCase):
         self.assertIn("execution_status: completed", rendered)
         self.assertIn("review_required: false", rendered)
         self.assertNotIn("Compiler Authorization Projection:", rendered)
+        self.assertNotIn("Approval Binding Summary:", rendered)
         self.assertNotIn("Operator Review Packet:", rendered)
 
     def test_default_json_does_not_include_summary_fields(self) -> None:

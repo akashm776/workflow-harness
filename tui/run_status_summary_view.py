@@ -77,6 +77,13 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(compiler_authorization_projection_lines)
 
+    approval_binding_summary_lines = _approval_binding_summary_lines(
+        summary.get("approval_binding_summary")
+    )
+    if approval_binding_summary_lines:
+        lines.append("")
+        lines.extend(approval_binding_summary_lines)
+
     operator_review_packet_lines = _operator_review_packet_lines(
         summary.get("operator_review_packet")
     )
@@ -303,5 +310,66 @@ def _compiler_authorization_projection_lines(
                     lines.append(f"- {value}")
         else:
             lines.append("- []")
+
+    return lines
+
+
+def _approval_binding_summary_lines(approval_binding_summary: Any) -> list[str]:
+    if not isinstance(approval_binding_summary, Mapping):
+        return []
+
+    lines = ["Approval Binding Summary:"]
+    for flag_name in (
+        "display_only",
+        "operator_owned",
+        "not_reusable_authority",
+        "no_approval_carryover",
+        "no_runtime_authority",
+        "current_run_scope_only",
+        "current_request_scope_only",
+    ):
+        lines.append(
+            f"{flag_name}: {_bool_text(approval_binding_summary.get(flag_name))}"
+        )
+
+    lines.append("approval_subjects:")
+    approval_subjects = approval_binding_summary.get("approval_subjects")
+    if isinstance(approval_subjects, list) and approval_subjects:
+        for subject in approval_subjects:
+            if not isinstance(subject, Mapping):
+                continue
+            lines.append(
+                f"- request_id: {_field_text(subject.get('request_id'))}"
+            )
+            lines.append(f"  node_id: {_field_text(subject.get('node_id'))}")
+            lines.append(
+                "  approval_subject_hash: "
+                f"{_field_text(subject.get('approval_subject_hash'))}"
+            )
+            lines.append(
+                "  binds_to_current_request: "
+                f"{_field_text(subject.get('binds_to_current_request'))}"
+            )
+            lines.append(
+                "  binds_to_candidate_artifact: "
+                f"{_field_text(subject.get('binds_to_candidate_artifact'))}"
+            )
+            lines.append(
+                "  binds_to_requested_authority: "
+                f"{_field_text(subject.get('binds_to_requested_authority'))}"
+            )
+    else:
+        lines.append("- []")
+
+    lines.append("unsupported_binding_claims:")
+    unsupported_binding_claims = approval_binding_summary.get(
+        "unsupported_binding_claims"
+    )
+    if isinstance(unsupported_binding_claims, list) and unsupported_binding_claims:
+        for claim in unsupported_binding_claims:
+            if isinstance(claim, str):
+                lines.append(f"- {claim}")
+    else:
+        lines.append("- []")
 
     return lines

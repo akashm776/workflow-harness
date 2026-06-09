@@ -80,6 +80,7 @@ INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET = {
         "Fixture Lineage",
         "Proposed Tool Access",
         "Compiler Authorization Projection",
+        "Approval Binding Summary",
     ],
 }
 
@@ -523,6 +524,178 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 [],
             )
 
+    def test_approval_binding_summary_present_for_blocked_innovation_review(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+        approval_binding_summary = summary["approval_binding_summary"]
+        self.assertIsNotNone(approval_binding_summary)
+        for flag in (
+            "display_only",
+            "operator_owned",
+            "not_reusable_authority",
+            "no_approval_carryover",
+            "no_runtime_authority",
+            "current_run_scope_only",
+            "current_request_scope_only",
+        ):
+            self.assertIs(approval_binding_summary[flag], True)
+
+        self.assertEqual(len(approval_binding_summary["approval_subjects"]), 1)
+        subject = approval_binding_summary["approval_subjects"][0]
+        self.assertTrue(
+            subject["request_id"].startswith(
+                "planner-innovation-review-approval-request-"
+            )
+        )
+        self.assertEqual(subject["node_id"], "retrieve-1")
+        self.assertTrue(
+            subject["approval_subject_hash"].startswith(
+                "planner-innovation-review-approval-subject-"
+            )
+        )
+        self.assertIs(subject["binds_to_current_request"], True)
+        self.assertIs(subject["binds_to_candidate_artifact"], True)
+        self.assertIs(subject["binds_to_requested_authority"], True)
+        self.assertEqual(approval_binding_summary["unsupported_binding_claims"], [])
+
+        # The packet enumerates the new section after the projection.
+        self.assertIn(
+            "Approval Binding Summary",
+            summary["operator_review_packet"]["included_sections"],
+        )
+
+    def test_approval_binding_summary_not_present_for_approved_innovation_review_run(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_safe_innovation_demo(
+                run_root=Path(tmp),
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                planner_template="innovation_review",
+                demo_approve_current_request=True,
+            )
+
+            approved_run_dir = Path(tmp) / "innovation-approved"
+            summary = summarize_run_directory(approved_run_dir)
+
+        self.assertEqual(summary["execution_status"], "completed")
+        self.assertIsNone(summary["approval_binding_summary"])
+
+    def test_approval_binding_summary_not_present_for_blocked_stub_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="generate innovation ideas from program data",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+        self.assertTrue(summary["blocked_by_review"])
+        self.assertIsNone(summary["approval_binding_summary"])
+
+    def test_approval_binding_summary_surfaces_unsupported_binding_diagnostic(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+
+            compilation_report_path = run_dir / "CompilationReport.json"
+            compilation_report = json.loads(
+                compilation_report_path.read_text(encoding="utf-8")
+            )
+            compilation_report["diagnostics"] = [
+                {
+                    "error_code": "UNSUPPORTED_APPROVAL_BINDING",
+                    "artifact": "ApprovalRequests.json",
+                    "path": "$.requests[0].reusable_approval",
+                }
+            ]
+            compilation_report_path.write_text(
+                json.dumps(compilation_report), encoding="utf-8"
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+        self.assertEqual(
+            summary["approval_binding_summary"]["unsupported_binding_claims"],
+            [
+                "UNSUPPORTED_APPROVAL_BINDING artifact=ApprovalRequests.json "
+                "path=$.requests[0].reusable_approval"
+            ],
+        )
+
+    def test_approval_binding_summary_ignores_unrelated_diagnostics(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+
+            compilation_report_path = run_dir / "CompilationReport.json"
+            compilation_report = json.loads(
+                compilation_report_path.read_text(encoding="utf-8")
+            )
+            compilation_report["diagnostics"] = [
+                {
+                    "error_code": "UNSUPPORTED_EXECUTION_BINDING",
+                    "artifact": "WorkflowSpec.json",
+                    "path": "$.nodes[0].tool_binding",
+                }
+            ]
+            compilation_report_path.write_text(
+                json.dumps(compilation_report), encoding="utf-8"
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+        self.assertEqual(
+            summary["approval_binding_summary"]["unsupported_binding_claims"],
+            [],
+        )
+
+    def test_approval_binding_summary_is_fail_soft_for_missing_approval_requests(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+            (run_dir / "candidate" / "ApprovalRequests.json").unlink()
+
+            summary = summarize_run_directory(run_dir)
+
+        approval_binding_summary = summary["approval_binding_summary"]
+        self.assertIsNotNone(approval_binding_summary)
+        self.assertEqual(approval_binding_summary["approval_subjects"], [])
+        self.assertIs(approval_binding_summary["display_only"], True)
+
     def test_blocked_innovation_review_summary_writes_no_new_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp) / "demo"
@@ -591,6 +764,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                     "Candidate Workflow",
                     "Fixture Lineage",
                     "Compiler Authorization Projection",
+                    "Approval Binding Summary",
                 ],
             )
 
@@ -617,6 +791,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                     "Candidate Workflow",
                     "Fixture Lineage",
                     "Compiler Authorization Projection",
+                    "Approval Binding Summary",
                 ],
             )
 

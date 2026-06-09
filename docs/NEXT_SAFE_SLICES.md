@@ -13,8 +13,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Implementation checkpoint before this projection slice: 07c100e Document compiler authorization summary design`
 - `Implementation checkpoint before this display-only compiler-authorization-projection slice: af7ca95 Document compiler authorization summary projection`
 - `Implementation checkpoint before this approval-binding-rejection slice: ad83cad Document approval binding contract`
+- `Implementation checkpoint before this approval-binding-summary slice: 4a6edcf Reject unsupported approval binding claims`
 - `V1 remains safe no-op only`
-- `499 tests passing`
+- `505 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -47,6 +48,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - fail-closed unsupported authority artifact rejection
 - approval binding contract
 - fail-closed unsupported approval-binding rejection
+- display-only approval binding summary for blocked `innovation_review` summaries
 - milestone docs updated
 
 The richer deterministic innovation template slice is now implemented as the
