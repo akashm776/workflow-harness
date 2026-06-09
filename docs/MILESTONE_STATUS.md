@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `488 tests` passing
+- `499 tests` passing
 
 ## Major Implemented Layers
 
@@ -376,6 +376,21 @@
   - this is rejection-only; it does not create compiled artifacts, does not
     consume compiled artifacts, does not change approval behavior, and does not
     enable runtime authority.
+- approval-binding checkpoint and fail-closed rejection:
+  - `APPROVAL_BINDING_CONTRACT.md` records that approvals remain explicit,
+    operator-owned, and current-run/request scoped, and are not reusable
+    ambient authority; the broader contract stays design-only.
+  - `compiler/static_validation.py` now rejects planner-controlled
+    approval-binding or reusable-approval exact key names in candidate
+    `WorkflowSpec.json`, `RequestedAuth.json`, and `ApprovalRequests.json`
+    artifacts with `UNSUPPORTED_APPROVAL_BINDING` (`approval_binding`,
+    `approval_bindings`, `approval_token`, `approval_tokens`,
+    `approval_carryover`, `reusable_approval`, `reusable_approvals`,
+    `standing_approval`, `standing_approvals`).
+  - this is exact-key rejection only; it does not scan arbitrary string values,
+    does not implement approval binding, does not implement approval carryover,
+    does not implement authority subsumption, does not change approval
+    resolution, and does not enable runtime/broker execution.
 - static validation diagnostic ordering contract:
   - `validate_static_inputs(...)` remains deterministic and fail-closed by
     phase: authority-value validators, then schema validators, then
@@ -393,11 +408,15 @@
     - authority-artifact-ownership validator:
       `UNSUPPORTED_AUTHORITY_ARTIFACT` for planner-supplied compiler-owned,
       runtime-owned, or operator-owned authority artifact fields.
+    - approval-binding validator:
+      `UNSUPPORTED_APPROVAL_BINDING` for planner-supplied approval-binding,
+      approval-token, approval-carryover, reusable-approval, or
+      standing-approval exact field names.
     - execution-binding validator:
       `UNSUPPORTED_EXECUTION_BINDING` for tool/connector/MCP/broker execution
       binding claims.
   - within the current interpretation phase, ordering is deterministic:
-    secret-field checks, then capability-envelope checks, then safeguard-authority-claim checks, then authority-artifact-ownership checks, then execution-binding checks, then graph/scope/approval validators.
+    secret-field checks, then capability-envelope checks, then safeguard-authority-claim checks, then authority-artifact-ownership checks, then approval-binding checks, then execution-binding checks, then graph/scope/approval validators.
   - this is a hardening contract for safety regression tests, not a public API.
 
 ## Explicit Non-Goals

@@ -496,6 +496,26 @@ _UNSUPPORTED_AUTHORITY_ARTIFACT_KEYS = frozenset(
     }
 )
 
+# V1 fail-closed guard: planner-controlled artifacts must not be able to claim
+# reusable approval, standing approval, approval carryover, approval tokens, or
+# approval-binding authority. Approvals remain explicit, operator-owned,
+# current-run/request scoped, and not reusable ambient authority. This is
+# exact-key rejection only; it does not implement approval binding, approval
+# carryover, authority subsumption, or any approval resolution behavior.
+_UNSUPPORTED_APPROVAL_BINDING_KEYS = frozenset(
+    {
+        "approval_binding",
+        "approval_bindings",
+        "approval_token",
+        "approval_tokens",
+        "approval_carryover",
+        "reusable_approval",
+        "reusable_approvals",
+        "standing_approval",
+        "standing_approvals",
+    }
+)
+
 
 def _find_unsupported_execution_binding_paths(
     value: Any,
@@ -657,6 +677,38 @@ def _find_unsupported_authority_artifact_paths(
     return findings
 
 
+def _find_unsupported_approval_binding_paths(
+    value: Any,
+    *,
+    path: str,
+) -> list[str]:
+    findings: list[str] = []
+
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            if key in _UNSUPPORTED_APPROVAL_BINDING_KEYS:
+                findings.append(child_path)
+            findings.extend(
+                _find_unsupported_approval_binding_paths(
+                    child,
+                    path=child_path,
+                )
+            )
+        return findings
+
+    if isinstance(value, list):
+        for index, child in enumerate(value):
+            findings.extend(
+                _find_unsupported_approval_binding_paths(
+                    child,
+                    path=f"{path}[{index}]",
+                )
+            )
+
+    return findings
+
+
 def validate_unsupported_capability_envelope_fields(
     artifact_path: str | Path,
     artifact_name: str,
@@ -775,6 +827,40 @@ def validate_unsupported_authority_artifacts(
                 "planner-supplied compiled plans, authority manifests, "
                 "diagnostics, execution results, audit artifacts, evidence "
                 "lineage, or approval decisions: " + ", ".join(findings)
+            ),
+        },
+    }
+
+
+def validate_unsupported_approval_bindings(
+    artifact_path: str | Path,
+    artifact_name: str,
+) -> dict[str, Any]:
+    artifact = _load_json(artifact_path)
+    findings = _find_unsupported_approval_binding_paths(
+        artifact,
+        path="$",
+    )
+
+    if not findings:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "UNSUPPORTED_APPROVAL_BINDING",
+            "component": "approval_binding_validator",
+            "artifact": artifact_name,
+            "message": (
+                f"unsupported approval-binding field in {artifact_name}; "
+                "V1 safe no-op does not accept planner-supplied approval "
+                "bindings, approval tokens, approval carryover, reusable "
+                "approvals, or standing approvals; approvals remain explicit, "
+                "operator-owned, and current-run/request scoped: "
+                + ", ".join(findings)
             ),
         },
     }
@@ -1124,7 +1210,8 @@ def validate_static_inputs(
     # Phase 3: interpretation validators (graph, scope, approval semantics).
     # Ordering within the phase is deterministic and fail-closed:
     # secret-field, capability-envelope, safeguard-authority-claim,
-    # authority-artifact-ownership, execution-binding, then graph/scope/approval.
+    # authority-artifact-ownership, approval-binding, execution-binding, then
+    # graph/scope/approval.
 
     # Phase 1: authority-value validators.
     phase_authority_values = [
@@ -1192,6 +1279,15 @@ def validate_static_inputs(
             requested_auth_path, "RequestedAuth.json"
         ),
         lambda: validate_unsupported_authority_artifacts(
+            approval_requests_path, "ApprovalRequests.json"
+        ),
+        lambda: validate_unsupported_approval_bindings(
+            workflow_spec_path, "WorkflowSpec.json"
+        ),
+        lambda: validate_unsupported_approval_bindings(
+            requested_auth_path, "RequestedAuth.json"
+        ),
+        lambda: validate_unsupported_approval_bindings(
             approval_requests_path, "ApprovalRequests.json"
         ),
         lambda: validate_unsupported_execution_bindings(workflow_spec_path),

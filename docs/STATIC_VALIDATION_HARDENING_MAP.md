@@ -26,8 +26,9 @@ Current Phase 3 order:
 2. capability-envelope validator
 3. safeguard-authority-claim validator
 4. authority-artifact-ownership validator
-5. execution-binding validator
-6. graph/scope/approval validators
+5. approval-binding validator
+6. execution-binding validator
+7. graph/scope/approval validators
 ```
 
 ## Validator Ownership
@@ -40,6 +41,11 @@ Current Phase 3 order:
   authorization, or execution-unblock claims.
 - `UNSUPPORTED_AUTHORITY_ARTIFACT`: planner-supplied compiler-owned,
   runtime-owned, or operator-owned authority artifacts.
+- `UNSUPPORTED_APPROVAL_BINDING`: planner-supplied approval-binding, approval
+  token, approval carryover, reusable-approval, or standing-approval exact key
+  names. Exact-key rejection only; it does not implement approval binding,
+  approval carryover, authority subsumption, or any approval resolution
+  behavior.
 - `UNSUPPORTED_EXECUTION_BINDING`: tool, connector, MCP, or broker execution
   binding claims.
 
