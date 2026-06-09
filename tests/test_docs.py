@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import unittest
 
@@ -31,6 +32,14 @@ STATIC_VALIDATION_HARDENING_MAP_PATH = (
 )
 SAFEGUARD_ADVISORY_PATH = ROOT / "docs" / "SAFEGUARD_ADVISORY_DESIGN.md"
 SKILL_PROMPT_REGISTRY_PATH = ROOT / "docs" / "SKILL_PROMPT_REGISTRY_DESIGN.md"
+APPROVAL_BINDING_CONTRACT_PATH = ROOT / "docs" / "APPROVAL_BINDING_CONTRACT.md"
+APPROVAL_BINDING_FIXTURE_PATH = (
+    ROOT
+    / "fixtures"
+    / "future"
+    / "approval-binding"
+    / "ApprovalBinding.example.json"
+)
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
@@ -1199,6 +1208,106 @@ class DocsTests(unittest.TestCase):
         self.assertIn("before any execution path exists", content)
         self.assertIn("changes no behavior and enables nothing", lowered)
 
+    def test_approval_binding_contract_doc_exists_and_is_design_only(
+        self,
+    ) -> None:
+        self.assertTrue(APPROVAL_BINDING_CONTRACT_PATH.exists())
+        content = APPROVAL_BINDING_CONTRACT_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+
+        # Status: design/contract documentation only; V1 does not use approvals
+        # for real execution.
+        self.assertIn(
+            "design/contract documentation only unless otherwise stated", lowered
+        )
+        self.assertIn(
+            "v1 safe no-op does not use approvals for real execution", lowered
+        )
+
+        # Ownership and form.
+        self.assertIn("Approvals are operator-owned.", content)
+        self.assertIn("Approvals are explicit.", content)
+        self.assertIn("Approvals are current-run scoped.", content)
+        self.assertIn("Approvals are current-request scoped.", content)
+
+        # Binding rules.
+        self.assertIn("Approvals bind to the approval subject.", content)
+        self.assertIn(
+            "Approvals should bind to candidate artifact revision/digest where "
+            "available.",
+            content,
+        )
+        self.assertIn(
+            "Approvals should bind to requested authority shape where available.",
+            content,
+        )
+
+        # Authority boundaries.
+        self.assertIn(
+            "Approvals do not grant authority outside the current request.", content
+        )
+        self.assertIn("Approvals do not carry over across runs.", content)
+        self.assertIn("Approvals are not reusable ambient authority.", content)
+        self.assertIn(
+            "Approvals do not authorize planner-supplied compiled artifacts.",
+            content,
+        )
+        self.assertIn(
+            "Approvals do not authorize runtime/broker behavior unless future",
+            content,
+        )
+        self.assertIn(
+            "Future broker/sandbox execution must require compiler-owned "
+            "authority plus",
+            content,
+        )
+
+        # Authority boundary roles remain unchanged.
+        self.assertIn("Planner remains non-authoritative.", content)
+        self.assertIn("Compiler remains the sole authority boundary.", content)
+        self.assertIn("Runtime remains safe no-op in V1.", content)
+
+        # V1 non-goals: explicitly not implemented here.
+        for non_goal in (
+            "approval carryover",
+            "authority subsumption",
+            "broker execution",
+            "MCP/tool calls",
+            "model inference",
+            "credential/secret handling",
+        ):
+            self.assertIn(non_goal, content)
+
+    def test_approval_binding_example_fixture_is_inert_future_only(self) -> None:
+        self.assertTrue(APPROVAL_BINDING_FIXTURE_PATH.exists())
+        data = json.loads(
+            APPROVAL_BINDING_FIXTURE_PATH.read_text(encoding="utf-8")
+        )
+
+        # Inert, future-only, operator-owned, and not consumed by V1.
+        self.assertEqual(data["schema_version"], "approval-binding.v1.example")
+        self.assertTrue(data["display_only"])
+        self.assertTrue(data["future_only_example"])
+        self.assertTrue(data["operator_owned"])
+        self.assertTrue(data["not_consumed_by_v1"])
+        self.assertTrue(data["not_reusable_authority"])
+        self.assertTrue(data["no_runtime_authority"])
+        self.assertTrue(data["no_execution"])
+
+        # Scoped to the current run/request/subject/revision only.
+        self.assertEqual(data["run_scope"], "example-current-run-only")
+        self.assertEqual(data["request_scope"], "example-current-request-only")
+        self.assertEqual(
+            data["approval_subject"], "example-current-approval-subject-only"
+        )
+        self.assertEqual(
+            data["artifact_revision_scope"],
+            "example-current-artifact-revision-only",
+        )
+
+        # Grants no ambient/requested authority.
+        self.assertEqual(data["requested_authority_scope"], [])
+
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())
         content = DOCS_INDEX_PATH.read_text(encoding="utf-8")
@@ -1225,6 +1334,7 @@ class DocsTests(unittest.TestCase):
             "SAFEGUARD_ADVISORY_DESIGN.md",
             "SKILL_PROMPT_REGISTRY_DESIGN.md",
             "SANDBOX_BROKER_INTERFACE_DESIGN.md",
+            "APPROVAL_BINDING_CONTRACT.md",
         ):
             self.assertIn(doc_name, content)
 
@@ -1248,6 +1358,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("CompilerAuthorizationSummary.example.json", content)
         self.assertIn("CompilerAuthorizationSummaryProjection.example.json", content)
         self.assertIn("SafeguardAdvisory.example.json", content)
+        self.assertIn("ApprovalBinding.example.json", content)
         self.assertIn("example/future-only artifacts", content)
         # Mentions the end-to-end demo CLI.
         self.assertIn("cli/workflow_demo_cli.py", content)

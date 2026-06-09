@@ -1,0 +1,18 @@
+{
+  "schema_version": "approval-binding.v1.example",
+  "display_only": true,
+  "future_only_example": true,
+  "operator_owned": true,
+  "not_consumed_by_v1": true,
+  "not_reusable_authority": true,
+  "no_runtime_authority": true,
+  "no_execution": true,
+  "run_scope": "example-current-run-only",
+  "request_scope": "example-current-request-only",
+  "approval_subject": "example-current-approval-subject-only",
+  "artifact_revision_scope": "example-current-artifact-revision-only",
+  "requested_authority_scope": [],
+  "notes": [
+    "Future-only example. V1 safe no-op does not consume this artifact and does not use it for execution."
+  ]
+}
