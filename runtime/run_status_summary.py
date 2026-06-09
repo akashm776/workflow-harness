@@ -366,6 +366,116 @@ def _build_compiler_authorization_projection(
     }
 
 
+def _build_unsupported_approval_binding_entries(compilation_report: Any) -> list[str]:
+    if not isinstance(compilation_report, dict):
+        return []
+
+    diagnostics = compilation_report.get("diagnostics")
+    if not isinstance(diagnostics, list):
+        return []
+
+    entries: list[str] = []
+    for diagnostic in diagnostics:
+        error_code = _get_str(diagnostic, "error_code")
+        if error_code != "UNSUPPORTED_APPROVAL_BINDING":
+            continue
+
+        artifact = _get_str(diagnostic, "artifact")
+        path = _get_str(diagnostic, "path")
+        detail_parts = [error_code]
+        if artifact is not None:
+            detail_parts.append(f"artifact={artifact}")
+        if path is not None:
+            detail_parts.append(f"path={path}")
+        entries.append(" ".join(detail_parts))
+
+    return entries
+
+
+def _build_approval_binding_summary(
+    run_path: Path,
+    candidate_workflow: dict[str, Any] | None,
+    compilation_report: Any,
+    review_required: bool | None,
+    blocked_by_review: bool,
+    compiler_authorization_projection: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Return a display-only approval-binding summary for blocked innovation_review runs.
+
+    This explains, for the current blocked request only, what an approval would
+    bind to. It is derived entirely from already-read local run data: the
+    candidate workflow identity, the local ``candidate/ApprovalRequests.json``
+    proposal (read fail-soft, the same artifact the Review Gate already reads),
+    the already-read ``CompilationReport.json`` diagnostics, and the already-built
+    compiler authorization projection. It changes no approval resolution or
+    matching behavior, implements no real approval binding, grants no authority,
+    and writes nothing.
+    """
+
+    workflow_id = _get_str(candidate_workflow, "workflow_id")
+    if workflow_id is None or not workflow_id.startswith(
+        INNOVATION_REVIEW_WORKFLOW_PREFIX
+    ):
+        return None
+
+    if review_required is not True or not blocked_by_review:
+        return None
+
+    # Whether an approval could bind to a candidate artifact revision and to a
+    # requested-authority shape is reported as a fact derived only from data the
+    # summary already holds; unknown when that data is unavailable.
+    has_candidate_revision = (
+        _get_str(candidate_workflow, "workflow_revision_id") is not None
+    )
+    binds_to_candidate_artifact: Any = True if has_candidate_revision else "unknown"
+
+    requested_authority: list[Any] = []
+    if isinstance(compiler_authorization_projection, dict):
+        projected = compiler_authorization_projection.get("requested_authority")
+        if isinstance(projected, list):
+            requested_authority = projected
+    binds_to_requested_authority: Any = True if requested_authority else "unknown"
+
+    approval_subjects: list[dict[str, Any]] = []
+    approval_requests = _safe_load_json(
+        run_path / "candidate" / "ApprovalRequests.json"
+    )
+    if isinstance(approval_requests, dict):
+        raw_requests = approval_requests.get("requests")
+        if isinstance(raw_requests, list):
+            for raw_request in raw_requests:
+                if not isinstance(raw_request, dict):
+                    continue
+                approval_subjects.append(
+                    {
+                        "request_id": _get_str(raw_request, "request_id")
+                        or "unknown",
+                        "node_id": _get_str(raw_request, "node_id") or "unknown",
+                        "approval_subject_hash": _get_str(
+                            raw_request, "approval_subject_hash"
+                        )
+                        or "unknown",
+                        "binds_to_current_request": True,
+                        "binds_to_candidate_artifact": binds_to_candidate_artifact,
+                        "binds_to_requested_authority": binds_to_requested_authority,
+                    }
+                )
+
+    return {
+        "display_only": True,
+        "operator_owned": True,
+        "not_reusable_authority": True,
+        "no_approval_carryover": True,
+        "no_runtime_authority": True,
+        "current_run_scope_only": True,
+        "current_request_scope_only": True,
+        "approval_subjects": approval_subjects,
+        "unsupported_binding_claims": _build_unsupported_approval_binding_entries(
+            compilation_report
+        ),
+    }
+
+
 def _build_operator_review_packet(
     review_required: bool | None,
     blocked_by_review: bool,
@@ -374,6 +484,7 @@ def _build_operator_review_packet(
     fixture_lineage: dict[str, Any] | None,
     proposed_tool_access: dict[str, Any] | None,
     compiler_authorization_projection: dict[str, Any] | None,
+    approval_binding_summary: dict[str, Any] | None,
 ) -> dict[str, Any] | None:
     """Return a display-only operator review checklist for blocked runs only."""
 
@@ -391,6 +502,8 @@ def _build_operator_review_packet(
         included_sections.append("Proposed Tool Access")
     if compiler_authorization_projection is not None:
         included_sections.append("Compiler Authorization Projection")
+    if approval_binding_summary is not None:
+        included_sections.append("Approval Binding Summary")
 
     return {
         "review_required": True,
@@ -442,6 +555,14 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         review_required,
         blocked_by_review,
     )
+    approval_binding_summary = _build_approval_binding_summary(
+        run_path,
+        candidate_workflow,
+        compilation_report,
+        review_required,
+        blocked_by_review,
+        compiler_authorization_projection,
+    )
 
     return {
         "run_dir": str(run_path),
@@ -460,6 +581,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "fixture_lineage": fixture_lineage,
         "proposed_tool_access": proposed_tool_access,
         "compiler_authorization_projection": compiler_authorization_projection,
+        "approval_binding_summary": approval_binding_summary,
         "operator_review_packet": _build_operator_review_packet(
             review_required,
             blocked_by_review,
@@ -468,6 +590,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
             fixture_lineage,
             proposed_tool_access,
             compiler_authorization_projection,
+            approval_binding_summary,
         ),
         "status_command": (
             f"python -m cli.run_status_cli --run-dir {run_path} --view"

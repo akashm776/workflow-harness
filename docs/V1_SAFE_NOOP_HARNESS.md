@@ -200,6 +200,20 @@ approval helper.
   does not execute tools, does not enable connector support, does not change
   approval semantics, remains fail-soft and operator-facing only, and grants no
   authority.
+- For blocked explicit `innovation_review` proposals, `cli.run_status_cli
+  --summary` also renders a display-only `Approval Binding Summary:` section,
+  placed after `Compiler Authorization Projection:` and before `Operator Review
+  Packet:`. It explains, for the current blocked request only, what an approval
+  would bind to: it is display-only, operator-owned, not reusable authority, has
+  no approval carryover, grants no runtime authority, and is current
+  run/request scope only. It is derived only from already-read local run data
+  (the candidate workflow identity, `candidate/ApprovalRequests.json` read
+  fail-soft, and existing `CompilationReport.json` diagnostics), reports approval
+  `request_id`/`node_id`/`approval_subject_hash` where available with fail-soft
+  unknowns, and surfaces any `UNSUPPORTED_APPROVAL_BINDING` diagnostic already
+  present. It does not change approval resolution or matching, implements no real
+  approval binding, approval carryover, or reusable approvals, writes nothing,
+  and grants no authority.
 - When a safe no-op run is blocked by review, `cli.run_status_cli --summary`
   also renders a display-only `Operator Review Packet:` checklist derived only
   from already-computed summary fields such as `review_required`,
