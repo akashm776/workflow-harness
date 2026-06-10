@@ -1,5 +1,56 @@
 # Milestone Status
 
+## Current Source Of Truth
+
+Latest pushed baseline:
+
+- `a46b92c Document repo terminology boundaries`
+- `587 passed`
+
+Recent landed slices after the prior safe-noop governance cockpit milestone:
+
+- Governance Readiness Checklist
+- Sandbox Backend Strategy
+- Workflow Pattern Selection Design
+- Repo Terminology Map
+
+Current demo posture:
+
+- The current demo should be presented as a safe-noop governance/control-plane
+  proof, not as real agent execution.
+
+Current trust boundary:
+
+```text
+Planner suggests.
+Compiler authorizes.
+Operator approves.
+Runtime executes only what was compiler-authorized and operator-approved.
+Verifier reports.
+Audit preserves lineage.
+```
+
+Boundary reminder:
+
+- This note is documentation/status only.
+- It does not implement runtime behavior.
+- It does not implement compiler behavior.
+- It does not implement schema behavior.
+- It does not implement broker behavior.
+- It does not implement sandbox behavior.
+- It does not implement planner behavior.
+- It does not implement verifier behavior.
+- It does not implement approval behavior.
+- It does not implement execution behavior.
+- It does not implement Kubernetes integration.
+- It does not implement Hermes Agent integration.
+- It does not implement kagent/kagents integration.
+- It does not implement NemoClaw/OpenShell integration.
+- It does not change canonical JSON.
+- It does not change hashing.
+- The prior `v0.1.0-safe-noop-governance-cockpit -> 0131572` tag remains
+  local-only and should not be pushed unless explicitly requested.
+
 ## Current Milestone
 
 `V1 Safe No-Op Harness`
