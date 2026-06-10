@@ -151,6 +151,16 @@ design gates. The design-only documents in this section are not implementations.
   planner-input scanner scope (planner-controlled artifacts only, never
   `ApprovalDecisions.json`), exact-object-key matching, and the fail-closed
   guarantees. It is docs/tests only and changes no behavior.
+- [`PHASE3_VALIDATOR_OWNERSHIP_MAP.md`](PHASE3_VALIDATOR_OWNERSHIP_MAP.md) - a
+  consolidation map of the current Phase 3 static validator stack: per validator
+  family it records the purpose, diagnostic code, component name, artifacts
+  scanned, artifacts deliberately not scanned, ownership exclusions, and what the
+  validator must not imply, with extra precision for the post-tag
+  `approval_scope_validator` (`UNSUPPORTED_APPROVAL_SCOPE_CLAIM`) and
+  `approval_identity_validator` (`UNSUPPORTED_APPROVAL_IDENTITY_CLAIM`). It
+  reinforces that these are fail-closed governance guards that create no
+  authority, approvals, evidence, execution rights, or runtime capability. It is
+  docs/tests only and changes no behavior.
 
 ## 3. Implementation Checkpoints / Safe Code Surfaces
 

@@ -81,6 +81,9 @@ V1_GOVERNANCE_COCKPIT_CHECKPOINT_PATH = (
 POST_TAG_APPROVAL_HARDENING_LINE_PATH = (
     ROOT / "docs" / "POST_TAG_APPROVAL_HARDENING_LINE.md"
 )
+PHASE3_VALIDATOR_OWNERSHIP_MAP_PATH = (
+    ROOT / "docs" / "PHASE3_VALIDATOR_OWNERSHIP_MAP.md"
+)
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
@@ -2014,6 +2017,148 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn("The runtime remains safe no-op.", content)
 
+    def test_phase3_validator_ownership_map_doc_exists_and_records_contract(
+        self,
+    ) -> None:
+        self.assertTrue(PHASE3_VALIDATOR_OWNERSHIP_MAP_PATH.exists())
+        content = PHASE3_VALIDATOR_OWNERSHIP_MAP_PATH.read_text(
+            encoding="utf-8"
+        )
+
+        # Status/scope: docs/tests only; no behavior/validator/canonical change.
+        self.assertIn("Docs/tests only.", content)
+        self.assertIn("No behavior change.", content)
+        self.assertIn("No new validator.", content)
+        self.assertIn("No canonical JSON/hashing change.", content)
+        self.assertIn("No runtime/execution change.", content)
+
+        # Core framing: fail-closed guards that create no authority.
+        self.assertIn("fail-closed governance guards", content)
+        self.assertIn(
+            "do not create** authority, approvals, evidence, execution",
+            content,
+        )
+
+        # Product framing preserved.
+        self.assertIn("non-authoritative", content)
+        self.assertIn("sole authority boundary", content)
+        self.assertIn(
+            "Operator approval is **explicit and current-run/request scoped**.",
+            content,
+        )
+        self.assertIn("cannot create authority", content)
+        self.assertIn(
+            "No real execution, broker, sandbox, verifier, evidence generation, "
+            "approval",
+            content,
+        )
+
+        # Exact 11-step Phase 3 order block.
+        self.assertIn(
+            "```text\n"
+            "1. secret-field\n"
+            "2. capability-envelope\n"
+            "3. safeguard-authority-claim\n"
+            "4. authority-artifact-ownership\n"
+            "5. approval-binding\n"
+            "6. execution-binding\n"
+            "7. runtime-reporting-boundary\n"
+            "8. audit-evidence-authority\n"
+            "9. approval-scope\n"
+            "10. approval-identity\n"
+            "11. graph/scope/approval\n"
+            "```",
+            content,
+        )
+
+        # Planner-input scanner scope block (scans only the three planner
+        # artifacts, never ApprovalDecisions.json).
+        self.assertIn(
+            "```text\n"
+            "WorkflowSpec.json\n"
+            "RequestedAuth.json\n"
+            "ApprovalRequests.json\n"
+            "```",
+            content,
+        )
+        self.assertIn("must **not** scan `ApprovalDecisions.json`", content)
+
+        # Every validator's diagnostic code and component name is present.
+        for diagnostic in (
+            "UNSUPPORTED_SECRET_FIELD",
+            "UNSUPPORTED_CAPABILITY_ENVELOPE",
+            "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
+            "UNSUPPORTED_AUTHORITY_ARTIFACT",
+            "UNSUPPORTED_APPROVAL_BINDING",
+            "UNSUPPORTED_EXECUTION_BINDING",
+            "UNSUPPORTED_RUNTIME_REPORTING_CLAIM",
+            "UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM",
+            "UNSUPPORTED_APPROVAL_SCOPE_CLAIM",
+            "UNSUPPORTED_APPROVAL_IDENTITY_CLAIM",
+        ):
+            self.assertIn(diagnostic, content)
+        for component in (
+            "secret_field_validator",
+            "capability_envelope_validator",
+            "safeguard_authority_claim_validator",
+            "authority_artifact_ownership_validator",
+            "approval_binding_validator",
+            "execution_binding_validator",
+            "runtime_reporting_boundary_validator",
+            "audit_evidence_authority_validator",
+            "approval_scope_validator",
+            "approval_identity_validator",
+            "graph_validator",
+            "scope_validator",
+            "approval_validator",
+        ):
+            self.assertIn(component, content)
+
+        # Approval-scope validator precision.
+        for scope_term in (
+            "reusable",
+            "persistent",
+            "global",
+            "inherited",
+            "cross-run",
+            "cross-request",
+        ):
+            self.assertIn(scope_term, content)
+        self.assertIn(
+            "`approval_carryover`, `reusable_approval`,\n  `standing_approval`, "
+            "and `standing_approvals` remain owned by\n  "
+            "`UNSUPPORTED_APPROVAL_BINDING`",
+            content,
+        )
+
+        # Approval-identity validator precision.
+        for identity_term in (
+            "approval identity",
+            "approval proof",
+            "approval receipt",
+            "approval signature",
+            "approval subject",
+            "approval run identifiers",
+            "approval request identifiers",
+        ):
+            self.assertIn(identity_term, content)
+        self.assertIn(
+            "`approval_token` and `approval_tokens` remain owned by\n  "
+            "`UNSUPPORTED_APPROVAL_BINDING`",
+            content,
+        )
+        # Legitimate schema fields must remain valid.
+        for legit in (
+            "`request_id`",
+            "`approval_subject_hash`",
+            "`workflow_revision_id`",
+        ):
+            self.assertIn(legit, content)
+
+        # Exact-key matching rule.
+        self.assertIn("reject **exact object keys**", content)
+        self.assertIn("do not fuzzy-match arbitrary string values", content)
+
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())
         content = DOCS_INDEX_PATH.read_text(encoding="utf-8")
@@ -2047,6 +2192,7 @@ class DocsTests(unittest.TestCase):
             "STATIC_VALIDATION_ORDERING_CONTRACT.md",
             "V1_SAFE_NOOP_GOVERNANCE_COCKPIT_CHECKPOINT.md",
             "POST_TAG_APPROVAL_HARDENING_LINE.md",
+            "PHASE3_VALIDATOR_OWNERSHIP_MAP.md",
         ):
             self.assertIn(doc_name, content)
 
