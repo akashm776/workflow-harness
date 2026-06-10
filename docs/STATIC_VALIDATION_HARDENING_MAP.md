@@ -35,7 +35,8 @@ Current Phase 3 order:
 7. runtime-reporting-boundary validator
 8. audit-evidence-authority validator
 9. approval-scope validator
-10. graph/scope/approval validators
+10. approval-identity validator
+11. graph/scope/approval validators
 ```
 
 ## Validator Ownership
@@ -91,6 +92,19 @@ Current Phase 3 order:
   `UNSUPPORTED_APPROVAL_BINDING`. It implements no reusable approval, approval
   carryover, authority subsumption, or real approval binding, and changes no
   approval resolution/matching behavior.
+- `UNSUPPORTED_APPROVAL_IDENTITY_CLAIM`: planner-supplied approval/run/request
+  identity, proof, receipt, signature, or subject identifier claims
+  (`approval_id`, `approval_decision_id`, `approval_proof`, `approval_receipt`,
+  `approval_certificate`, `approval_signature`, `operator_signature`,
+  `approved_by_operator`, `operator_approved`, `approval_subject_override`,
+  `approval_subject_identity`, `approval_subject_ref`,
+  `approval_subject_digest_override`, `approval_run_id`, `approval_request_id`,
+  `approval_scope_id`, `run_approval_id`, `request_approval_id`). Exact-key
+  rejection only. `approval_token` (and `approval_tokens`) stay owned by
+  `UNSUPPORTED_APPROVAL_BINDING`; the legitimate schema fields `request_id`,
+  `approval_subject_hash`, and `workflow_revision_id` remain accepted. It
+  implements no real approval binding and changes no approval
+  resolution/matching behavior.
 
 ## Rules For Adding Future Validators
 

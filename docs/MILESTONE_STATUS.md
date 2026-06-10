@@ -13,7 +13,7 @@ unsupported-claim hardening. It is docs/tests only and changes no behavior.
 
 ## Test Status
 
-- `555 tests` passing
+- `568 tests` passing
 
 ## Major Implemented Layers
 
@@ -517,6 +517,29 @@ unsupported-claim hardening. It is docs/tests only and changes no behavior.
     implements no reusable approval, approval carryover, authority subsumption,
     or real approval binding, writes no artifacts, and does not change approval
     resolution/matching, runtime, CLI summary, or execution behavior.
+- approval identity claim checkpoint and fail-closed rejection:
+  - `compiler/static_validation.py` now rejects planner-controlled artifacts
+    that supply, spoof, or override approval/run/request identity, proof,
+    receipt, signature, or subject identifiers in candidate `WorkflowSpec.json`,
+    `RequestedAuth.json`, and `ApprovalRequests.json` artifacts with
+    `UNSUPPORTED_APPROVAL_IDENTITY_CLAIM` (`approval_id`, `approval_decision_id`,
+    `approval_proof`, `approval_receipt`, `approval_certificate`,
+    `approval_signature`, `operator_signature`, `approved_by_operator`,
+    `operator_approved`, `approval_subject_override`,
+    `approval_subject_identity`, `approval_subject_ref`,
+    `approval_subject_digest_override`, `approval_run_id`, `approval_request_id`,
+    `approval_scope_id`, `run_approval_id`, `request_approval_id`).
+    `ApprovalDecisions.json` is operator-authored and is not scanned by this
+    validator.
+  - it owns only planner-supplied approval identity/proof/receipt/signature/
+    subject identifier claims; `approval_token` stays owned by
+    `UNSUPPORTED_APPROVAL_BINDING`, and the legitimate schema fields
+    `request_id`, `approval_subject_hash`, and `workflow_revision_id` remain
+    accepted.
+  - this is exact-key rejection only; it does not scan arbitrary string values,
+    implements no real approval binding, writes no artifacts, and does not
+    change approval resolution/matching, runtime, CLI summary, or execution
+    behavior.
 - static validation diagnostic ordering contract:
   - `validate_static_inputs(...)` remains deterministic and fail-closed by
     phase: authority-value validators, then schema validators, then
@@ -560,8 +583,12 @@ unsupported-claim hardening. It is docs/tests only and changes no behavior.
       operator approval is reusable, persistent, global, inherited, or valid
       across runs/requests. `approval_carryover` and `reusable_approval` stay
       owned by `UNSUPPORTED_APPROVAL_BINDING`.
+    - approval-identity validator:
+      `UNSUPPORTED_APPROVAL_IDENTITY_CLAIM` for planner-supplied approval/run/
+      request identity, proof, receipt, signature, or subject identifier
+      claims. `approval_token` stays owned by `UNSUPPORTED_APPROVAL_BINDING`.
   - within the current interpretation phase, ordering is deterministic:
-    secret-field checks, then capability-envelope checks, then safeguard-authority-claim checks, then authority-artifact-ownership checks, then approval-binding checks, then execution-binding checks, then runtime-reporting-boundary checks, then audit-evidence-authority checks, then approval-scope checks, then graph/scope/approval validators.
+    secret-field checks, then capability-envelope checks, then safeguard-authority-claim checks, then authority-artifact-ownership checks, then approval-binding checks, then execution-binding checks, then runtime-reporting-boundary checks, then audit-evidence-authority checks, then approval-scope checks, then approval-identity checks, then graph/scope/approval validators.
   - this is a hardening contract for safety regression tests, not a public API.
   - the exact Phase 3 order, per-diagnostic ownership boundaries,
     planner-input scanner scope (never `ApprovalDecisions.json`),

@@ -619,6 +619,45 @@ _UNSUPPORTED_APPROVAL_SCOPE_CLAIM_KEYS = frozenset(
     }
 )
 
+# V1 fail-closed guard: planner-controlled artifacts must not supply or redefine
+# approval/run/request identity, proof, token, receipt, signature, or subject
+# identifiers that could later be mistaken for operator approval binding
+# authority. Operator approval identity is operator-owned and lives only in the
+# operator-authored ApprovalDecisions.json; planner-controlled artifacts must not
+# spoof, supply, or override it. This is exact-key rejection only; it implements
+# no real approval binding, reusable approval, approval carryover, or authority
+# subsumption, and it changes no approval resolution/matching behavior.
+#
+# Ownership note: this validator owns only planner-supplied approval
+# identity/proof/token/receipt/signature/subject/run/request identifier claims.
+# ``approval_token`` (and ``approval_tokens``) are already owned by the
+# approval-binding validator (_UNSUPPORTED_APPROVAL_BINDING_KEYS) and are
+# intentionally not duplicated here. The legitimate schema fields ``request_id``,
+# ``approval_subject_hash``, and ``workflow_revision_id`` are distinct from these
+# claim keys and remain accepted.
+_UNSUPPORTED_APPROVAL_IDENTITY_CLAIM_KEYS = frozenset(
+    {
+        "approval_id",
+        "approval_decision_id",
+        "approval_proof",
+        "approval_receipt",
+        "approval_certificate",
+        "approval_signature",
+        "operator_signature",
+        "approved_by_operator",
+        "operator_approved",
+        "approval_subject_override",
+        "approval_subject_identity",
+        "approval_subject_ref",
+        "approval_subject_digest_override",
+        "approval_run_id",
+        "approval_request_id",
+        "approval_scope_id",
+        "run_approval_id",
+        "request_approval_id",
+    }
+)
+
 
 def _find_unsupported_execution_binding_paths(
     value: Any,
@@ -908,6 +947,38 @@ def _find_unsupported_approval_scope_claim_paths(
     return findings
 
 
+def _find_unsupported_approval_identity_claim_paths(
+    value: Any,
+    *,
+    path: str,
+) -> list[str]:
+    findings: list[str] = []
+
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            if key in _UNSUPPORTED_APPROVAL_IDENTITY_CLAIM_KEYS:
+                findings.append(child_path)
+            findings.extend(
+                _find_unsupported_approval_identity_claim_paths(
+                    child,
+                    path=child_path,
+                )
+            )
+        return findings
+
+    if isinstance(value, list):
+        for index, child in enumerate(value):
+            findings.extend(
+                _find_unsupported_approval_identity_claim_paths(
+                    child,
+                    path=f"{path}[{index}]",
+                )
+            )
+
+    return findings
+
+
 def validate_unsupported_capability_envelope_fields(
     artifact_path: str | Path,
     artifact_name: str,
@@ -1158,6 +1229,39 @@ def validate_unsupported_approval_scope_claims(
                 "scoped, and planner-controlled artifacts must not claim "
                 "reusable, persistent, global, inherited, or cross-run/cross-"
                 "request approval: " + ", ".join(findings)
+            ),
+        },
+    }
+
+
+def validate_unsupported_approval_identity_claims(
+    artifact_path: str | Path,
+    artifact_name: str,
+) -> dict[str, Any]:
+    artifact = _load_json(artifact_path)
+    findings = _find_unsupported_approval_identity_claim_paths(
+        artifact,
+        path="$",
+    )
+
+    if not findings:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "UNSUPPORTED_APPROVAL_IDENTITY_CLAIM",
+            "component": "approval_identity_validator",
+            "artifact": artifact_name,
+            "message": (
+                f"unsupported approval-identity claim in {artifact_name}; "
+                "operator approval identity, proof, receipt, signature, and "
+                "subject/run/request identifiers are operator-owned and must not "
+                "be supplied, spoofed, or overridden by planner-controlled "
+                "artifacts: " + ", ".join(findings)
             ),
         },
     }
@@ -1508,8 +1612,8 @@ def validate_static_inputs(
     # Ordering within the phase is deterministic and fail-closed:
     # secret-field, capability-envelope, safeguard-authority-claim,
     # authority-artifact-ownership, approval-binding, execution-binding,
-    # runtime-reporting-boundary, audit-evidence-authority, approval-scope, then
-    # graph/scope/approval.
+    # runtime-reporting-boundary, audit-evidence-authority, approval-scope,
+    # approval-identity, then graph/scope/approval.
 
     # Phase 1: authority-value validators.
     phase_authority_values = [
@@ -1614,6 +1718,15 @@ def validate_static_inputs(
             requested_auth_path, "RequestedAuth.json"
         ),
         lambda: validate_unsupported_approval_scope_claims(
+            approval_requests_path, "ApprovalRequests.json"
+        ),
+        lambda: validate_unsupported_approval_identity_claims(
+            workflow_spec_path, "WorkflowSpec.json"
+        ),
+        lambda: validate_unsupported_approval_identity_claims(
+            requested_auth_path, "RequestedAuth.json"
+        ),
+        lambda: validate_unsupported_approval_identity_claims(
             approval_requests_path, "ApprovalRequests.json"
         ),
         lambda: validate_unknown_node_types(
