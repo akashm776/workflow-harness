@@ -659,21 +659,31 @@ _UNSUPPORTED_APPROVAL_IDENTITY_CLAIM_KEYS = frozenset(
 )
 
 
-def _find_unsupported_execution_binding_paths(
+def _find_unsupported_key_paths(
     value: Any,
+    keys: frozenset[str],
     *,
-    path: str,
+    path: str = "$",
 ) -> list[str]:
+    """Return JSON-ish paths to any object keys present in ``keys``.
+
+    Generic exact-key traversal shared by the Phase 3 unsupported-claim
+    validators. Behavior is identical to the per-validator helpers it replaced:
+    dict keys are matched exactly (no fuzzy string matching), a matching key's
+    path is recorded before recursing into its value, and list elements are
+    visited by index. It is internal dedup only and adds no behavior.
+    """
     findings: list[str] = []
 
     if isinstance(value, dict):
         for key, child in value.items():
             child_path = f"{path}.{key}"
-            if key in _UNSUPPORTED_EXECUTION_BINDING_KEYS:
+            if key in keys:
                 findings.append(child_path)
             findings.extend(
-                _find_unsupported_execution_binding_paths(
+                _find_unsupported_key_paths(
                     child,
+                    keys,
                     path=child_path,
                 )
             )
@@ -682,296 +692,9 @@ def _find_unsupported_execution_binding_paths(
     if isinstance(value, list):
         for index, child in enumerate(value):
             findings.extend(
-                _find_unsupported_execution_binding_paths(
+                _find_unsupported_key_paths(
                     child,
-                    path=f"{path}[{index}]",
-                )
-            )
-
-    return findings
-
-
-def _find_unsupported_capability_envelope_paths(
-    value: Any,
-    *,
-    path: str,
-) -> list[str]:
-    findings: list[str] = []
-
-    if isinstance(value, dict):
-        for key, child in value.items():
-            child_path = f"{path}.{key}"
-            if key in _UNSUPPORTED_CAPABILITY_ENVELOPE_KEYS:
-                findings.append(child_path)
-            findings.extend(
-                _find_unsupported_capability_envelope_paths(
-                    child,
-                    path=child_path,
-                )
-            )
-        return findings
-
-    if isinstance(value, list):
-        for index, child in enumerate(value):
-            findings.extend(
-                _find_unsupported_capability_envelope_paths(
-                    child,
-                    path=f"{path}[{index}]",
-                )
-            )
-
-    return findings
-
-
-def _find_unsupported_secret_field_paths(
-    value: Any,
-    *,
-    path: str,
-) -> list[str]:
-    findings: list[str] = []
-
-    if isinstance(value, dict):
-        for key, child in value.items():
-            child_path = f"{path}.{key}"
-            if key in _UNSUPPORTED_SECRET_FIELD_KEYS:
-                findings.append(child_path)
-            findings.extend(
-                _find_unsupported_secret_field_paths(
-                    child,
-                    path=child_path,
-                )
-            )
-        return findings
-
-    if isinstance(value, list):
-        for index, child in enumerate(value):
-            findings.extend(
-                _find_unsupported_secret_field_paths(
-                    child,
-                    path=f"{path}[{index}]",
-                )
-            )
-
-    return findings
-
-
-def _find_unsupported_safeguard_authority_claim_paths(
-    value: Any,
-    *,
-    path: str,
-) -> list[str]:
-    findings: list[str] = []
-
-    if isinstance(value, dict):
-        for key, child in value.items():
-            child_path = f"{path}.{key}"
-            if key in _UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM_KEYS:
-                findings.append(child_path)
-            findings.extend(
-                _find_unsupported_safeguard_authority_claim_paths(
-                    child,
-                    path=child_path,
-                )
-            )
-        return findings
-
-    if isinstance(value, list):
-        for index, child in enumerate(value):
-            findings.extend(
-                _find_unsupported_safeguard_authority_claim_paths(
-                    child,
-                    path=f"{path}[{index}]",
-                )
-            )
-
-    return findings
-
-
-def _find_unsupported_authority_artifact_paths(
-    value: Any,
-    *,
-    path: str,
-) -> list[str]:
-    findings: list[str] = []
-
-    if isinstance(value, dict):
-        for key, child in value.items():
-            child_path = f"{path}.{key}"
-            if key in _UNSUPPORTED_AUTHORITY_ARTIFACT_KEYS:
-                findings.append(child_path)
-            findings.extend(
-                _find_unsupported_authority_artifact_paths(
-                    child,
-                    path=child_path,
-                )
-            )
-        return findings
-
-    if isinstance(value, list):
-        for index, child in enumerate(value):
-            findings.extend(
-                _find_unsupported_authority_artifact_paths(
-                    child,
-                    path=f"{path}[{index}]",
-                )
-            )
-
-    return findings
-
-
-def _find_unsupported_approval_binding_paths(
-    value: Any,
-    *,
-    path: str,
-) -> list[str]:
-    findings: list[str] = []
-
-    if isinstance(value, dict):
-        for key, child in value.items():
-            child_path = f"{path}.{key}"
-            if key in _UNSUPPORTED_APPROVAL_BINDING_KEYS:
-                findings.append(child_path)
-            findings.extend(
-                _find_unsupported_approval_binding_paths(
-                    child,
-                    path=child_path,
-                )
-            )
-        return findings
-
-    if isinstance(value, list):
-        for index, child in enumerate(value):
-            findings.extend(
-                _find_unsupported_approval_binding_paths(
-                    child,
-                    path=f"{path}[{index}]",
-                )
-            )
-
-    return findings
-
-
-def _find_unsupported_runtime_reporting_claim_paths(
-    value: Any,
-    *,
-    path: str,
-) -> list[str]:
-    findings: list[str] = []
-
-    if isinstance(value, dict):
-        for key, child in value.items():
-            child_path = f"{path}.{key}"
-            if key in _UNSUPPORTED_RUNTIME_REPORTING_CLAIM_KEYS:
-                findings.append(child_path)
-            findings.extend(
-                _find_unsupported_runtime_reporting_claim_paths(
-                    child,
-                    path=child_path,
-                )
-            )
-        return findings
-
-    if isinstance(value, list):
-        for index, child in enumerate(value):
-            findings.extend(
-                _find_unsupported_runtime_reporting_claim_paths(
-                    child,
-                    path=f"{path}[{index}]",
-                )
-            )
-
-    return findings
-
-
-def _find_unsupported_audit_evidence_authority_claim_paths(
-    value: Any,
-    *,
-    path: str,
-) -> list[str]:
-    findings: list[str] = []
-
-    if isinstance(value, dict):
-        for key, child in value.items():
-            child_path = f"{path}.{key}"
-            if key in _UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM_KEYS:
-                findings.append(child_path)
-            findings.extend(
-                _find_unsupported_audit_evidence_authority_claim_paths(
-                    child,
-                    path=child_path,
-                )
-            )
-        return findings
-
-    if isinstance(value, list):
-        for index, child in enumerate(value):
-            findings.extend(
-                _find_unsupported_audit_evidence_authority_claim_paths(
-                    child,
-                    path=f"{path}[{index}]",
-                )
-            )
-
-    return findings
-
-
-def _find_unsupported_approval_scope_claim_paths(
-    value: Any,
-    *,
-    path: str,
-) -> list[str]:
-    findings: list[str] = []
-
-    if isinstance(value, dict):
-        for key, child in value.items():
-            child_path = f"{path}.{key}"
-            if key in _UNSUPPORTED_APPROVAL_SCOPE_CLAIM_KEYS:
-                findings.append(child_path)
-            findings.extend(
-                _find_unsupported_approval_scope_claim_paths(
-                    child,
-                    path=child_path,
-                )
-            )
-        return findings
-
-    if isinstance(value, list):
-        for index, child in enumerate(value):
-            findings.extend(
-                _find_unsupported_approval_scope_claim_paths(
-                    child,
-                    path=f"{path}[{index}]",
-                )
-            )
-
-    return findings
-
-
-def _find_unsupported_approval_identity_claim_paths(
-    value: Any,
-    *,
-    path: str,
-) -> list[str]:
-    findings: list[str] = []
-
-    if isinstance(value, dict):
-        for key, child in value.items():
-            child_path = f"{path}.{key}"
-            if key in _UNSUPPORTED_APPROVAL_IDENTITY_CLAIM_KEYS:
-                findings.append(child_path)
-            findings.extend(
-                _find_unsupported_approval_identity_claim_paths(
-                    child,
-                    path=child_path,
-                )
-            )
-        return findings
-
-    if isinstance(value, list):
-        for index, child in enumerate(value):
-            findings.extend(
-                _find_unsupported_approval_identity_claim_paths(
-                    child,
+                    keys,
                     path=f"{path}[{index}]",
                 )
             )
@@ -984,7 +707,11 @@ def validate_unsupported_capability_envelope_fields(
     artifact_name: str,
 ) -> dict[str, Any]:
     artifact = _load_json(artifact_path)
-    findings = _find_unsupported_capability_envelope_paths(artifact, path="$")
+    findings = _find_unsupported_key_paths(
+        artifact,
+        _UNSUPPORTED_CAPABILITY_ENVELOPE_KEYS,
+        path="$",
+    )
 
     if not findings:
         return {
@@ -1013,7 +740,11 @@ def validate_unsupported_secret_fields(
     artifact_name: str,
 ) -> dict[str, Any]:
     artifact = _load_json(artifact_path)
-    findings = _find_unsupported_secret_field_paths(artifact, path="$")
+    findings = _find_unsupported_key_paths(
+        artifact,
+        _UNSUPPORTED_SECRET_FIELD_KEYS,
+        path="$",
+    )
 
     if not findings:
         return {
@@ -1042,8 +773,9 @@ def validate_unsupported_safeguard_authority_claims(
     artifact_name: str,
 ) -> dict[str, Any]:
     artifact = _load_json(artifact_path)
-    findings = _find_unsupported_safeguard_authority_claim_paths(
+    findings = _find_unsupported_key_paths(
         artifact,
+        _UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM_KEYS,
         path="$",
     )
 
@@ -1074,8 +806,9 @@ def validate_unsupported_authority_artifacts(
     artifact_name: str,
 ) -> dict[str, Any]:
     artifact = _load_json(artifact_path)
-    findings = _find_unsupported_authority_artifact_paths(
+    findings = _find_unsupported_key_paths(
         artifact,
+        _UNSUPPORTED_AUTHORITY_ARTIFACT_KEYS,
         path="$",
     )
 
@@ -1107,8 +840,9 @@ def validate_unsupported_approval_bindings(
     artifact_name: str,
 ) -> dict[str, Any]:
     artifact = _load_json(artifact_path)
-    findings = _find_unsupported_approval_binding_paths(
+    findings = _find_unsupported_key_paths(
         artifact,
+        _UNSUPPORTED_APPROVAL_BINDING_KEYS,
         path="$",
     )
 
@@ -1141,8 +875,9 @@ def validate_unsupported_runtime_reporting_claims(
     artifact_name: str,
 ) -> dict[str, Any]:
     artifact = _load_json(artifact_path)
-    findings = _find_unsupported_runtime_reporting_claim_paths(
+    findings = _find_unsupported_key_paths(
         artifact,
+        _UNSUPPORTED_RUNTIME_REPORTING_CLAIM_KEYS,
         path="$",
     )
 
@@ -1173,8 +908,9 @@ def validate_unsupported_audit_evidence_authority_claims(
     artifact_name: str,
 ) -> dict[str, Any]:
     artifact = _load_json(artifact_path)
-    findings = _find_unsupported_audit_evidence_authority_claim_paths(
+    findings = _find_unsupported_key_paths(
         artifact,
+        _UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM_KEYS,
         path="$",
     )
 
@@ -1206,8 +942,9 @@ def validate_unsupported_approval_scope_claims(
     artifact_name: str,
 ) -> dict[str, Any]:
     artifact = _load_json(artifact_path)
-    findings = _find_unsupported_approval_scope_claim_paths(
+    findings = _find_unsupported_key_paths(
         artifact,
+        _UNSUPPORTED_APPROVAL_SCOPE_CLAIM_KEYS,
         path="$",
     )
 
@@ -1239,8 +976,9 @@ def validate_unsupported_approval_identity_claims(
     artifact_name: str,
 ) -> dict[str, Any]:
     artifact = _load_json(artifact_path)
-    findings = _find_unsupported_approval_identity_claim_paths(
+    findings = _find_unsupported_key_paths(
         artifact,
+        _UNSUPPORTED_APPROVAL_IDENTITY_CLAIM_KEYS,
         path="$",
     )
 
@@ -1279,8 +1017,9 @@ def validate_unsupported_execution_bindings(
 
         node_id = node.get("node_id")
         node_label = node_id if isinstance(node_id, str) else f"nodes[{index}]"
-        node_findings = _find_unsupported_execution_binding_paths(
+        node_findings = _find_unsupported_key_paths(
             node,
+            _UNSUPPORTED_EXECUTION_BINDING_KEYS,
             path=f"$.nodes[{index}]",
         )
         findings.extend(
