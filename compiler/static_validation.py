@@ -543,6 +543,47 @@ _UNSUPPORTED_RUNTIME_REPORTING_CLAIM_KEYS = frozenset(
     }
 )
 
+# V1 fail-closed guard: planner-controlled artifacts must not claim that audit
+# logs, evidence references/records, or audit/verifier/evidence observations can
+# approve, authorize, grant, satisfy, or override compiler/operator authority.
+# Audit and evidence are reporting material only; they are never an approval or
+# authority source in a planner-controlled proposal. This is exact-key rejection
+# only.
+#
+# Ownership note: this validator owns only the "audit/evidence can
+# approve/authorize/grant/override/satisfy authority" claim family. Adjacent
+# keys are intentionally NOT duplicated here:
+#   - ``evidence_authority`` is owned by the runtime-reporting-boundary validator
+#     (_UNSUPPORTED_RUNTIME_REPORTING_CLAIM_KEYS).
+#   - ``evidence_lineage``, ``verifier_output``, ``audit_log``, and
+#     ``approval_decisions`` are owned by the authority-artifact-ownership
+#     validator (_UNSUPPORTED_AUTHORITY_ARTIFACT_KEYS).
+#   - ``approval_decision``, ``approval_override``, ``authority_override`` are
+#     owned by the safeguard-authority-claim validator.
+_UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM_KEYS = frozenset(
+    {
+        "audit_authority",
+        "audit_approval",
+        "audit_grant",
+        "audit_override",
+        "audit_decision",
+        "audit_authorizes",
+        "audit_approved_by",
+        "audit_satisfies_approval",
+        "audit_satisfies_authority",
+        "audit_override_diagnostics",
+        "evidence_approval",
+        "evidence_grant",
+        "evidence_override",
+        "evidence_decision",
+        "evidence_authorizes",
+        "evidence_approved_by",
+        "evidence_satisfies_approval",
+        "evidence_satisfies_authority",
+        "evidence_override_diagnostics",
+    }
+)
+
 
 def _find_unsupported_execution_binding_paths(
     value: Any,
@@ -768,6 +809,38 @@ def _find_unsupported_runtime_reporting_claim_paths(
     return findings
 
 
+def _find_unsupported_audit_evidence_authority_claim_paths(
+    value: Any,
+    *,
+    path: str,
+) -> list[str]:
+    findings: list[str] = []
+
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            if key in _UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM_KEYS:
+                findings.append(child_path)
+            findings.extend(
+                _find_unsupported_audit_evidence_authority_claim_paths(
+                    child,
+                    path=child_path,
+                )
+            )
+        return findings
+
+    if isinstance(value, list):
+        for index, child in enumerate(value):
+            findings.extend(
+                _find_unsupported_audit_evidence_authority_claim_paths(
+                    child,
+                    path=f"{path}[{index}]",
+                )
+            )
+
+    return findings
+
+
 def validate_unsupported_capability_envelope_fields(
     artifact_path: str | Path,
     artifact_name: str,
@@ -952,6 +1025,39 @@ def validate_unsupported_runtime_reporting_claims(
                 "evidence/verifier/broker/sandbox reporting and broker artifacts "
                 "are not planner-authoritative and are not V1 control-plane "
                 "inputs: " + ", ".join(findings)
+            ),
+        },
+    }
+
+
+def validate_unsupported_audit_evidence_authority_claims(
+    artifact_path: str | Path,
+    artifact_name: str,
+) -> dict[str, Any]:
+    artifact = _load_json(artifact_path)
+    findings = _find_unsupported_audit_evidence_authority_claim_paths(
+        artifact,
+        path="$",
+    )
+
+    if not findings:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM",
+            "component": "audit_evidence_authority_validator",
+            "artifact": artifact_name,
+            "message": (
+                f"unsupported audit/evidence authority claim in {artifact_name}; "
+                "audit and evidence records are reporting material only and "
+                "cannot approve, authorize, grant capabilities, override "
+                "diagnostics, satisfy approval, or create authority in "
+                "planner-controlled artifacts: " + ", ".join(findings)
             ),
         },
     }
@@ -1302,7 +1408,8 @@ def validate_static_inputs(
     # Ordering within the phase is deterministic and fail-closed:
     # secret-field, capability-envelope, safeguard-authority-claim,
     # authority-artifact-ownership, approval-binding, execution-binding,
-    # runtime-reporting-boundary, then graph/scope/approval.
+    # runtime-reporting-boundary, audit-evidence-authority, then
+    # graph/scope/approval.
 
     # Phase 1: authority-value validators.
     phase_authority_values = [
@@ -1389,6 +1496,15 @@ def validate_static_inputs(
             requested_auth_path, "RequestedAuth.json"
         ),
         lambda: validate_unsupported_runtime_reporting_claims(
+            approval_requests_path, "ApprovalRequests.json"
+        ),
+        lambda: validate_unsupported_audit_evidence_authority_claims(
+            workflow_spec_path, "WorkflowSpec.json"
+        ),
+        lambda: validate_unsupported_audit_evidence_authority_claims(
+            requested_auth_path, "RequestedAuth.json"
+        ),
+        lambda: validate_unsupported_audit_evidence_authority_claims(
             approval_requests_path, "ApprovalRequests.json"
         ),
         lambda: validate_unknown_node_types(

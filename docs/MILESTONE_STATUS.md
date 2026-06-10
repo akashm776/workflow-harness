@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `530 tests` passing
+- `542 tests` passing
 
 ## Major Implemented Layers
 
@@ -468,6 +468,28 @@
     adds no broker, sandbox, verifier, or evidence behavior, writes no
     artifacts, and does not change runtime, CLI summary, approval, or execution
     behavior.
+- audit/evidence authority claim checkpoint and fail-closed rejection:
+  - `compiler/static_validation.py` now rejects planner-controlled claims that
+    audit/evidence records can approve, authorize, grant, satisfy, or override
+    authority in candidate `WorkflowSpec.json`, `RequestedAuth.json`, and
+    `ApprovalRequests.json` artifacts with
+    `UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM` (`audit_authority`,
+    `audit_approval`, `audit_grant`, `audit_override`, `audit_decision`,
+    `audit_authorizes`, `audit_approved_by`, `audit_satisfies_approval`,
+    `audit_satisfies_authority`, `audit_override_diagnostics`,
+    `evidence_approval`, `evidence_grant`, `evidence_override`,
+    `evidence_decision`, `evidence_authorizes`, `evidence_approved_by`,
+    `evidence_satisfies_approval`, `evidence_satisfies_authority`,
+    `evidence_override_diagnostics`). `ApprovalDecisions.json` is
+    operator-authored and is not scanned by this validator.
+  - it owns only the "audit/evidence can approve/authorize/grant/override/
+    satisfy authority" claim family; `evidence_authority` stays owned by
+    `UNSUPPORTED_RUNTIME_REPORTING_CLAIM` and
+    `evidence_lineage`/`verifier_output`/`audit_log` stay owned by
+    `UNSUPPORTED_AUTHORITY_ARTIFACT`.
+  - this is exact-key rejection only; it does not scan arbitrary string values,
+    adds no audit, evidence, or verifier behavior, writes no artifacts, and does
+    not change runtime, CLI summary, approval, or execution behavior.
 - static validation diagnostic ordering contract:
   - `validate_static_inputs(...)` remains deterministic and fail-closed by
     phase: authority-value validators, then schema validators, then
@@ -500,8 +522,14 @@
       `runtime_authority`, `broker_authority`, `verifier_authority`,
       `evidence_authority`). `evidence_lineage` and `verifier_output` remain
       owned by `UNSUPPORTED_AUTHORITY_ARTIFACT`.
+    - audit-evidence-authority validator:
+      `UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM` for planner-supplied claims
+      that audit/evidence records can approve, authorize, grant, satisfy, or
+      override authority (`audit_*` and `evidence_*` approve/grant/override/
+      satisfy keys). `evidence_authority` stays owned by
+      `UNSUPPORTED_RUNTIME_REPORTING_CLAIM`.
   - within the current interpretation phase, ordering is deterministic:
-    secret-field checks, then capability-envelope checks, then safeguard-authority-claim checks, then authority-artifact-ownership checks, then approval-binding checks, then execution-binding checks, then runtime-reporting-boundary checks, then graph/scope/approval validators.
+    secret-field checks, then capability-envelope checks, then safeguard-authority-claim checks, then authority-artifact-ownership checks, then approval-binding checks, then execution-binding checks, then runtime-reporting-boundary checks, then audit-evidence-authority checks, then graph/scope/approval validators.
   - this is a hardening contract for safety regression tests, not a public API.
 
 ## Explicit Non-Goals
