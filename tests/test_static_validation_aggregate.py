@@ -93,6 +93,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
         ), patch(
             "compiler.static_validation.validate_unsupported_execution_bindings",
             return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_runtime_reporting_claims",
+            return_value=success,
         ), patch("compiler.static_validation.validate_unknown_node_types", return_value=success), patch(
             "compiler.static_validation.validate_invalid_edge_endpoints", return_value=invalid_endpoint
         ), patch(
@@ -274,6 +277,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_unsupported_execution_bindings",
+            return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_runtime_reporting_claims",
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_unknown_node_types",
@@ -470,6 +476,28 @@ class StaticValidationAggregateTests(unittest.TestCase):
                 "execution binding",
             ),
         ), patch(
+            "compiler.static_validation.validate_unsupported_runtime_reporting_claims",
+            side_effect=[
+                failure(
+                    "UNSUPPORTED_RUNTIME_REPORTING_CLAIM",
+                    "runtime_reporting_boundary_validator",
+                    "WorkflowSpec.json",
+                    "runtime-reporting workflow",
+                ),
+                failure(
+                    "UNSUPPORTED_RUNTIME_REPORTING_CLAIM",
+                    "runtime_reporting_boundary_validator",
+                    "RequestedAuth.json",
+                    "runtime-reporting requested",
+                ),
+                failure(
+                    "UNSUPPORTED_RUNTIME_REPORTING_CLAIM",
+                    "runtime_reporting_boundary_validator",
+                    "ApprovalRequests.json",
+                    "runtime-reporting approval",
+                ),
+            ],
+        ), patch(
             "compiler.static_validation.validate_unknown_node_types",
             return_value=failure(
                 "UNKNOWN_NODE_TYPE",
@@ -554,6 +582,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
                 "approval-binding requested",
                 "approval-binding approval",
                 "execution binding",
+                "runtime-reporting workflow",
+                "runtime-reporting requested",
+                "runtime-reporting approval",
                 "unknown node type",
                 "invalid endpoint",
                 "illegal cycle",
@@ -842,6 +873,54 @@ class StaticValidationAggregateTests(unittest.TestCase):
                 "authority_artifact_ownership_validator",
                 "approval_binding_validator",
                 "execution_binding_validator",
+            ],
+        )
+
+    def test_workflow_execution_binding_and_runtime_reporting_keep_documented_order(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
+            requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
+            approval_requests = _load_json(
+                SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
+            )
+            # execution-binding and runtime-reporting keys on the same node must
+            # surface in the documented Phase 3 order.
+            workflow_spec["nodes"][0]["tool_binding"] = {"tool_name": "future-tool"}
+            workflow_spec["nodes"][0]["broker_request"] = {"display_only": True}
+
+            workflow_spec_path = _write_json(
+                Path(tmp) / "WorkflowSpec.json", workflow_spec
+            )
+            requested_auth_path = _write_json(
+                Path(tmp) / "RequestedAuth.json", requested_auth
+            )
+            approval_requests_path = _write_json(
+                Path(tmp) / "ApprovalRequests.json", approval_requests
+            )
+
+            result = validate_static_inputs(
+                workflow_spec_path,
+                SIMPLE_FIXTURE_INPUT / "NodeTypeRegistry.json",
+                requested_auth_path,
+                approval_requests_path,
+                stop_on_first_error=False,
+            )
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(
+            [diagnostic["error_code"] for diagnostic in result["diagnostics"]],
+            [
+                "UNSUPPORTED_EXECUTION_BINDING",
+                "UNSUPPORTED_RUNTIME_REPORTING_CLAIM",
+            ],
+        )
+        self.assertEqual(
+            [diagnostic["component"] for diagnostic in result["diagnostics"]],
+            [
+                "execution_binding_validator",
+                "runtime_reporting_boundary_validator",
             ],
         )
 
