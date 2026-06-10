@@ -20,8 +20,9 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Implementation checkpoint before this runtime-reporting-claim-rejection slice: 3c51628 Document operator cockpit contract`
 - `Implementation checkpoint before this audit-evidence-authority-claim-rejection slice: 24f9525 Reject unsupported runtime reporting claims`
 - `Implementation checkpoint before this static-validation-ordering-contract slice: 104a370 Reject unsupported audit evidence authority claims`
+- `Implementation checkpoint before this governance-cockpit-checkpoint slice: 9bbc279 Document static validation ordering contract`
 - `V1 remains safe no-op only`
-- `543 tests passing`
+- `544 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -61,6 +62,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - fail-closed unsupported runtime-reporting claim rejection
 - fail-closed unsupported audit/evidence authority claim rejection
 - static validation ordering contract checkpoint
+- V1 safe no-op governance cockpit milestone checkpoint
 - milestone docs updated
 
 The richer deterministic innovation template slice is now implemented as the

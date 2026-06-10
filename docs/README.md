@@ -215,5 +215,13 @@ connectors, and are not wired into compile or runtime behavior.
 
 ## 4. Handoff
 
+- [`V1_SAFE_NOOP_GOVERNANCE_COCKPIT_CHECKPOINT.md`](V1_SAFE_NOOP_GOVERNANCE_COCKPIT_CHECKPOINT.md) -
+  a named milestone checkpoint for the V1 Safe No-Op Governance Cockpit. It
+  records the coherent product state (safe no-op runtime, non-authoritative
+  planner, compiler authority boundary, explicit current-run/request operator
+  approval, the display-only operator cockpit order, the Phase 3 validator
+  order, and the fail-closed unsupported-claim hardening), the explicit
+  non-goals, and the next safe directions. It is docs/tests only and changes no
+  behavior.
 - [`NEXT_SAFE_SLICES.md`](NEXT_SAFE_SLICES.md) - concise handoff for the next
   docs-first safe slices and the staging rule for risky future capabilities.
