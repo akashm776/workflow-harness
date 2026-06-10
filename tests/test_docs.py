@@ -17,6 +17,9 @@ SIDE_EFFECT_CATALOG_PATH = ROOT / "docs" / "SIDE_EFFECT_CATALOG_DESIGN.md"
 TOOL_CONNECTOR_CATALOG_PATH = ROOT / "docs" / "TOOL_CONNECTOR_CATALOG_DESIGN.md"
 SANDBOX_BROKER_INTERFACE_PATH = ROOT / "docs" / "SANDBOX_BROKER_INTERFACE_DESIGN.md"
 SANDBOX_BACKEND_STRATEGY_PATH = ROOT / "docs" / "SANDBOX_BACKEND_STRATEGY.md"
+WORKFLOW_PATTERN_SELECTION_PATH = (
+    ROOT / "docs" / "WORKFLOW_PATTERN_SELECTION_DESIGN.md"
+)
 CAPABILITY_ENVELOPE_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_DESIGN.md"
 CAPABILITY_ENVELOPE_V1_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_V1_DESIGN.md"
 AUTHORITY_ARTIFACT_OWNERSHIP_PATH = (
@@ -2396,6 +2399,128 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn("does not implement network behavior", lowered_normalized)
         self.assertIn("does not implement tool/mcp behavior", lowered_normalized)
+
+    def test_workflow_pattern_selection_doc_exists_and_preserves_boundaries(
+        self,
+    ) -> None:
+        self.assertTrue(WORKFLOW_PATTERN_SELECTION_PATH.exists())
+        content = WORKFLOW_PATTERN_SELECTION_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+        normalized = " ".join(content.split())
+        lowered_normalized = normalized.lower()
+
+        self.assertIn("design only", lowered)
+        self.assertIn("not implemented", lowered)
+        self.assertIn(
+            "workflow pattern selection is non-authoritative",
+            lowered_normalized,
+        )
+        self.assertIn("Planner suggests.", normalized)
+        self.assertIn("Compiler authorizes.", normalized)
+        self.assertIn("Operator approves.", normalized)
+        self.assertIn(
+            "Runtime executes only what was compiler-authorized and operator-approved.",
+            normalized,
+        )
+        self.assertIn("Verifier reports.", normalized)
+        self.assertIn("Audit preserves lineage.", normalized)
+        self.assertIn("Hermes Agent is not authoritative", normalized)
+        self.assertIn(
+            "planner-selected pattern does not authorize tools",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "planner-selected pattern does not authorize execution",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "planner-selected pattern does not create approvals",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "planner-selected pattern does not bind approvals",
+            lowered_normalized,
+        )
+        self.assertIn("compiler remains the authority boundary", lowered_normalized)
+        self.assertIn(
+            "operator approval remains explicit and current-run/request scoped",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "replanning must not inherit approval automatically",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "dynamic patterns require recompile/reapproval when requested scope changes",
+            lowered_normalized,
+        )
+        self.assertIn("Plan-Solve", content)
+        self.assertIn("ReAct, bounded only", content)
+        self.assertIn("REWOO", content)
+        self.assertIn("LLMCompiler-style parallel DAG", content)
+        self.assertIn("Reflection", content)
+        self.assertIn("Storm-like research synthesis", content)
+        self.assertIn("Handoff / multi-agent", content)
+        self.assertIn("Orchestration Form vs Pattern Family", content)
+        self.assertIn("Planner/Hermes may propose workflows", normalized)
+        self.assertIn(
+            "workflow script may also hold or propose orchestration",
+            lowered_normalized,
+        )
+        self.assertIn("saved workflow template", lowered_normalized)
+        self.assertIn("none of these are authoritative", lowered_normalized)
+        self.assertIn(
+            "only `workflow-harness` compiler validation",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "current planner is a deterministic skeleton",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "current planner does not call an llm",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "current planner does not execute anything",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "current planner does not write compiled artifacts",
+            lowered_normalized,
+        )
+        self.assertIn("current runtime remains safe no-op", lowered_normalized)
+        self.assertIn("view raw proposed orchestration", lowered_normalized)
+        self.assertIn("token budget", lowered_normalized)
+        self.assertIn("concurrency limits", lowered_normalized)
+        self.assertIn("loop stop condition", lowered_normalized)
+        self.assertIn("model/intelligence routing", lowered_normalized)
+        self.assertIn(
+            "reusable workflow definitions may be allowed",
+            lowered_normalized,
+        )
+        self.assertIn("reusable approvals are not allowed", lowered_normalized)
+        self.assertIn(
+            "do not ask again approval semantics are not allowed",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "workflow script execution does not authorize tools",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "subagent fan-out does not authorize new capabilities",
+            lowered_normalized,
+        )
+        self.assertIn("does not change WorkflowSpec", normalized)
+        self.assertIn("does not change schemas", lowered_normalized)
+        self.assertIn("does not change canonical JSON", normalized)
+        self.assertIn("does not implement planner behavior", lowered_normalized)
+        self.assertIn(
+            "does not implement hermes agent integration",
+            lowered_normalized,
+        )
+        self.assertIn("does not implement real execution", lowered_normalized)
 
 
 if __name__ == "__main__":
