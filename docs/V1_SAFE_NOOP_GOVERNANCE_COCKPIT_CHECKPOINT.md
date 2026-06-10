@@ -79,7 +79,8 @@ Operator Review Packet:
 7. runtime-reporting-boundary
 8. audit-evidence-authority
 9. approval-scope
-10. graph/scope/approval
+10. approval-identity
+11. graph/scope/approval
 ```
 
 ## Boundary Protection
@@ -93,6 +94,7 @@ Operator Review Packet:
 - unsupported runtime-reporting/broker/sandbox claims rejected
 - unsupported audit/evidence authority claims rejected
 - unsupported approval scope/reuse/cross-run claims rejected
+- unsupported approval identity/proof/receipt/signature/subject claims rejected
 
 ## Next Safe Directions
 

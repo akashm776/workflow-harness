@@ -27,7 +27,8 @@ behavior.
 7. runtime-reporting-boundary
 8. audit-evidence-authority
 9. approval-scope
-10. graph/scope/approval
+10. approval-identity
+11. graph/scope/approval
 ```
 
 ## Ownership Boundaries
@@ -52,6 +53,12 @@ behavior.
   `approval_valid_across_runs`, and `approval_scope_override`
   (`approval_carryover` and `reusable_approval` stay owned by
   `UNSUPPORTED_APPROVAL_BINDING`).
+- `UNSUPPORTED_APPROVAL_IDENTITY_CLAIM` owns unsupported approval/run/request
+  identity, proof, receipt, signature, and subject identifier claim fields such
+  as `approval_id`, `approval_proof`, `approval_receipt`, `operator_signature`,
+  `approval_subject_override`, `approval_run_id`, and `approval_request_id`
+  (`approval_token` stays owned by `UNSUPPORTED_APPROVAL_BINDING`; legitimate
+  schema fields like `request_id` and `approval_subject_hash` remain accepted).
 - graph/scope/approval validators own structural graph/scope/approval
   consistency.
 
