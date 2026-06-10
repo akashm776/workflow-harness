@@ -188,6 +188,53 @@ class DocsTests(unittest.TestCase):
     def test_milestone_status_doc_exists_and_mentions_current_snapshot(self) -> None:
         self.assertTrue(MILESTONE_STATUS_PATH.exists())
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+        normalized = " ".join(content.split())
+        lowered_normalized = normalized.lower()
+
+        self.assertIn(
+            "a46b92c Document repo terminology boundaries",
+            normalized,
+        )
+        self.assertIn("587 passed", normalized)
+        self.assertIn("Governance Readiness Checklist", content)
+        self.assertIn("Sandbox Backend Strategy", content)
+        self.assertIn("Workflow Pattern Selection Design", content)
+        self.assertIn("Repo Terminology Map", content)
+        self.assertIn(
+            "safe-noop governance/control-plane proof",
+            lowered_normalized,
+        )
+        self.assertIn("not as real agent execution", lowered_normalized)
+        self.assertIn("Planner suggests.", normalized)
+        self.assertIn("Compiler authorizes.", normalized)
+        self.assertIn("Operator approves.", normalized)
+        self.assertIn(
+            "Runtime executes only what was compiler-authorized and operator-approved.",
+            normalized,
+        )
+        self.assertIn("Verifier reports.", normalized)
+        self.assertIn("Audit preserves lineage.", normalized)
+        self.assertIn("does not implement runtime", lowered_normalized)
+        self.assertIn("does not implement compiler", lowered_normalized)
+        self.assertIn("does not implement schema", lowered_normalized)
+        self.assertIn("does not implement broker", lowered_normalized)
+        self.assertIn("does not implement sandbox", lowered_normalized)
+        self.assertIn("does not implement planner", lowered_normalized)
+        self.assertIn("does not implement verifier", lowered_normalized)
+        self.assertIn("does not implement approval", lowered_normalized)
+        self.assertIn("does not implement execution", lowered_normalized)
+        self.assertIn("does not implement kubernetes", lowered_normalized)
+        self.assertIn("does not implement hermes agent", lowered_normalized)
+        self.assertIn("does not implement kagent/kagents", lowered_normalized)
+        self.assertIn("does not implement nemoclaw/openshell", lowered_normalized)
+        self.assertIn("does not change canonical json", lowered_normalized)
+        self.assertIn("does not change hashing", lowered_normalized)
+        self.assertIn("local-only", lowered_normalized)
+        self.assertIn(
+            "should not be pushed unless explicitly requested",
+            lowered_normalized,
+        )
 
         self.assertIn("V1 Safe No-Op Harness", content)
         self.assertIn("569 tests", content)
