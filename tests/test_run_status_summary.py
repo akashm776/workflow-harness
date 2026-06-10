@@ -209,6 +209,26 @@ INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET = {
         "Broker Boundary Status",
     ],
 }
+OPERATOR_REVIEW_NOTES_PAYLOAD = {
+    "workflow_id": "planner-innovation-review-workflow-example",
+    "workflow_revision_id": "planner-innovation-review-workflow-rev-example",
+    "notes": [
+        {
+            "node_id": "retrieve-2",
+            "note_type": "scope_too_broad",
+            "note": "Use Bitbucket and Confluence only; do not include SharePoint yet.",
+            "requested_action": "narrow_scope",
+            "reviewer": "operator",
+        },
+        {
+            "node_id": "synthesize-2",
+            "note_type": "needs_revision",
+            "note": "Split MVP synthesis from scoring evidence.",
+            "requested_action": "split_node",
+            "reviewer": "operator",
+        },
+    ],
+}
 
 
 class SummarizeRunDirectoryTests(unittest.TestCase):
@@ -541,6 +561,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 summary["operator_review_packet"],
                 INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET,
             )
+            self.assertIsNone(summary["operator_review_notes"])
 
     def test_default_innovation_demo_run_does_not_include_fixture_lineage(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1184,6 +1205,169 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             )
             self.assertEqual(before, after)
 
+    def test_operator_review_notes_missing_is_none(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+        self.assertIsNone(summary["operator_review_notes"])
+        self.assertNotIn(
+            "Operator Review Notes",
+            summary["operator_review_packet"]["included_sections"],
+        )
+
+    def test_malformed_operator_review_notes_is_fail_soft(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+            (run_dir / "candidate" / "OperatorReviewNotes.json").write_text(
+                "{ not valid json",
+                encoding="utf-8",
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+        self.assertIsNone(summary["operator_review_notes"])
+        self.assertNotIn(
+            "Operator Review Notes",
+            summary["operator_review_packet"]["included_sections"],
+        )
+
+    def test_operator_review_notes_include_only_known_candidate_nodes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+            payload = dict(OPERATOR_REVIEW_NOTES_PAYLOAD)
+            payload["notes"] = list(OPERATOR_REVIEW_NOTES_PAYLOAD["notes"]) + [
+                {
+                    "node_id": "unknown-node",
+                    "note_type": "ignore_me",
+                    "note": "This should not be surfaced.",
+                    "requested_action": "ignore",
+                    "reviewer": "operator",
+                }
+            ]
+            (run_dir / "candidate" / "OperatorReviewNotes.json").write_text(
+                json.dumps(payload, indent=2) + "\n",
+                encoding="utf-8",
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+        operator_review_notes = summary["operator_review_notes"]
+        self.assertIsNotNone(operator_review_notes)
+        for flag_name in (
+            "display_only",
+            "operator_authored",
+            "not_authority",
+            "not_approval",
+            "not_compiler_input",
+            "not_control_plane_artifact",
+            "current_run_scope_only",
+        ):
+            self.assertIs(operator_review_notes[flag_name], True)
+
+        self.assertEqual(operator_review_notes["workflow_id"], payload["workflow_id"])
+        self.assertEqual(
+            operator_review_notes["workflow_revision_id"],
+            payload["workflow_revision_id"],
+        )
+        self.assertEqual(operator_review_notes["note_count"], 2)
+        self.assertEqual(
+            set(operator_review_notes["notes_by_node"]),
+            {"retrieve-2", "synthesize-2"},
+        )
+        self.assertNotIn("unknown-node", operator_review_notes["notes_by_node"])
+        notes_path = Path(operator_review_notes["notes_path"])
+        self.assertEqual(
+            notes_path.parts[-2:],
+            ("candidate", "OperatorReviewNotes.json"),
+        )
+
+        included_sections = summary["operator_review_packet"]["included_sections"]
+        self.assertIn("Operator Review Notes", included_sections)
+        self.assertGreater(
+            included_sections.index("Operator Review Notes"),
+            included_sections.index("Candidate Workflow"),
+        )
+        self.assertLess(
+            included_sections.index("Operator Review Notes"),
+            included_sections.index("Fixture Lineage"),
+        )
+
+    def test_operator_review_notes_return_none_when_only_unknown_nodes_exist(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+            (run_dir / "candidate" / "OperatorReviewNotes.json").write_text(
+                json.dumps(
+                    {
+                        "notes": [
+                            {
+                                "node_id": "unknown-node",
+                                "note_type": "scope_too_broad",
+                                "note": "Ignore this.",
+                            }
+                        ]
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+        self.assertIsNone(summary["operator_review_notes"])
+        self.assertNotIn(
+            "Operator Review Notes",
+            summary["operator_review_packet"]["included_sections"],
+        )
+
+    def test_operator_review_notes_summary_writes_no_files(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "demo"
+            run_workflow_demo(
+                goal="review innovation options",
+                node_type_registry_path=SIMPLE_NODE_TYPE_REGISTRY,
+                run_dir=run_dir,
+                planner_template="innovation_review",
+            )
+            (run_dir / "candidate" / "OperatorReviewNotes.json").write_text(
+                json.dumps(OPERATOR_REVIEW_NOTES_PAYLOAD, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            before = sorted(str(path.relative_to(run_dir)) for path in run_dir.rglob("*"))
+
+            summarize_run_directory(run_dir)
+
+            after = sorted(str(path.relative_to(run_dir)) for path in run_dir.rglob("*"))
+            self.assertEqual(before, after)
+
     def test_compiler_authorization_projection_not_present_for_approved_innovation_review_run(
         self,
     ) -> None:
@@ -1280,6 +1464,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
 
             summary = summarize_run_directory(run_dir)
             self.assertIsNone(summary["candidate_workflow"])
+            self.assertIsNone(summary["operator_review_notes"])
             self.assertIsNone(summary["fixture_lineage"])
             self.assertIsNone(summary["proposed_tool_access"])
             self.assertIsNone(summary["compiler_authorization_projection"])
@@ -1343,6 +1528,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
 
             summary = summarize_run_directory(run_dir)
             self.assertIsNone(summary["candidate_workflow"])
+            self.assertIsNone(summary["operator_review_notes"])
             self.assertIsNone(summary["proposed_tool_access"])
             self.assertIsNone(summary["operator_review_packet"])
 

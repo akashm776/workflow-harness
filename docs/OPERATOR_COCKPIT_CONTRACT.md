@@ -33,6 +33,7 @@ Review Gate:
 Governance Lifecycle Stage:
 Governance Readiness Checklist:
 Candidate Workflow:
+Operator Review Notes:
 Fixture Lineage:
 Proposed Tool Access:
 Compiler Authorization Projection:
@@ -59,6 +60,12 @@ Operator Review Packet:
   verifier, or evidence behavior. It compactly reports what is satisfied,
   missing, blocked, or inspect-only from already-known status facts only.
 - **Candidate Workflow:** display-only candidate graph summary.
+- **Operator Review Notes:** display-only, operator-authored, current-run scoped
+  notes attached to candidate workflow nodes. They are not a control-plane
+  artifact, not compiler input, and not approval data. They do not approve
+  anything. They do not grant authority. They do not change compiler
+  validation. They do not change approval matching. They do not feed
+  replanning yet.
 - **Fixture Lineage:** display-only future fixture path lineage, not fixture
   loading.
 - **Proposed Tool Access:** display-only requested tool/connector proposal data.
@@ -81,6 +88,14 @@ Operator Review Packet:
 - Runtime remains safe no-op.
 - The verifier/evidence/broker status sections do not authorize, approve, grant
   capabilities, or execute.
+- Operator Review Notes are display-only and operator-authored.
+- Operator Review Notes are current-run scoped notes attached to candidate
+  workflow nodes.
+- Operator Review Notes do not approve anything.
+- Operator Review Notes do not grant authority.
+- Operator Review Notes do not change compiler validation.
+- Operator Review Notes do not change approval matching.
+- Operator Review Notes do not feed replanning yet.
 - Summary sections do not override compiler diagnostics.
 - Summary sections do not override operator approval.
 - Governance Readiness Checklist is display-only.

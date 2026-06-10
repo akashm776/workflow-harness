@@ -1154,6 +1154,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("--summary", content)
         self.assertIn("Review Gate", content)
         self.assertIn("Candidate Workflow", content)
+        self.assertIn("Operator Review Notes", content)
         self.assertIn("Proposed Tool Access", content)
         self.assertIn("Compiler Authorization Projection", content)
         self.assertIn("Approval Binding Summary", content)
@@ -1162,7 +1163,13 @@ class DocsTests(unittest.TestCase):
         self.assertIn("Governance Lifecycle Stage", content)
         self.assertIn("Governance Readiness Checklist", content)
         self.assertIn("display-only", lowered)
+        self.assertIn("operator-authored", lowered)
+        self.assertIn("current-run scoped", lowered)
+        self.assertIn("do not approve anything", lowered)
         self.assertIn("do not grant authority", lowered_normalized)
+        self.assertIn("do not change compiler validation", lowered)
+        self.assertIn("do not change approval matching", lowered)
+        self.assertIn("do not feed replanning yet", lowered)
         self.assertIn("This integrates Hermes Agent", content)
         self.assertIn("This integrates Kubernetes or kagent", content)
         self.assertIn("This integrates NemoClaw/OpenShell", content)
@@ -1792,6 +1799,7 @@ class DocsTests(unittest.TestCase):
             "Governance Lifecycle Stage:\n"
             "Governance Readiness Checklist:\n"
             "Candidate Workflow:\n"
+            "Operator Review Notes:\n"
             "Fixture Lineage:\n"
             "Proposed Tool Access:\n"
             "Compiler Authorization Projection:\n"
@@ -1809,6 +1817,22 @@ class DocsTests(unittest.TestCase):
             "Compiler remains the sole authority boundary.", content
         )
         self.assertIn("Runtime remains safe no-op.", content)
+        self.assertIn(
+            "Operator Review Notes are display-only and operator-authored.",
+            content,
+        )
+        self.assertIn("Operator Review Notes are current-run scoped notes", content)
+        self.assertIn("Operator Review Notes do not approve anything.", content)
+        self.assertIn("Operator Review Notes do not grant authority.", content)
+        self.assertIn(
+            "Operator Review Notes do not change compiler validation.", content
+        )
+        self.assertIn(
+            "Operator Review Notes do not change approval matching.", content
+        )
+        self.assertIn(
+            "Operator Review Notes do not feed replanning yet.", content
+        )
         self.assertIn("do not authorize, approve, grant", content)
         self.assertIn("capabilities, or execute.", content)
         self.assertIn(

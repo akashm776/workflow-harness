@@ -72,6 +72,13 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(candidate_lines)
 
+    operator_review_notes_lines = _operator_review_notes_lines(
+        summary.get("operator_review_notes")
+    )
+    if operator_review_notes_lines:
+        lines.append("")
+        lines.extend(operator_review_notes_lines)
+
     fixture_lineage_lines = _fixture_lineage_lines(summary.get("fixture_lineage"))
     if fixture_lineage_lines:
         lines.append("")
@@ -248,6 +255,46 @@ def _governance_readiness_checklist_lines(
         reason = item.get("reason")
         if isinstance(reason, str):
             lines.append(f"  Reason: {reason}")
+
+    return lines if len(lines) > 1 else []
+
+
+def _operator_review_notes_lines(operator_review_notes: Any) -> list[str]:
+    if not isinstance(operator_review_notes, Mapping):
+        return []
+
+    notes_by_node = operator_review_notes.get("notes_by_node")
+    if not isinstance(notes_by_node, Mapping):
+        return []
+
+    lines = ["Operator Review Notes:"]
+    for node_id, raw_notes in notes_by_node.items():
+        if not isinstance(node_id, str) or not isinstance(raw_notes, list) or not raw_notes:
+            continue
+
+        lines.append(f"- {node_id}")
+        for raw_note in raw_notes:
+            if not isinstance(raw_note, Mapping):
+                continue
+
+            note_type = raw_note.get("note_type")
+            note_text = raw_note.get("note")
+            if isinstance(note_type, str) and isinstance(note_text, str):
+                lines.append(f"  - {note_type}: {note_text}")
+            elif isinstance(note_text, str):
+                lines.append(f"  - {note_text}")
+            elif isinstance(note_type, str):
+                lines.append(f"  - {note_type}")
+            else:
+                continue
+
+            requested_action = raw_note.get("requested_action")
+            if isinstance(requested_action, str):
+                lines.append(f"    requested_action: {requested_action}")
+
+            reviewer = raw_note.get("reviewer")
+            if isinstance(reviewer, str):
+                lines.append(f"    reviewer: {reviewer}")
 
     return lines if len(lines) > 1 else []
 
