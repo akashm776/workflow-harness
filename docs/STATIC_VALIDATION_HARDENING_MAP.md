@@ -28,7 +28,8 @@ Current Phase 3 order:
 4. authority-artifact-ownership validator
 5. approval-binding validator
 6. execution-binding validator
-7. graph/scope/approval validators
+7. runtime-reporting-boundary validator
+8. graph/scope/approval validators
 ```
 
 ## Validator Ownership
@@ -48,6 +49,15 @@ Current Phase 3 order:
   behavior.
 - `UNSUPPORTED_EXECUTION_BINDING`: tool, connector, MCP, or broker execution
   binding claims.
+- `UNSUPPORTED_RUNTIME_REPORTING_CLAIM`: planner-supplied future
+  evidence/verifier/broker/sandbox reporting or authority claims
+  (`verifier_result`, `broker_request`, `broker_decision`, `broker_result`,
+  `broker_boundary`, `sandbox_attestation`, `sandbox_status`,
+  `runtime_authority`, `broker_authority`, `verifier_authority`,
+  `evidence_authority`). Exact-key rejection only. `evidence_lineage` and
+  `verifier_output` remain owned by `UNSUPPORTED_AUTHORITY_ARTIFACT` and are not
+  duplicated here. This validator adds no broker, sandbox, verifier, or evidence
+  behavior.
 
 ## Rules For Adding Future Validators
 

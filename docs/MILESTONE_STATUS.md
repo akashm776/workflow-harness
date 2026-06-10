@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `520 tests` passing
+- `530 tests` passing
 
 ## Major Implemented Layers
 
@@ -452,6 +452,22 @@
     does not implement approval binding, does not implement approval carryover,
     does not implement authority subsumption, does not change approval
     resolution, and does not enable runtime/broker execution.
+- runtime-reporting boundary checkpoint and fail-closed rejection:
+  - `compiler/static_validation.py` now rejects planner-controlled future
+    evidence/verifier/broker/sandbox reporting or authority exact key names in
+    candidate `WorkflowSpec.json`, `RequestedAuth.json`, and
+    `ApprovalRequests.json` artifacts with `UNSUPPORTED_RUNTIME_REPORTING_CLAIM`
+    (`verifier_result`, `broker_request`, `broker_decision`, `broker_result`,
+    `broker_boundary`, `sandbox_attestation`, `sandbox_status`,
+    `runtime_authority`, `broker_authority`, `verifier_authority`,
+    `evidence_authority`). `ApprovalDecisions.json` is operator-authored and is
+    not scanned by this validator.
+  - `evidence_lineage` and `verifier_output` remain owned by
+    `UNSUPPORTED_AUTHORITY_ARTIFACT` and are not duplicated here.
+  - this is exact-key rejection only; it does not scan arbitrary string values,
+    adds no broker, sandbox, verifier, or evidence behavior, writes no
+    artifacts, and does not change runtime, CLI summary, approval, or execution
+    behavior.
 - static validation diagnostic ordering contract:
   - `validate_static_inputs(...)` remains deterministic and fail-closed by
     phase: authority-value validators, then schema validators, then
@@ -476,8 +492,16 @@
     - execution-binding validator:
       `UNSUPPORTED_EXECUTION_BINDING` for tool/connector/MCP/broker execution
       binding claims.
+    - runtime-reporting-boundary validator:
+      `UNSUPPORTED_RUNTIME_REPORTING_CLAIM` for planner-supplied future
+      evidence/verifier/broker/sandbox reporting or authority claims
+      (`verifier_result`, `broker_request`, `broker_decision`, `broker_result`,
+      `broker_boundary`, `sandbox_attestation`, `sandbox_status`,
+      `runtime_authority`, `broker_authority`, `verifier_authority`,
+      `evidence_authority`). `evidence_lineage` and `verifier_output` remain
+      owned by `UNSUPPORTED_AUTHORITY_ARTIFACT`.
   - within the current interpretation phase, ordering is deterministic:
-    secret-field checks, then capability-envelope checks, then safeguard-authority-claim checks, then authority-artifact-ownership checks, then approval-binding checks, then execution-binding checks, then graph/scope/approval validators.
+    secret-field checks, then capability-envelope checks, then safeguard-authority-claim checks, then authority-artifact-ownership checks, then approval-binding checks, then execution-binding checks, then runtime-reporting-boundary checks, then graph/scope/approval validators.
   - this is a hardening contract for safety regression tests, not a public API.
 
 ## Explicit Non-Goals

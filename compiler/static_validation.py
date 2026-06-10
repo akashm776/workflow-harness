@@ -516,6 +516,33 @@ _UNSUPPORTED_APPROVAL_BINDING_KEYS = frozenset(
     }
 )
 
+# V1 fail-closed guard: planner-controlled artifacts must not declare future
+# evidence/verifier/broker/sandbox reporting artifacts or authority. Those are
+# documented as future reporting-only / inert-example concepts (see
+# EVIDENCE_LINEAGE_VERIFIER_OUTPUT_CONTRACT.md and
+# NOOP_BROKER_BOUNDARY_CONTRACT.md); they are not planner-authoritative and are
+# not V1 control-plane inputs. This is exact-key rejection only.
+#
+# Note: ``evidence_lineage`` and ``verifier_output`` are already owned by the
+# authority-artifact-ownership validator (_UNSUPPORTED_AUTHORITY_ARTIFACT_KEYS)
+# and remain rejected fail-closed there; they are intentionally not duplicated
+# here to keep validator ownership and diagnostic ordering unambiguous.
+_UNSUPPORTED_RUNTIME_REPORTING_CLAIM_KEYS = frozenset(
+    {
+        "verifier_result",
+        "broker_request",
+        "broker_decision",
+        "broker_result",
+        "broker_boundary",
+        "sandbox_attestation",
+        "sandbox_status",
+        "runtime_authority",
+        "broker_authority",
+        "verifier_authority",
+        "evidence_authority",
+    }
+)
+
 
 def _find_unsupported_execution_binding_paths(
     value: Any,
@@ -709,6 +736,38 @@ def _find_unsupported_approval_binding_paths(
     return findings
 
 
+def _find_unsupported_runtime_reporting_claim_paths(
+    value: Any,
+    *,
+    path: str,
+) -> list[str]:
+    findings: list[str] = []
+
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            if key in _UNSUPPORTED_RUNTIME_REPORTING_CLAIM_KEYS:
+                findings.append(child_path)
+            findings.extend(
+                _find_unsupported_runtime_reporting_claim_paths(
+                    child,
+                    path=child_path,
+                )
+            )
+        return findings
+
+    if isinstance(value, list):
+        for index, child in enumerate(value):
+            findings.extend(
+                _find_unsupported_runtime_reporting_claim_paths(
+                    child,
+                    path=f"{path}[{index}]",
+                )
+            )
+
+    return findings
+
+
 def validate_unsupported_capability_envelope_fields(
     artifact_path: str | Path,
     artifact_name: str,
@@ -861,6 +920,38 @@ def validate_unsupported_approval_bindings(
                 "approvals, or standing approvals; approvals remain explicit, "
                 "operator-owned, and current-run/request scoped: "
                 + ", ".join(findings)
+            ),
+        },
+    }
+
+
+def validate_unsupported_runtime_reporting_claims(
+    artifact_path: str | Path,
+    artifact_name: str,
+) -> dict[str, Any]:
+    artifact = _load_json(artifact_path)
+    findings = _find_unsupported_runtime_reporting_claim_paths(
+        artifact,
+        path="$",
+    )
+
+    if not findings:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "UNSUPPORTED_RUNTIME_REPORTING_CLAIM",
+            "component": "runtime_reporting_boundary_validator",
+            "artifact": artifact_name,
+            "message": (
+                f"unsupported runtime-reporting/broker claim in {artifact_name}; "
+                "evidence/verifier/broker/sandbox reporting and broker artifacts "
+                "are not planner-authoritative and are not V1 control-plane "
+                "inputs: " + ", ".join(findings)
             ),
         },
     }
@@ -1210,8 +1301,8 @@ def validate_static_inputs(
     # Phase 3: interpretation validators (graph, scope, approval semantics).
     # Ordering within the phase is deterministic and fail-closed:
     # secret-field, capability-envelope, safeguard-authority-claim,
-    # authority-artifact-ownership, approval-binding, execution-binding, then
-    # graph/scope/approval.
+    # authority-artifact-ownership, approval-binding, execution-binding,
+    # runtime-reporting-boundary, then graph/scope/approval.
 
     # Phase 1: authority-value validators.
     phase_authority_values = [
@@ -1291,6 +1382,15 @@ def validate_static_inputs(
             approval_requests_path, "ApprovalRequests.json"
         ),
         lambda: validate_unsupported_execution_bindings(workflow_spec_path),
+        lambda: validate_unsupported_runtime_reporting_claims(
+            workflow_spec_path, "WorkflowSpec.json"
+        ),
+        lambda: validate_unsupported_runtime_reporting_claims(
+            requested_auth_path, "RequestedAuth.json"
+        ),
+        lambda: validate_unsupported_runtime_reporting_claims(
+            approval_requests_path, "ApprovalRequests.json"
+        ),
         lambda: validate_unknown_node_types(
             workflow_spec_path, node_type_registry_path
         ),
