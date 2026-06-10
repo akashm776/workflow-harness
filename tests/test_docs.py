@@ -1667,6 +1667,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn(
             "```text\n"
             "Review Gate:\n"
+            "Governance Lifecycle Stage:\n"
             "Candidate Workflow:\n"
             "Fixture Lineage:\n"
             "Proposed Tool Access:\n"

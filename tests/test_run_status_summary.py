@@ -9,7 +9,10 @@ from unittest import mock
 from cli.workflow_demo_cli import run_workflow_demo
 from examples.safe_innovation_demo import run_safe_innovation_demo
 from orchestrator.safe_run import safe_noop_run
-from runtime.run_status_summary import summarize_run_directory
+from runtime.run_status_summary import (
+    _build_governance_lifecycle_stage,
+    summarize_run_directory,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -120,6 +123,10 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertFalse(summary["candidate_dir_present"])
             self.assertIsNone(summary["compiler_authorization_projection"])
             self.assertIsNone(summary["operator_review_packet"])
+            stage = summary["governance_lifecycle_stage"]
+            self.assertEqual(stage["stage"], "completed_safe_noop")
+            self.assertEqual(stage["execution_mode"], "safe_noop_only")
+            self.assertIs(stage["display_only"], True)
             self.assertIn("artifacts", summary)
             self.assertIn(
                 f"python -m cli.run_status_cli --run-dir {run_dir} --view",
@@ -169,6 +176,12 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 summary["review_gate"]["reason"], first_request["reason"]
             )
             self.assertTrue(summary["candidate_dir_present"])
+            stage = summary["governance_lifecycle_stage"]
+            self.assertEqual(
+                stage["stage"], "blocked_awaiting_operator_approval"
+            )
+            self.assertEqual(stage["approval_scope"], "current run/request only")
+            self.assertIs(stage["display_only"], True)
 
     def test_missing_directory_is_fail_soft(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -186,6 +199,9 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["approval_requests_path"])
             self.assertIsNone(summary["review_gate"])
             self.assertFalse(summary["candidate_dir_present"])
+            self.assertEqual(
+                summary["governance_lifecycle_stage"]["stage"], "unknown"
+            )
 
     def test_malformed_json_is_fail_soft(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1064,6 +1080,73 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["candidate_workflow"])
             self.assertIsNone(summary["proposed_tool_access"])
             self.assertIsNone(summary["operator_review_packet"])
+
+
+class GovernanceLifecycleStageTests(unittest.TestCase):
+    """Deterministic stage derivation from existing status fields only."""
+
+    def test_compile_failed_takes_precedence(self) -> None:
+        stage = _build_governance_lifecycle_stage(
+            compilation_status="failed",
+            execution_status="blocked",
+            review_required=True,
+            blocked_by_review=True,
+        )
+        self.assertEqual(stage["stage"], "compile_failed")
+        self.assertIn("compiler diagnostics", stage["next_operator_action"])
+
+    def test_blocked_awaiting_operator_approval(self) -> None:
+        stage = _build_governance_lifecycle_stage(
+            compilation_status="compiled",
+            execution_status="blocked",
+            review_required=True,
+            blocked_by_review=True,
+        )
+        self.assertEqual(stage["stage"], "blocked_awaiting_operator_approval")
+        self.assertIn("approve or deny", stage["next_operator_action"])
+
+    def test_completed_safe_noop(self) -> None:
+        stage = _build_governance_lifecycle_stage(
+            compilation_status="compiled",
+            execution_status="completed",
+            review_required=False,
+            blocked_by_review=False,
+        )
+        self.assertEqual(stage["stage"], "completed_safe_noop")
+        self.assertIn("no real execution", stage["next_operator_action"])
+
+    def test_compiled_no_review_required(self) -> None:
+        stage = _build_governance_lifecycle_stage(
+            compilation_status="compiled",
+            execution_status="ready_to_execute",
+            review_required=False,
+            blocked_by_review=False,
+        )
+        self.assertEqual(stage["stage"], "compiled_no_review_required")
+
+    def test_unknown_when_indeterminate(self) -> None:
+        stage = _build_governance_lifecycle_stage(
+            compilation_status="unknown",
+            execution_status="unknown",
+            review_required=None,
+            blocked_by_review=False,
+        )
+        self.assertEqual(stage["stage"], "unknown")
+
+    def test_constant_framing_fields_are_display_only(self) -> None:
+        stage = _build_governance_lifecycle_stage(
+            compilation_status="compiled",
+            execution_status="completed",
+            review_required=False,
+            blocked_by_review=False,
+        )
+        self.assertEqual(
+            stage["authority_boundary"],
+            "compiler-owned authorization only; planner is non-authoritative",
+        )
+        self.assertEqual(stage["approval_scope"], "current run/request only")
+        self.assertEqual(stage["execution_mode"], "safe_noop_only")
+        self.assertIs(stage["display_only"], True)
 
 
 if __name__ == "__main__":

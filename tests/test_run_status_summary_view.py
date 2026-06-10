@@ -50,6 +50,57 @@ class RunStatusSummaryViewTests(unittest.TestCase):
 
         self.assertEqual(summary, original)
 
+    def test_render_includes_governance_lifecycle_stage_section(self) -> None:
+        summary = _sample_summary()
+        summary["governance_lifecycle_stage"] = {
+            "stage": "blocked_awaiting_operator_approval",
+            "next_operator_action": (
+                "review and approve or deny requested access for the current "
+                "run/request"
+            ),
+            "authority_boundary": (
+                "compiler-owned authorization only; planner is non-authoritative"
+            ),
+            "approval_scope": "current run/request only",
+            "execution_mode": "safe_noop_only",
+            "display_only": True,
+        }
+
+        rendered = render_run_status_summary_view(summary)
+
+        self.assertIn("Governance Lifecycle Stage:", rendered)
+        self.assertIn("stage: blocked_awaiting_operator_approval", rendered)
+        self.assertIn(
+            "authority_boundary: compiler-owned authorization only; planner is "
+            "non-authoritative",
+            rendered,
+        )
+        self.assertIn("approval_scope: current run/request only", rendered)
+        self.assertIn("execution_mode: safe_noop_only", rendered)
+        self.assertIn("display_only: true", rendered)
+
+    def test_governance_lifecycle_stage_renders_after_review_gate(self) -> None:
+        summary = self._summary_with_candidate_workflow()
+        summary["review_gate"] = {"blocked_reason": "review_required"}
+        summary["approval_request_count"] = 1
+        summary["governance_lifecycle_stage"] = {
+            "stage": "blocked_awaiting_operator_approval",
+            "display_only": True,
+        }
+
+        rendered = render_run_status_summary_view(summary)
+
+        review_gate_idx = rendered.index("Review Gate:")
+        stage_idx = rendered.index("Governance Lifecycle Stage:")
+        candidate_idx = rendered.index("Candidate Workflow:")
+        self.assertLess(review_gate_idx, stage_idx)
+        self.assertLess(stage_idx, candidate_idx)
+
+    def test_render_without_governance_lifecycle_stage_has_no_section(self) -> None:
+        # The base sample summary has no governance_lifecycle_stage key.
+        rendered = render_run_status_summary_view(_sample_summary())
+        self.assertNotIn("Governance Lifecycle Stage:", rendered)
+
     def _summary_with_candidate_workflow(self) -> dict:
         summary = _sample_summary()
         summary["candidate_workflow"] = {
