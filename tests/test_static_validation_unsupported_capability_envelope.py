@@ -64,6 +64,14 @@ class UnsupportedCapabilityEnvelopeValidationTests(unittest.TestCase):
         self.assertEqual(diagnostic["component"], "capability_envelope_validator")
         self.assertEqual(diagnostic["artifact"], "WorkflowSpec.json")
         self.assertIn("$.nodes[0].capability_envelope", diagnostic["message"])
+        self.assertTrue(
+            diagnostic["message"].startswith(
+                "unsupported capability/authority envelope field in "
+                "WorkflowSpec.json; V1 safe no-op does not accept "
+                "planner-supplied capability envelopes, approved capabilities, "
+                "or authority-envelope fields: "
+            )
+        )
 
     def test_requested_auth_approved_capabilities_field_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

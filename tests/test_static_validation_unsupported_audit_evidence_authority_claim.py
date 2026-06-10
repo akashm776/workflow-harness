@@ -133,6 +133,15 @@ class UnsupportedAuditEvidenceAuthorityClaimValidationTests(unittest.TestCase):
         )
         self.assertEqual(diagnostic["artifact"], "WorkflowSpec.json")
         self.assertIn("$.nodes[0].audit_override", diagnostic["message"])
+        self.assertTrue(
+            diagnostic["message"].startswith(
+                "unsupported audit/evidence authority claim in "
+                "WorkflowSpec.json; audit and evidence records are reporting "
+                "material only and cannot approve, authorize, grant "
+                "capabilities, override diagnostics, satisfy approval, or "
+                "create authority in planner-controlled artifacts: "
+            )
+        )
 
     def test_requested_auth_audit_grant_key_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

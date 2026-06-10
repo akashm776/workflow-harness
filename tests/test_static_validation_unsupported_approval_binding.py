@@ -84,6 +84,16 @@ class UnsupportedApprovalBindingValidationTests(unittest.TestCase):
                 )
                 self.assertEqual(diagnostic["artifact"], "WorkflowSpec.json")
                 self.assertIn(f"$.nodes[0].{key}", diagnostic["message"])
+                self.assertTrue(
+                    diagnostic["message"].startswith(
+                        "unsupported approval-binding field in "
+                        "WorkflowSpec.json; V1 safe no-op does not accept "
+                        "planner-supplied approval bindings, approval tokens, "
+                        "approval carryover, reusable approvals, or standing "
+                        "approvals; approvals remain explicit, operator-owned, "
+                        "and current-run/request scoped: "
+                    )
+                )
 
     def test_requested_auth_reusable_approval_key_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -67,6 +67,15 @@ class UnsupportedAuthorityArtifactValidationTests(unittest.TestCase):
         )
         self.assertEqual(diagnostic["artifact"], "WorkflowSpec.json")
         self.assertIn("$.nodes[0].compiled_execution_plan", diagnostic["message"])
+        self.assertTrue(
+            diagnostic["message"].startswith(
+                "unsupported compiler/runtime/operator-owned authority artifact "
+                "field in WorkflowSpec.json; V1 safe no-op does not accept "
+                "planner-supplied compiled plans, authority manifests, "
+                "diagnostics, execution results, audit artifacts, evidence "
+                "lineage, or approval decisions: "
+            )
+        )
 
     def test_requested_auth_execution_manifest_key_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

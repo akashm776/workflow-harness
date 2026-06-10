@@ -112,6 +112,15 @@ class UnsupportedApprovalIdentityClaimValidationTests(unittest.TestCase):
         )
         self.assertEqual(diagnostic["artifact"], "WorkflowSpec.json")
         self.assertIn("$.nodes[0].approval_id", diagnostic["message"])
+        self.assertTrue(
+            diagnostic["message"].startswith(
+                "unsupported approval-identity claim in WorkflowSpec.json; "
+                "operator approval identity, proof, receipt, signature, and "
+                "subject/run/request identifiers are operator-owned and must "
+                "not be supplied, spoofed, or overridden by planner-controlled "
+                "artifacts: "
+            )
+        )
 
     def test_workflow_spec_approval_subject_override_key_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
