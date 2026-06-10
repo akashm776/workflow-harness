@@ -16,6 +16,13 @@ This is a safe-noop governance/control-plane proof, not real agent execution.
 - Approval is current-run/request scoped.
 - Runtime remains safe no-op.
 - Operator-facing status surfaces are display-only and do not grant authority.
+- Operator Review Notes are display-only, operator-authored, current-run scoped
+  notes attached to candidate workflow nodes.
+- Operator Review Notes do not approve anything.
+- Operator Review Notes do not grant authority.
+- Operator Review Notes do not change compiler validation.
+- Operator Review Notes do not change approval matching.
+- Operator Review Notes do not feed replanning yet.
 
 Current trust boundary:
 
@@ -117,6 +124,7 @@ such as:
 
 - Review Gate
 - Candidate Workflow
+- Operator Review Notes
 - Fixture Lineage
 - Proposed Tool Access
 - Compiler Authorization Projection
@@ -128,6 +136,9 @@ such as:
 - Governance Readiness Checklist
 
 These are display-only status surfaces and do not grant authority.
+Operator Review Notes remain operator-authored display-only notes only; they do
+not approve anything and do not change compiler validation or approval
+matching.
 
 ## Expected Claims
 

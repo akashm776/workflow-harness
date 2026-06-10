@@ -208,6 +208,97 @@ class RunStatusSummaryViewTests(unittest.TestCase):
         rendered = render_run_status_summary_view(_sample_summary())
         self.assertNotIn("Candidate Workflow:", rendered)
 
+    def _summary_with_operator_review_notes(self) -> dict:
+        summary = self._summary_with_candidate_workflow()
+        summary["operator_review_notes"] = {
+            "display_only": True,
+            "operator_authored": True,
+            "not_authority": True,
+            "not_approval": True,
+            "not_compiler_input": True,
+            "not_control_plane_artifact": True,
+            "current_run_scope_only": True,
+            "notes_path": "/tmp/demo/candidate/OperatorReviewNotes.json",
+            "note_count": 2,
+            "notes_by_node": {
+                "retrieve-1": [
+                    {
+                        "note_type": "scope_too_broad",
+                        "note": "Use Bitbucket and Confluence only; do not include SharePoint yet.",
+                        "requested_action": "narrow_scope",
+                        "reviewer": "operator",
+                    }
+                ],
+                "synthesize-1": [
+                    {
+                        "note_type": "needs_revision",
+                        "note": "Split MVP synthesis from scoring evidence.",
+                        "requested_action": "split_node",
+                        "reviewer": "operator",
+                    }
+                ],
+            },
+        }
+        return summary
+
+    def test_render_includes_operator_review_notes_section(self) -> None:
+        rendered = render_run_status_summary_view(
+            self._summary_with_operator_review_notes()
+        )
+
+        self.assertIn("Operator Review Notes:", rendered)
+        self.assertIn("- retrieve-1", rendered)
+        self.assertIn(
+            "  - scope_too_broad: Use Bitbucket and Confluence only; do not include SharePoint yet.",
+            rendered,
+        )
+        self.assertIn("    requested_action: narrow_scope", rendered)
+        self.assertIn("    reviewer: operator", rendered)
+        self.assertIn("- synthesize-1", rendered)
+        self.assertIn(
+            "  - needs_revision: Split MVP synthesis from scoring evidence.",
+            rendered,
+        )
+
+    def test_operator_review_notes_render_after_candidate_and_before_fixture_lineage(
+        self,
+    ) -> None:
+        summary = self._summary_with_operator_review_notes()
+        summary["fixture_lineage"] = {
+            "display_only": True,
+            "not_loaded": True,
+            "not_control_plane_inputs": True,
+            "paths": ["fixtures/future/example.json"],
+        }
+
+        rendered = render_run_status_summary_view(summary)
+
+        candidate_idx = rendered.index("Candidate Workflow:")
+        notes_idx = rendered.index("Operator Review Notes:")
+        fixture_idx = rendered.index("Fixture Lineage:")
+        self.assertLess(candidate_idx, notes_idx)
+        self.assertLess(notes_idx, fixture_idx)
+
+    def test_render_without_operator_review_notes_has_no_section(self) -> None:
+        rendered = render_run_status_summary_view(self._summary_with_candidate_workflow())
+        self.assertNotIn("Operator Review Notes:", rendered)
+
+    def test_render_with_malformed_operator_review_notes_has_no_section(self) -> None:
+        summary = self._summary_with_candidate_workflow()
+        summary["operator_review_notes"] = {"notes_by_node": "bad-shape"}
+
+        rendered = render_run_status_summary_view(summary)
+
+        self.assertNotIn("Operator Review Notes:", rendered)
+
+    def test_render_does_not_mutate_input_with_operator_review_notes(self) -> None:
+        summary = self._summary_with_operator_review_notes()
+        original = copy.deepcopy(summary)
+
+        render_run_status_summary_view(summary)
+
+        self.assertEqual(summary, original)
+
     def test_render_unknown_fields(self) -> None:
         summary = {
             "run_dir": "/tmp/missing",

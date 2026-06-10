@@ -109,6 +109,90 @@ def _extract_candidate_workflow(run_path: Path) -> dict[str, Any] | None:
     }
 
 
+def _extract_operator_review_notes(
+    run_path: Path,
+    candidate_workflow: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Return display-only operator-authored notes for known candidate nodes only.
+
+    Reads ``<run-dir>/candidate/OperatorReviewNotes.json`` fail-soft. This is a
+    local operator/demo input only: not a control-plane artifact, not compiler
+    input, not approval data, and not authority. Only notes for node IDs already
+    present in the display-only candidate workflow are surfaced.
+    """
+
+    if not isinstance(candidate_workflow, dict):
+        return None
+
+    raw_nodes = candidate_workflow.get("nodes")
+    if not isinstance(raw_nodes, list):
+        return None
+
+    known_node_ids = {
+        node_id
+        for node in raw_nodes
+        if isinstance(node, dict)
+        for node_id in [_get_str(node, "node_id")]
+        if node_id is not None
+    }
+    if not known_node_ids:
+        return None
+
+    notes_path = run_path / "candidate" / "OperatorReviewNotes.json"
+    review_notes = _safe_load_json(notes_path)
+    if not isinstance(review_notes, dict):
+        return None
+
+    raw_notes = review_notes.get("notes")
+    if not isinstance(raw_notes, list):
+        return None
+
+    notes_by_node: dict[str, list[dict[str, str]]] = {}
+    note_count = 0
+    for raw_note in raw_notes:
+        node_id = _get_str(raw_note, "node_id")
+        if node_id is None or node_id not in known_node_ids:
+            continue
+
+        display_note = {
+            field_name: field_value
+            for field_name in ("note_type", "note", "requested_action", "reviewer")
+            for field_value in [_get_str(raw_note, field_name)]
+            if field_value is not None
+        }
+        if not display_note:
+            continue
+
+        notes_by_node.setdefault(node_id, []).append(display_note)
+        note_count += 1
+
+    if not notes_by_node:
+        return None
+
+    extracted_notes: dict[str, Any] = {
+        "display_only": True,
+        "operator_authored": True,
+        "not_authority": True,
+        "not_approval": True,
+        "not_compiler_input": True,
+        "not_control_plane_artifact": True,
+        "current_run_scope_only": True,
+        "notes_path": str(notes_path),
+        "note_count": note_count,
+        "notes_by_node": notes_by_node,
+    }
+
+    workflow_id = _get_str(review_notes, "workflow_id")
+    if workflow_id is not None:
+        extracted_notes["workflow_id"] = workflow_id
+
+    workflow_revision_id = _get_str(review_notes, "workflow_revision_id")
+    if workflow_revision_id is not None:
+        extracted_notes["workflow_revision_id"] = workflow_revision_id
+
+    return extracted_notes
+
+
 def _extract_review_gate(
     run_path: Path,
     blocked_by_review: bool,
@@ -611,6 +695,7 @@ def _build_operator_review_packet(
     review_gate: dict[str, Any] | None,
     governance_readiness_checklist: list[dict[str, str]] | None,
     candidate_workflow: dict[str, Any] | None,
+    operator_review_notes: dict[str, Any] | None,
     fixture_lineage: dict[str, Any] | None,
     proposed_tool_access: dict[str, Any] | None,
     compiler_authorization_projection: dict[str, Any] | None,
@@ -630,6 +715,8 @@ def _build_operator_review_packet(
         included_sections.append("Governance Readiness Checklist")
     if candidate_workflow is not None:
         included_sections.append("Candidate Workflow")
+    if operator_review_notes is not None:
+        included_sections.append("Operator Review Notes")
     if fixture_lineage is not None:
         included_sections.append("Fixture Lineage")
     if proposed_tool_access is not None:
@@ -916,6 +1003,10 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         review_gate,
     ) = _extract_review_gate(run_path, blocked_by_review)
     candidate_workflow = _extract_candidate_workflow(run_path)
+    operator_review_notes = _extract_operator_review_notes(
+        run_path,
+        candidate_workflow,
+    )
     fixture_lineage = _extract_fixture_lineage(candidate_workflow)
     proposed_tool_access = _extract_proposed_tool_access(run_path, candidate_workflow)
     compiler_authorization_projection = _build_compiler_authorization_projection(
@@ -979,6 +1070,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "governance_lifecycle_stage": governance_lifecycle_stage,
         "governance_readiness_checklist": governance_readiness_checklist,
         "candidate_workflow": candidate_workflow,
+        "operator_review_notes": operator_review_notes,
         "fixture_lineage": fixture_lineage,
         "proposed_tool_access": proposed_tool_access,
         "compiler_authorization_projection": compiler_authorization_projection,
@@ -991,6 +1083,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
             review_gate,
             governance_readiness_checklist,
             candidate_workflow,
+            operator_review_notes,
             fixture_lineage,
             proposed_tool_access,
             compiler_authorization_projection,
