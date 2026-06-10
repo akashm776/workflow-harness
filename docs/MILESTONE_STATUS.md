@@ -6,7 +6,7 @@
 
 ## Test Status
 
-- `542 tests` passing
+- `543 tests` passing
 
 ## Major Implemented Layers
 
@@ -531,6 +531,10 @@
   - within the current interpretation phase, ordering is deterministic:
     secret-field checks, then capability-envelope checks, then safeguard-authority-claim checks, then authority-artifact-ownership checks, then approval-binding checks, then execution-binding checks, then runtime-reporting-boundary checks, then audit-evidence-authority checks, then graph/scope/approval validators.
   - this is a hardening contract for safety regression tests, not a public API.
+  - the exact Phase 3 order, per-diagnostic ownership boundaries,
+    planner-input scanner scope (never `ApprovalDecisions.json`),
+    exact-object-key matching, and fail-closed guarantees are pinned as a
+    docs/tests-only checkpoint in `STATIC_VALIDATION_ORDERING_CONTRACT.md`.
 
 ## Explicit Non-Goals
 

@@ -4,6 +4,10 @@ This is a docs-only map of the current `validate_static_inputs(...)` hardening
 layers. It records current validator ownership, diagnostic order, and the rules
 for adding future validators. It changes no behavior and is not a public API.
 
+The exact Phase 3 order and per-diagnostic ownership boundaries are pinned as a
+contract in
+[`STATIC_VALIDATION_ORDERING_CONTRACT.md`](STATIC_VALIDATION_ORDERING_CONTRACT.md).
+
 ## Validation Phases
 
 ### Phase 1: authority-value validation
