@@ -26,7 +26,8 @@ behavior.
 6. execution-binding
 7. runtime-reporting-boundary
 8. audit-evidence-authority
-9. graph/scope/approval
+9. approval-scope
+10. graph/scope/approval
 ```
 
 ## Ownership Boundaries
@@ -45,6 +46,12 @@ behavior.
   `broker_result`, `runtime_authority`, `evidence_authority`.
 - `UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM` owns unsupported audit/evidence
   approve/authorize/grant/override/satisfy-authority claim fields.
+- `UNSUPPORTED_APPROVAL_SCOPE_CLAIM` owns unsupported approval scope/reuse/
+  persistence/cross-run claim fields such as `approval_reuse`,
+  `persistent_approval`, `global_approval`, `cross_run_approval`,
+  `approval_valid_across_runs`, and `approval_scope_override`
+  (`approval_carryover` and `reusable_approval` stay owned by
+  `UNSUPPORTED_APPROVAL_BINDING`).
 - graph/scope/approval validators own structural graph/scope/approval
   consistency.
 

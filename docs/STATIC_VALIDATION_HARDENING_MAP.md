@@ -34,7 +34,8 @@ Current Phase 3 order:
 6. execution-binding validator
 7. runtime-reporting-boundary validator
 8. audit-evidence-authority validator
-9. graph/scope/approval validators
+9. approval-scope validator
+10. graph/scope/approval validators
 ```
 
 ## Validator Ownership
@@ -77,6 +78,19 @@ Current Phase 3 order:
   `UNSUPPORTED_RUNTIME_REPORTING_CLAIM` and `evidence_lineage`/`verifier_output`/
   `audit_log` stay owned by `UNSUPPORTED_AUTHORITY_ARTIFACT`. It adds no audit,
   evidence, or verifier behavior.
+- `UNSUPPORTED_APPROVAL_SCOPE_CLAIM`: planner-supplied claims that operator
+  approval is reusable, persistent, global, inherited, or valid across
+  runs/requests (`approval_reuse`, `persistent_approval`, `global_approval`,
+  `cross_run_approval`, `prior_run_approval`, `inherited_approval`,
+  `approval_inheritance`, `approval_subsumption`,
+  `approval_valid_for_future_runs`, `approval_valid_across_requests`,
+  `approval_valid_across_runs`, `approval_expires_never`,
+  `approval_scope_override`, `request_scope_override`, `run_scope_override`).
+  Exact-key rejection only. `approval_carryover` and `reusable_approval` (and
+  `standing_approval`/`standing_approvals`) stay owned by
+  `UNSUPPORTED_APPROVAL_BINDING`. It implements no reusable approval, approval
+  carryover, authority subsumption, or real approval binding, and changes no
+  approval resolution/matching behavior.
 
 ## Rules For Adding Future Validators
 

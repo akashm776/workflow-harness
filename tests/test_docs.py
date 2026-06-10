@@ -179,7 +179,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("544 tests", content)
+        self.assertIn("555 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -896,7 +896,8 @@ class DocsTests(unittest.TestCase):
             "6. execution-binding validator\n"
             "7. runtime-reporting-boundary validator\n"
             "8. audit-evidence-authority validator\n"
-            "9. graph/scope/approval validators",
+            "9. approval-scope validator\n"
+            "10. graph/scope/approval validators",
             content,
         )
 
@@ -909,6 +910,7 @@ class DocsTests(unittest.TestCase):
             "UNSUPPORTED_EXECUTION_BINDING",
             "UNSUPPORTED_RUNTIME_REPORTING_CLAIM",
             "UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM",
+            "UNSUPPORTED_APPROVAL_SCOPE_CLAIM",
         ):
             self.assertIn(diagnostic, content)
 
@@ -1090,7 +1092,7 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("544 tests passing", content)
+        self.assertIn("555 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -1730,7 +1732,8 @@ class DocsTests(unittest.TestCase):
             "6. execution-binding\n"
             "7. runtime-reporting-boundary\n"
             "8. audit-evidence-authority\n"
-            "9. graph/scope/approval\n"
+            "9. approval-scope\n"
+            "10. graph/scope/approval\n"
             "```",
             content,
         )
@@ -1745,6 +1748,7 @@ class DocsTests(unittest.TestCase):
             "UNSUPPORTED_EXECUTION_BINDING",
             "UNSUPPORTED_RUNTIME_REPORTING_CLAIM",
             "UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM",
+            "UNSUPPORTED_APPROVAL_SCOPE_CLAIM",
         ):
             self.assertIn(diagnostic, content)
         self.assertIn("evidence_lineage", content)
@@ -1844,7 +1848,8 @@ class DocsTests(unittest.TestCase):
             "6. execution-binding\n"
             "7. runtime-reporting-boundary\n"
             "8. audit-evidence-authority\n"
-            "9. graph/scope/approval\n"
+            "9. approval-scope\n"
+            "10. graph/scope/approval\n"
             "```",
             content,
         )
@@ -1904,6 +1909,7 @@ class DocsTests(unittest.TestCase):
             "unsupported execution-binding claims rejected",
             "unsupported runtime-reporting/broker/sandbox claims rejected",
             "unsupported audit/evidence authority claims rejected",
+            "unsupported approval scope/reuse/cross-run claims rejected",
         ):
             self.assertIn(rejection, content)
 
