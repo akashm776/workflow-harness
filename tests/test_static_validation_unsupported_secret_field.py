@@ -62,6 +62,13 @@ class UnsupportedSecretFieldValidationTests(unittest.TestCase):
         self.assertEqual(diagnostic["component"], "secret_field_validator")
         self.assertEqual(diagnostic["artifact"], "WorkflowSpec.json")
         self.assertIn("$.nodes[0].metadata.secret", diagnostic["message"])
+        self.assertTrue(
+            diagnostic["message"].startswith(
+                "unsupported secret-bearing field in WorkflowSpec.json; "
+                "V1 safe no-op does not accept planner-supplied tokens, secrets, "
+                "passwords, API keys, private keys, or credentials: "
+            )
+        )
 
     def test_requested_auth_credentials_field_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

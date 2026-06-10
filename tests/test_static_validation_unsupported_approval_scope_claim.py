@@ -127,6 +127,15 @@ class UnsupportedApprovalScopeClaimValidationTests(unittest.TestCase):
         )
         self.assertEqual(diagnostic["artifact"], "WorkflowSpec.json")
         self.assertIn("$.nodes[0].cross_run_approval", diagnostic["message"])
+        self.assertTrue(
+            diagnostic["message"].startswith(
+                "unsupported approval-scope claim in WorkflowSpec.json; "
+                "operator approval is explicit, operator-owned, and "
+                "current-run/request scoped, and planner-controlled artifacts "
+                "must not claim reusable, persistent, global, inherited, or "
+                "cross-run/cross-request approval: "
+            )
+        )
 
     def test_requested_auth_global_approval_key_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

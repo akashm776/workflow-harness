@@ -105,6 +105,14 @@ class UnsupportedRuntimeReportingClaimValidationTests(unittest.TestCase):
         )
         self.assertEqual(diagnostic["artifact"], "WorkflowSpec.json")
         self.assertIn("$.nodes[0].broker_request", diagnostic["message"])
+        self.assertTrue(
+            diagnostic["message"].startswith(
+                "unsupported runtime-reporting/broker claim in "
+                "WorkflowSpec.json; evidence/verifier/broker/sandbox reporting "
+                "and broker artifacts are not planner-authoritative and are not "
+                "V1 control-plane inputs: "
+            )
+        )
 
     def test_requested_auth_broker_decision_key_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

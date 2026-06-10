@@ -89,6 +89,14 @@ class UnsupportedSafeguardAuthorityClaimValidationTests(unittest.TestCase):
         )
         self.assertEqual(diagnostic["artifact"], "WorkflowSpec.json")
         self.assertIn("$.nodes[0].safeguard_approved", diagnostic["message"])
+        self.assertTrue(
+            diagnostic["message"].startswith(
+                "unsupported safeguard authority claim in WorkflowSpec.json; "
+                "V1 safe no-op does not accept safeguard approval, "
+                "authorization, execution-unblock, or authority-override "
+                "claims: "
+            )
+        )
 
     def test_requested_auth_unblock_execution_key_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

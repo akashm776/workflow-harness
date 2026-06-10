@@ -77,6 +77,13 @@ class UnsupportedExecutionBindingValidationTests(unittest.TestCase):
         self.assertEqual(diagnostic["artifact"], "WorkflowSpec.json")
         self.assertIn("tool_binding", diagnostic["message"])
         self.assertIn("$.nodes[0].tool_binding", diagnostic["message"])
+        self.assertTrue(
+            diagnostic["message"].startswith(
+                "unsupported execution/tool/MCP binding in WorkflowSpec.json; "
+                "V1 safe no-op does not support tool, connector, broker, or "
+                "MCP execution bindings: "
+            )
+        )
 
     def test_node_with_mcp_execution_intent_is_rejected(self) -> None:
         def modify(workflow_spec: dict) -> None:
