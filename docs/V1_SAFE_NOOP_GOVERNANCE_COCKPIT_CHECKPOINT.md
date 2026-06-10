@@ -78,7 +78,8 @@ Operator Review Packet:
 6. execution-binding
 7. runtime-reporting-boundary
 8. audit-evidence-authority
-9. graph/scope/approval
+9. approval-scope
+10. graph/scope/approval
 ```
 
 ## Boundary Protection
@@ -91,6 +92,7 @@ Operator Review Packet:
 - unsupported execution-binding claims rejected
 - unsupported runtime-reporting/broker/sandbox claims rejected
 - unsupported audit/evidence authority claims rejected
+- unsupported approval scope/reuse/cross-run claims rejected
 
 ## Next Safe Directions
 

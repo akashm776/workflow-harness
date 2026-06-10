@@ -99,6 +99,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
         ), patch(
             "compiler.static_validation.validate_unsupported_audit_evidence_authority_claims",
             return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_approval_scope_claims",
+            return_value=success,
         ), patch("compiler.static_validation.validate_unknown_node_types", return_value=success), patch(
             "compiler.static_validation.validate_invalid_edge_endpoints", return_value=invalid_endpoint
         ), patch(
@@ -286,6 +289,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_unsupported_audit_evidence_authority_claims",
+            return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_approval_scope_claims",
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_unknown_node_types",
@@ -526,6 +532,28 @@ class StaticValidationAggregateTests(unittest.TestCase):
                 ),
             ],
         ), patch(
+            "compiler.static_validation.validate_unsupported_approval_scope_claims",
+            side_effect=[
+                failure(
+                    "UNSUPPORTED_APPROVAL_SCOPE_CLAIM",
+                    "approval_scope_validator",
+                    "WorkflowSpec.json",
+                    "approval-scope workflow",
+                ),
+                failure(
+                    "UNSUPPORTED_APPROVAL_SCOPE_CLAIM",
+                    "approval_scope_validator",
+                    "RequestedAuth.json",
+                    "approval-scope requested",
+                ),
+                failure(
+                    "UNSUPPORTED_APPROVAL_SCOPE_CLAIM",
+                    "approval_scope_validator",
+                    "ApprovalRequests.json",
+                    "approval-scope approval",
+                ),
+            ],
+        ), patch(
             "compiler.static_validation.validate_unknown_node_types",
             return_value=failure(
                 "UNKNOWN_NODE_TYPE",
@@ -616,6 +644,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
                 "audit-evidence workflow",
                 "audit-evidence requested",
                 "audit-evidence approval",
+                "approval-scope workflow",
+                "approval-scope requested",
+                "approval-scope approval",
                 "unknown node type",
                 "invalid endpoint",
                 "illegal cycle",
@@ -1000,6 +1031,54 @@ class StaticValidationAggregateTests(unittest.TestCase):
             [
                 "runtime_reporting_boundary_validator",
                 "audit_evidence_authority_validator",
+            ],
+        )
+
+    def test_workflow_audit_evidence_and_approval_scope_keep_documented_order(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
+            requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
+            approval_requests = _load_json(
+                SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
+            )
+            # audit-evidence and approval-scope keys on the same node must surface
+            # in the documented Phase 3 order.
+            workflow_spec["nodes"][0]["evidence_approval"] = {"display_only": True}
+            workflow_spec["nodes"][0]["cross_run_approval"] = {"display_only": True}
+
+            workflow_spec_path = _write_json(
+                Path(tmp) / "WorkflowSpec.json", workflow_spec
+            )
+            requested_auth_path = _write_json(
+                Path(tmp) / "RequestedAuth.json", requested_auth
+            )
+            approval_requests_path = _write_json(
+                Path(tmp) / "ApprovalRequests.json", approval_requests
+            )
+
+            result = validate_static_inputs(
+                workflow_spec_path,
+                SIMPLE_FIXTURE_INPUT / "NodeTypeRegistry.json",
+                requested_auth_path,
+                approval_requests_path,
+                stop_on_first_error=False,
+            )
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(
+            [diagnostic["error_code"] for diagnostic in result["diagnostics"]],
+            [
+                "UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM",
+                "UNSUPPORTED_APPROVAL_SCOPE_CLAIM",
+            ],
+        )
+        self.assertEqual(
+            [diagnostic["component"] for diagnostic in result["diagnostics"]],
+            [
+                "audit_evidence_authority_validator",
+                "approval_scope_validator",
             ],
         )
 

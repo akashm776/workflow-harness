@@ -584,6 +584,41 @@ _UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM_KEYS = frozenset(
     }
 )
 
+# V1 fail-closed guard: planner-controlled artifacts must not claim that operator
+# approval is reusable, persistent, global, inherited, cross-run, cross-request,
+# or otherwise valid outside the current run/request. Operator approval remains
+# explicit, operator-owned, and current-run/request scoped (see
+# APPROVAL_BINDING_CONTRACT.md and
+# V1_SAFE_NOOP_GOVERNANCE_COCKPIT_CHECKPOINT.md). This is exact-key rejection
+# only; it implements no reusable approval, approval carryover, authority
+# subsumption, or real approval binding, and it changes no approval
+# resolution/matching behavior.
+#
+# Ownership note: this validator owns only the approval scope/carryover/reuse/
+# persistence/cross-run claim family. ``approval_carryover`` and
+# ``reusable_approval`` (and ``standing_approval``/``standing_approvals``) are
+# already owned by the approval-binding validator
+# (_UNSUPPORTED_APPROVAL_BINDING_KEYS) and are intentionally not duplicated here.
+_UNSUPPORTED_APPROVAL_SCOPE_CLAIM_KEYS = frozenset(
+    {
+        "approval_reuse",
+        "persistent_approval",
+        "global_approval",
+        "cross_run_approval",
+        "prior_run_approval",
+        "inherited_approval",
+        "approval_inheritance",
+        "approval_subsumption",
+        "approval_valid_for_future_runs",
+        "approval_valid_across_requests",
+        "approval_valid_across_runs",
+        "approval_expires_never",
+        "approval_scope_override",
+        "request_scope_override",
+        "run_scope_override",
+    }
+)
+
 
 def _find_unsupported_execution_binding_paths(
     value: Any,
@@ -841,6 +876,38 @@ def _find_unsupported_audit_evidence_authority_claim_paths(
     return findings
 
 
+def _find_unsupported_approval_scope_claim_paths(
+    value: Any,
+    *,
+    path: str,
+) -> list[str]:
+    findings: list[str] = []
+
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            if key in _UNSUPPORTED_APPROVAL_SCOPE_CLAIM_KEYS:
+                findings.append(child_path)
+            findings.extend(
+                _find_unsupported_approval_scope_claim_paths(
+                    child,
+                    path=child_path,
+                )
+            )
+        return findings
+
+    if isinstance(value, list):
+        for index, child in enumerate(value):
+            findings.extend(
+                _find_unsupported_approval_scope_claim_paths(
+                    child,
+                    path=f"{path}[{index}]",
+                )
+            )
+
+    return findings
+
+
 def validate_unsupported_capability_envelope_fields(
     artifact_path: str | Path,
     artifact_name: str,
@@ -1058,6 +1125,39 @@ def validate_unsupported_audit_evidence_authority_claims(
                 "cannot approve, authorize, grant capabilities, override "
                 "diagnostics, satisfy approval, or create authority in "
                 "planner-controlled artifacts: " + ", ".join(findings)
+            ),
+        },
+    }
+
+
+def validate_unsupported_approval_scope_claims(
+    artifact_path: str | Path,
+    artifact_name: str,
+) -> dict[str, Any]:
+    artifact = _load_json(artifact_path)
+    findings = _find_unsupported_approval_scope_claim_paths(
+        artifact,
+        path="$",
+    )
+
+    if not findings:
+        return {
+            "ok": True,
+            "diagnostic": None,
+        }
+
+    return {
+        "ok": False,
+        "diagnostic": {
+            "error_code": "UNSUPPORTED_APPROVAL_SCOPE_CLAIM",
+            "component": "approval_scope_validator",
+            "artifact": artifact_name,
+            "message": (
+                f"unsupported approval-scope claim in {artifact_name}; operator "
+                "approval is explicit, operator-owned, and current-run/request "
+                "scoped, and planner-controlled artifacts must not claim "
+                "reusable, persistent, global, inherited, or cross-run/cross-"
+                "request approval: " + ", ".join(findings)
             ),
         },
     }
@@ -1408,7 +1508,7 @@ def validate_static_inputs(
     # Ordering within the phase is deterministic and fail-closed:
     # secret-field, capability-envelope, safeguard-authority-claim,
     # authority-artifact-ownership, approval-binding, execution-binding,
-    # runtime-reporting-boundary, audit-evidence-authority, then
+    # runtime-reporting-boundary, audit-evidence-authority, approval-scope, then
     # graph/scope/approval.
 
     # Phase 1: authority-value validators.
@@ -1505,6 +1605,15 @@ def validate_static_inputs(
             requested_auth_path, "RequestedAuth.json"
         ),
         lambda: validate_unsupported_audit_evidence_authority_claims(
+            approval_requests_path, "ApprovalRequests.json"
+        ),
+        lambda: validate_unsupported_approval_scope_claims(
+            workflow_spec_path, "WorkflowSpec.json"
+        ),
+        lambda: validate_unsupported_approval_scope_claims(
+            requested_auth_path, "RequestedAuth.json"
+        ),
+        lambda: validate_unsupported_approval_scope_claims(
             approval_requests_path, "ApprovalRequests.json"
         ),
         lambda: validate_unknown_node_types(
