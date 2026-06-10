@@ -24,7 +24,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - `Implementation checkpoint before this approval-scope-claim-rejection slice: 0131572 Document V1 safe noop governance cockpit checkpoint`
 - `Implementation checkpoint before this approval-identity-claim-rejection slice: 4f98ced Reject unsupported approval scope claims`
 - `V1 remains safe no-op only`
-- `568 tests passing`
+- `569 tests passing`
 
 ## Current Implemented Safety Runway
 
@@ -67,6 +67,7 @@ This is a concise handoff for future docs-first safe slices. It changes no behav
 - V1 safe no-op governance cockpit milestone checkpoint
 - fail-closed unsupported approval-scope claim rejection
 - fail-closed unsupported approval-identity claim rejection
+- post-tag approval hardening-line checkpoint
 - milestone docs updated
 
 The richer deterministic innovation template slice is now implemented as the
@@ -217,8 +218,13 @@ only.
 
 ## Recommended Next Safe Slices
 
-No new next safe slice is recorded in this handoff. Re-evaluate after this
-display-only operator-surface checkpoint.
+The post-tag approval hardening-line checkpoint is now recorded as done in
+`POST_TAG_APPROVAL_HARDENING_LINE.md` (the approval-scope and approval-identity
+invariants are documented, the milestone tag stays pinned to the cockpit
+checkpoint commit, and `HEAD` is intentionally ahead). No new validator slice is
+recommended next. The next recommended direction is consolidation: keep the
+docs/tests checkpoints internally consistent and do not add new validators
+unless an explicit, reviewed safety need is identified.
 
 ## Slice Boundaries
 

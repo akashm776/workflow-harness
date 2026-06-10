@@ -13,7 +13,7 @@ unsupported-claim hardening. It is docs/tests only and changes no behavior.
 
 ## Test Status
 
-- `568 tests` passing
+- `569 tests` passing
 
 ## Major Implemented Layers
 
@@ -594,6 +594,14 @@ unsupported-claim hardening. It is docs/tests only and changes no behavior.
     planner-input scanner scope (never `ApprovalDecisions.json`),
     exact-object-key matching, and fail-closed guarantees are pinned as a
     docs/tests-only checkpoint in `STATIC_VALIDATION_ORDERING_CONTRACT.md`.
+  - the post-tag hardening line that adds the approval-scope and
+    approval-identity invariants is recorded as a docs/tests-only checkpoint in
+    `POST_TAG_APPROVAL_HARDENING_LINE.md`: the milestone tag
+    `v0.1.0-safe-noop-governance-cockpit` stays pinned to the cockpit checkpoint
+    commit, the current `HEAD` is intentionally ahead, and the two post-tag
+    commits are fail-closed static validation hardening only (no new behavior,
+    no reusable approval, no approval carryover, no authority subsumption, no
+    real approval binding).
 
 ## Explicit Non-Goals
 
