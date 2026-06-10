@@ -16,6 +16,7 @@ REAL_EXECUTION_THREAT_MODEL_PATH = ROOT / "docs" / "REAL_EXECUTION_THREAT_MODEL.
 SIDE_EFFECT_CATALOG_PATH = ROOT / "docs" / "SIDE_EFFECT_CATALOG_DESIGN.md"
 TOOL_CONNECTOR_CATALOG_PATH = ROOT / "docs" / "TOOL_CONNECTOR_CATALOG_DESIGN.md"
 SANDBOX_BROKER_INTERFACE_PATH = ROOT / "docs" / "SANDBOX_BROKER_INTERFACE_DESIGN.md"
+SANDBOX_BACKEND_STRATEGY_PATH = ROOT / "docs" / "SANDBOX_BACKEND_STRATEGY.md"
 CAPABILITY_ENVELOPE_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_DESIGN.md"
 CAPABILITY_ENVELOPE_V1_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_V1_DESIGN.md"
 AUTHORITY_ARTIFACT_OWNERSHIP_PATH = (
@@ -2309,6 +2310,92 @@ class DocsTests(unittest.TestCase):
 
         # Non-goals.
         self.assertIn("Non-Goals", content)
+
+    def test_sandbox_backend_strategy_doc_exists_and_preserves_boundaries(
+        self,
+    ) -> None:
+        self.assertTrue(SANDBOX_BACKEND_STRATEGY_PATH.exists())
+        content = SANDBOX_BACKEND_STRATEGY_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+        normalized = " ".join(content.split())
+        lowered_normalized = normalized.lower()
+
+        self.assertIn("design only", lowered)
+        self.assertIn(
+            "will not implement sandbox isolation from scratch",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "will not implement a full agent runtime from scratch",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "will not implement Kubernetes agent orchestration from scratch",
+            normalized,
+        )
+        self.assertIn("not trying to replace these systems", lowered_normalized)
+        self.assertIn("governance/control-plane boundary", normalized)
+        self.assertIn("pluggable sandbox backend", lowered_normalized)
+        self.assertIn("Hermes Agent", content)
+        self.assertIn("kagent/kagents", content)
+        self.assertIn("Kubernetes", content)
+        self.assertIn(
+            "NemoClaw/OpenShell is a candidate backend", normalized
+        )
+        self.assertIn("candidate backend, not a replacement", lowered_normalized)
+        self.assertIn("workflow-harness compiler", normalized)
+        self.assertIn("Hermes Agent is not authoritative", normalized)
+        self.assertIn("kagent/kagents are not authoritative", normalized)
+        self.assertIn("Kubernetes is not authoritative", normalized)
+        self.assertIn("NemoClaw/OpenShell is not authoritative", normalized)
+        self.assertIn("compiler remains the authority boundary", lowered_normalized)
+        self.assertIn(
+            "operator approval remains explicit and current-run/request scoped",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "sandbox having policy does not replace compiler authorization",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "sandbox having policy does not replace artifact identity",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "sandbox having policy does not replace current-run/request approval scope",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "sandbox having policy does not replace audit/verifier/status semantics",
+            lowered_normalized,
+        )
+        self.assertIn("sandbox/backend cannot create authority", lowered_normalized)
+        self.assertIn(
+            "runtime/broker/verifier cannot create authority",
+            lowered_normalized,
+        )
+        self.assertIn("does not introduce a broker api", lowered_normalized)
+        self.assertIn("does not introduce a sandbox api", lowered_normalized)
+        self.assertIn("does not introduce an execution api", lowered_normalized)
+        self.assertIn(
+            "does not introduce kubernetes integration", lowered_normalized
+        )
+        self.assertIn(
+            "does not introduce hermes agent integration", lowered_normalized
+        )
+        self.assertIn(
+            "does not introduce kagent/kagents integration", lowered_normalized
+        )
+        self.assertIn(
+            "does not introduce nemoclaw/openshell integration",
+            lowered_normalized,
+        )
+        self.assertIn("does not implement real execution", lowered_normalized)
+        self.assertIn(
+            "does not implement credentials behavior", lowered_normalized
+        )
+        self.assertIn("does not implement network behavior", lowered_normalized)
+        self.assertIn("does not implement tool/mcp behavior", lowered_normalized)
 
 
 if __name__ == "__main__":
