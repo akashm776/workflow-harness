@@ -96,6 +96,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
         ), patch(
             "compiler.static_validation.validate_unsupported_runtime_reporting_claims",
             return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_audit_evidence_authority_claims",
+            return_value=success,
         ), patch("compiler.static_validation.validate_unknown_node_types", return_value=success), patch(
             "compiler.static_validation.validate_invalid_edge_endpoints", return_value=invalid_endpoint
         ), patch(
@@ -280,6 +283,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_unsupported_runtime_reporting_claims",
+            return_value=success,
+        ), patch(
+            "compiler.static_validation.validate_unsupported_audit_evidence_authority_claims",
             return_value=success,
         ), patch(
             "compiler.static_validation.validate_unknown_node_types",
@@ -498,6 +504,28 @@ class StaticValidationAggregateTests(unittest.TestCase):
                 ),
             ],
         ), patch(
+            "compiler.static_validation.validate_unsupported_audit_evidence_authority_claims",
+            side_effect=[
+                failure(
+                    "UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM",
+                    "audit_evidence_authority_validator",
+                    "WorkflowSpec.json",
+                    "audit-evidence workflow",
+                ),
+                failure(
+                    "UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM",
+                    "audit_evidence_authority_validator",
+                    "RequestedAuth.json",
+                    "audit-evidence requested",
+                ),
+                failure(
+                    "UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM",
+                    "audit_evidence_authority_validator",
+                    "ApprovalRequests.json",
+                    "audit-evidence approval",
+                ),
+            ],
+        ), patch(
             "compiler.static_validation.validate_unknown_node_types",
             return_value=failure(
                 "UNKNOWN_NODE_TYPE",
@@ -585,6 +613,9 @@ class StaticValidationAggregateTests(unittest.TestCase):
                 "runtime-reporting workflow",
                 "runtime-reporting requested",
                 "runtime-reporting approval",
+                "audit-evidence workflow",
+                "audit-evidence requested",
+                "audit-evidence approval",
                 "unknown node type",
                 "invalid endpoint",
                 "illegal cycle",
@@ -921,6 +952,54 @@ class StaticValidationAggregateTests(unittest.TestCase):
             [
                 "execution_binding_validator",
                 "runtime_reporting_boundary_validator",
+            ],
+        )
+
+    def test_workflow_runtime_reporting_and_audit_evidence_keep_documented_order(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
+            requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
+            approval_requests = _load_json(
+                SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
+            )
+            # runtime-reporting and audit-evidence keys on the same node must
+            # surface in the documented Phase 3 order.
+            workflow_spec["nodes"][0]["broker_request"] = {"display_only": True}
+            workflow_spec["nodes"][0]["evidence_approval"] = {"display_only": True}
+
+            workflow_spec_path = _write_json(
+                Path(tmp) / "WorkflowSpec.json", workflow_spec
+            )
+            requested_auth_path = _write_json(
+                Path(tmp) / "RequestedAuth.json", requested_auth
+            )
+            approval_requests_path = _write_json(
+                Path(tmp) / "ApprovalRequests.json", approval_requests
+            )
+
+            result = validate_static_inputs(
+                workflow_spec_path,
+                SIMPLE_FIXTURE_INPUT / "NodeTypeRegistry.json",
+                requested_auth_path,
+                approval_requests_path,
+                stop_on_first_error=False,
+            )
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(
+            [diagnostic["error_code"] for diagnostic in result["diagnostics"]],
+            [
+                "UNSUPPORTED_RUNTIME_REPORTING_CLAIM",
+                "UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM",
+            ],
+        )
+        self.assertEqual(
+            [diagnostic["component"] for diagnostic in result["diagnostics"]],
+            [
+                "runtime_reporting_boundary_validator",
+                "audit_evidence_authority_validator",
             ],
         )
 

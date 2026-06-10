@@ -29,7 +29,8 @@ Current Phase 3 order:
 5. approval-binding validator
 6. execution-binding validator
 7. runtime-reporting-boundary validator
-8. graph/scope/approval validators
+8. audit-evidence-authority validator
+9. graph/scope/approval validators
 ```
 
 ## Validator Ownership
@@ -58,6 +59,20 @@ Current Phase 3 order:
   `verifier_output` remain owned by `UNSUPPORTED_AUTHORITY_ARTIFACT` and are not
   duplicated here. This validator adds no broker, sandbox, verifier, or evidence
   behavior.
+- `UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM`: planner-supplied claims that
+  audit/evidence records can approve, authorize, grant, satisfy, or override
+  authority (`audit_authority`, `audit_approval`, `audit_grant`,
+  `audit_override`, `audit_decision`, `audit_authorizes`, `audit_approved_by`,
+  `audit_satisfies_approval`, `audit_satisfies_authority`,
+  `audit_override_diagnostics`, `evidence_approval`, `evidence_grant`,
+  `evidence_override`, `evidence_decision`, `evidence_authorizes`,
+  `evidence_approved_by`, `evidence_satisfies_approval`,
+  `evidence_satisfies_authority`, `evidence_override_diagnostics`). Exact-key
+  rejection only. It owns only the "audit/evidence can approve/authorize/grant/
+  override/satisfy authority" claim family; `evidence_authority` stays owned by
+  `UNSUPPORTED_RUNTIME_REPORTING_CLAIM` and `evidence_lineage`/`verifier_output`/
+  `audit_log` stay owned by `UNSUPPORTED_AUTHORITY_ARTIFACT`. It adds no audit,
+  evidence, or verifier behavior.
 
 ## Rules For Adding Future Validators
 
