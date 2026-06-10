@@ -18,6 +18,8 @@ data-shape module or future broker-related code surface is added.
 ## Applicability
 
 - Applies to blocked explicit `innovation_review` rich summaries.
+- Governance Readiness Checklist may also appear when existing summary fields
+  ground a non-unknown lifecycle state for a run summary.
 - Default / non-rich / generic summaries are not required to show the full
   cockpit.
 - Approved runs do not show blocked-review cockpit sections unless existing
@@ -29,6 +31,7 @@ data-shape module or future broker-related code surface is added.
 ```text
 Review Gate:
 Governance Lifecycle Stage:
+Governance Readiness Checklist:
 Candidate Workflow:
 Fixture Lineage:
 Proposed Tool Access:
@@ -49,6 +52,12 @@ Operator Review Packet:
   (`compiled_no_review_required`, `blocked_awaiting_operator_approval`,
   `completed_safe_noop`, `compile_failed`, `unknown`). It is not authoritative,
   loads no new artifacts, and grants nothing.
+- **Governance Readiness Checklist:** display-only checklist derived from
+  existing run-status summary fields and already-built summary projections. It
+  grants no authority. It creates no approvals. It does not bind approvals. It
+  does not authorize execution. It does not implement broker, sandbox,
+  verifier, or evidence behavior. It compactly reports what is satisfied,
+  missing, blocked, or inspect-only from already-known status facts only.
 - **Candidate Workflow:** display-only candidate graph summary.
 - **Fixture Lineage:** display-only future fixture path lineage, not fixture
   loading.
@@ -74,6 +83,15 @@ Operator Review Packet:
   capabilities, or execute.
 - Summary sections do not override compiler diagnostics.
 - Summary sections do not override operator approval.
+- Governance Readiness Checklist is display-only.
+- Governance Readiness Checklist is derived from existing run-status summary
+  fields.
+- Governance Readiness Checklist grants no authority.
+- Governance Readiness Checklist creates no approvals.
+- Governance Readiness Checklist does not bind approvals.
+- Governance Readiness Checklist does not authorize execution.
+- Governance Readiness Checklist does not implement broker, sandbox, verifier,
+  or evidence behavior.
 - Summary sections do not enable approval carryover.
 - Summary sections do not enable authority subsumption.
 - Summary sections do not create reusable authority.

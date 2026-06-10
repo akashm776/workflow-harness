@@ -60,6 +60,13 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(governance_lifecycle_stage_lines)
 
+    governance_readiness_checklist_lines = _governance_readiness_checklist_lines(
+        summary.get("governance_readiness_checklist")
+    )
+    if governance_readiness_checklist_lines:
+        lines.append("")
+        lines.extend(governance_readiness_checklist_lines)
+
     candidate_lines = _candidate_workflow_lines(summary.get("candidate_workflow"))
     if candidate_lines:
         lines.append("")
@@ -221,6 +228,28 @@ def _candidate_workflow_lines(candidate_workflow: Any) -> list[str]:
         for to_node_id in outgoing.get(node_id, []):
             lines.append(f"  -> {to_node_id}")
     return lines
+
+
+def _governance_readiness_checklist_lines(
+    governance_readiness_checklist: Any,
+) -> list[str]:
+    if not isinstance(governance_readiness_checklist, list):
+        return []
+
+    lines = ["Governance Readiness Checklist:"]
+    for item in governance_readiness_checklist:
+        if not isinstance(item, Mapping):
+            continue
+        label = item.get("label")
+        status = item.get("status")
+        if not isinstance(label, str) or not isinstance(status, str):
+            continue
+        lines.append(f"- {label}: {status}")
+        reason = item.get("reason")
+        if isinstance(reason, str):
+            lines.append(f"  Reason: {reason}")
+
+    return lines if len(lines) > 1 else []
 
 
 def _fixture_lineage_lines(fixture_lineage: Any) -> list[str]:

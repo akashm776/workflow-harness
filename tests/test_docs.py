@@ -1655,6 +1655,11 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn(
+            "Governance Readiness Checklist may also appear when existing "
+            "summary fields",
+            content,
+        )
+        self.assertIn(
             "Default / non-rich / generic summaries are not required to show the "
             "full",
             content,
@@ -1668,6 +1673,7 @@ class DocsTests(unittest.TestCase):
             "```text\n"
             "Review Gate:\n"
             "Governance Lifecycle Stage:\n"
+            "Governance Readiness Checklist:\n"
             "Candidate Workflow:\n"
             "Fixture Lineage:\n"
             "Proposed Tool Access:\n"
@@ -1693,6 +1699,32 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn(
             "Summary sections do not override operator approval.", content
+        )
+        self.assertIn(
+            "Governance Readiness Checklist is display-only.", content
+        )
+        self.assertIn(
+            "Governance Readiness Checklist is derived from existing run-status "
+            "summary",
+            content,
+        )
+        self.assertIn(
+            "Governance Readiness Checklist grants no authority.", content
+        )
+        self.assertIn(
+            "Governance Readiness Checklist creates no approvals.", content
+        )
+        self.assertIn(
+            "Governance Readiness Checklist does not bind approvals.", content
+        )
+        self.assertIn(
+            "Governance Readiness Checklist does not authorize execution.",
+            content,
+        )
+        self.assertIn(
+            "Governance Readiness Checklist does not implement broker, sandbox, "
+            "verifier,",
+            content,
         )
         self.assertIn(
             "Summary sections do not enable approval carryover.", content

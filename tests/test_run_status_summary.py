@@ -72,6 +72,126 @@ INNOVATION_REVIEW_COMPILER_AUTHORIZATION_PROJECTION = {
     ],
     "unsupported_authority": [],
 }
+INNOVATION_REVIEW_GOVERNANCE_READINESS_CHECKLIST = [
+    {
+        "label": "Compiler static validation",
+        "status": "satisfied",
+        "reason": "Compilation status is compiled.",
+    },
+    {
+        "label": "Operator approval gate",
+        "status": "missing",
+        "reason": (
+            "Explicit current-run approval is required to unblock this safe no-op run."
+        ),
+    },
+    {
+        "label": "Governance lifecycle stage",
+        "status": "blocked",
+        "reason": (
+            "review and approve or deny requested access for the current "
+            "run/request"
+        ),
+    },
+    {
+        "label": "Safe no-op execution posture",
+        "status": "inspect-only",
+        "reason": (
+            "Execution mode is safe_noop_only; the run is safe to inspect only."
+        ),
+    },
+    {
+        "label": "Approval binding scope",
+        "status": "satisfied",
+        "reason": (
+            "Any approval remains current run/request only; no approval carryover "
+            "or reusable authority is reported."
+        ),
+    },
+    {
+        "label": "Verifier / evidence status",
+        "status": "inspect-only",
+        "reason": (
+            "V1 safe no-op reports artifact presence only; no verifier behavior "
+            "is implemented."
+        ),
+    },
+    {
+        "label": "Broker / sandbox boundary",
+        "status": "inspect-only",
+        "reason": (
+            "V1 safe no-op has no broker or sandbox implementation; no broker "
+            "artifacts are generated."
+        ),
+    },
+]
+COMPLETED_SAFE_NOOP_GOVERNANCE_READINESS_CHECKLIST = [
+    {
+        "label": "Compiler static validation",
+        "status": "satisfied",
+        "reason": "Compilation status is compiled.",
+    },
+    {
+        "label": "Operator approval gate",
+        "status": "satisfied",
+        "reason": "Review is not required for this run/request.",
+    },
+    {
+        "label": "Governance lifecycle stage",
+        "status": "inspect-only",
+        "reason": "inspect status/audit output; no real execution was performed",
+    },
+    {
+        "label": "Safe no-op execution posture",
+        "status": "inspect-only",
+        "reason": "Execution mode is safe_noop_only; the run is safe to inspect only.",
+    },
+]
+COMPILE_FAILED_GOVERNANCE_READINESS_CHECKLIST = [
+    {
+        "label": "Compiler static validation",
+        "status": "blocked",
+        "reason": "Compilation status is failed; the proposal was not authorized.",
+    },
+    {
+        "label": "Governance lifecycle stage",
+        "status": "blocked",
+        "reason": (
+            "review compiler diagnostics; the proposal was not authorized and "
+            "nothing was executed"
+        ),
+    },
+    {
+        "label": "Safe no-op execution posture",
+        "status": "inspect-only",
+        "reason": "Execution mode is safe_noop_only; the run is safe to inspect only.",
+    },
+]
+COMPILED_NO_REVIEW_REQUIRED_GOVERNANCE_READINESS_CHECKLIST = [
+    {
+        "label": "Compiler static validation",
+        "status": "satisfied",
+        "reason": "Compilation status is compiled.",
+    },
+    {
+        "label": "Operator approval gate",
+        "status": "satisfied",
+        "reason": "Review is not required for this run/request.",
+    },
+    {
+        "label": "Governance lifecycle stage",
+        "status": "satisfied",
+        "reason": (
+            "proceed to the safe no-op run; no operator approval is required for "
+            "this run/request"
+        ),
+    },
+    {
+        "label": "Safe no-op execution posture",
+        "status": "inspect-only",
+        "reason": "Execution mode is safe_noop_only; the run is safe to inspect only.",
+    },
+]
 INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET = {
     "review_required": True,
     "blocked_by_review": True,
@@ -79,6 +199,7 @@ INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET = {
     "execution_mode": "safe_noop_only",
     "included_sections": [
         "Review Gate",
+        "Governance Readiness Checklist",
         "Candidate Workflow",
         "Fixture Lineage",
         "Proposed Tool Access",
@@ -121,6 +242,10 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["approval_requests_path"])
             self.assertIsNone(summary["review_gate"])
             self.assertFalse(summary["candidate_dir_present"])
+            self.assertEqual(
+                summary["governance_readiness_checklist"],
+                COMPLETED_SAFE_NOOP_GOVERNANCE_READINESS_CHECKLIST,
+            )
             self.assertIsNone(summary["compiler_authorization_projection"])
             self.assertIsNone(summary["operator_review_packet"])
             stage = summary["governance_lifecycle_stage"]
@@ -182,6 +307,40 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             )
             self.assertEqual(stage["approval_scope"], "current run/request only")
             self.assertIs(stage["display_only"], True)
+            self.assertEqual(
+                summary["governance_readiness_checklist"],
+                [
+                    {
+                        "label": "Compiler static validation",
+                        "status": "satisfied",
+                        "reason": "Compilation status is compiled.",
+                    },
+                    {
+                        "label": "Operator approval gate",
+                        "status": "missing",
+                        "reason": (
+                            "Explicit current-run approval is required to unblock "
+                            "this safe no-op run."
+                        ),
+                    },
+                    {
+                        "label": "Governance lifecycle stage",
+                        "status": "blocked",
+                        "reason": (
+                            "review and approve or deny requested access for the "
+                            "current run/request"
+                        ),
+                    },
+                    {
+                        "label": "Safe no-op execution posture",
+                        "status": "inspect-only",
+                        "reason": (
+                            "Execution mode is safe_noop_only; the run is safe to "
+                            "inspect only."
+                        ),
+                    },
+                ],
+            )
 
     def test_missing_directory_is_fail_soft(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -199,6 +358,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["approval_requests_path"])
             self.assertIsNone(summary["review_gate"])
             self.assertFalse(summary["candidate_dir_present"])
+            self.assertIsNone(summary["governance_readiness_checklist"])
             self.assertEqual(
                 summary["governance_lifecycle_stage"]["stage"], "unknown"
             )
@@ -221,6 +381,63 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertEqual(summary["execution_status"], "unknown")
             self.assertIsNone(summary["review_required"])
             self.assertFalse(summary["blocked_by_review"])
+            self.assertIsNone(summary["governance_readiness_checklist"])
+
+    def test_compile_failed_summary_includes_grounded_readiness_checklist(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "run"
+            run_dir.mkdir()
+            (run_dir / "CompilationReport.json").write_text(
+                json.dumps({"status": "failed"}),
+                encoding="utf-8",
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+            self.assertEqual(summary["compilation_status"], "failed")
+            self.assertFalse(summary["blocked_by_review"])
+            self.assertEqual(
+                summary["governance_lifecycle_stage"]["stage"],
+                "compile_failed",
+            )
+            self.assertEqual(
+                summary["governance_readiness_checklist"],
+                COMPILE_FAILED_GOVERNANCE_READINESS_CHECKLIST,
+            )
+
+    def test_compiled_no_review_required_summary_includes_grounded_readiness_checklist(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp) / "run"
+            run_dir.mkdir()
+            (run_dir / "CompilationReport.json").write_text(
+                json.dumps({"status": "compiled"}),
+                encoding="utf-8",
+            )
+            (run_dir / "ExecutionManifest.json").write_text(
+                json.dumps({"execution_status": "ready_to_execute"}),
+                encoding="utf-8",
+            )
+            (run_dir / "EffectivePolicy.json").write_text(
+                json.dumps({"review_required": False}),
+                encoding="utf-8",
+            )
+
+            summary = summarize_run_directory(run_dir)
+
+            self.assertEqual(summary["compilation_status"], "compiled")
+            self.assertEqual(summary["execution_status"], "ready_to_execute")
+            self.assertIs(summary["review_required"], False)
+            self.assertFalse(summary["blocked_by_review"])
+            self.assertEqual(
+                summary["governance_lifecycle_stage"]["stage"],
+                "compiled_no_review_required",
+            )
+            self.assertEqual(
+                summary["governance_readiness_checklist"],
+                COMPILED_NO_REVIEW_REQUIRED_GOVERNANCE_READINESS_CHECKLIST,
+            )
 
     def test_summary_writes_no_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -317,6 +534,10 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 INNOVATION_REVIEW_COMPILER_AUTHORIZATION_PROJECTION,
             )
             self.assertEqual(
+                summary["governance_readiness_checklist"],
+                INNOVATION_REVIEW_GOVERNANCE_READINESS_CHECKLIST,
+            )
+            self.assertEqual(
                 summary["operator_review_packet"],
                 INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET,
             )
@@ -336,13 +557,51 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["proposed_tool_access"])
             self.assertIsNone(summary["compiler_authorization_projection"])
             self.assertEqual(
+                summary["governance_readiness_checklist"],
+                [
+                    {
+                        "label": "Compiler static validation",
+                        "status": "satisfied",
+                        "reason": "Compilation status is compiled.",
+                    },
+                    {
+                        "label": "Operator approval gate",
+                        "status": "missing",
+                        "reason": (
+                            "Explicit current-run approval is required to unblock "
+                            "this safe no-op run."
+                        ),
+                    },
+                    {
+                        "label": "Governance lifecycle stage",
+                        "status": "blocked",
+                        "reason": (
+                            "review and approve or deny requested access for the "
+                            "current run/request"
+                        ),
+                    },
+                    {
+                        "label": "Safe no-op execution posture",
+                        "status": "inspect-only",
+                        "reason": (
+                            "Execution mode is safe_noop_only; the run is safe to "
+                            "inspect only."
+                        ),
+                    },
+                ],
+            )
+            self.assertEqual(
                 summary["operator_review_packet"],
                 {
                     "review_required": True,
                     "blocked_by_review": True,
                     "decision_scope": "current run/request only",
                     "execution_mode": "safe_noop_only",
-                    "included_sections": ["Review Gate", "Candidate Workflow"],
+                    "included_sections": [
+                        "Review Gate",
+                        "Governance Readiness Checklist",
+                        "Candidate Workflow",
+                    ],
                 },
             )
 
@@ -943,6 +1202,10 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertEqual(summary["execution_status"], "completed")
             self.assertIs(summary["review_required"], False)
             self.assertFalse(summary["blocked_by_review"])
+            self.assertEqual(
+                summary["governance_readiness_checklist"],
+                COMPLETED_SAFE_NOOP_GOVERNANCE_READINESS_CHECKLIST,
+            )
             self.assertIsNone(summary["compiler_authorization_projection"])
             self.assertIsNone(summary["operator_review_packet"])
 
@@ -968,6 +1231,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 summary["operator_review_packet"]["included_sections"],
                 [
                     "Review Gate",
+                    "Governance Readiness Checklist",
                     "Candidate Workflow",
                     "Fixture Lineage",
                     "Compiler Authorization Projection",
@@ -997,6 +1261,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 summary["operator_review_packet"]["included_sections"],
                 [
                     "Review Gate",
+                    "Governance Readiness Checklist",
                     "Candidate Workflow",
                     "Fixture Lineage",
                     "Compiler Authorization Projection",
