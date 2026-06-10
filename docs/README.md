@@ -223,5 +223,14 @@ connectors, and are not wired into compile or runtime behavior.
   order, and the fail-closed unsupported-claim hardening), the explicit
   non-goals, and the next safe directions. It is docs/tests only and changes no
   behavior.
+- [`POST_TAG_APPROVAL_HARDENING_LINE.md`](POST_TAG_APPROVAL_HARDENING_LINE.md) -
+  a docs-only checkpoint for the hardening line after the
+  `v0.1.0-safe-noop-governance-cockpit` milestone tag. It records that the tag
+  stays pinned to `0131572`, that the current `HEAD` is intentionally ahead, and
+  that the two post-tag commits harden the approval-scope and approval-identity
+  invariants (no reusable/persistent/global/inherited/cross-run/cross-request
+  approval; no planner-supplied/spoofed approval identity/proof/receipt/
+  signature/subject/run/request identifiers). It is fail-closed static
+  validation hardening only and changes no behavior.
 - [`NEXT_SAFE_SLICES.md`](NEXT_SAFE_SLICES.md) - concise handoff for the next
   docs-first safe slices and the staging rule for risky future capabilities.

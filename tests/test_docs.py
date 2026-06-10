@@ -78,6 +78,9 @@ STATIC_VALIDATION_ORDERING_CONTRACT_PATH = (
 V1_GOVERNANCE_COCKPIT_CHECKPOINT_PATH = (
     ROOT / "docs" / "V1_SAFE_NOOP_GOVERNANCE_COCKPIT_CHECKPOINT.md"
 )
+POST_TAG_APPROVAL_HARDENING_LINE_PATH = (
+    ROOT / "docs" / "POST_TAG_APPROVAL_HARDENING_LINE.md"
+)
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
@@ -179,7 +182,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("568 tests", content)
+        self.assertIn("569 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -1094,7 +1097,7 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("568 tests passing", content)
+        self.assertIn("569 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -1145,8 +1148,15 @@ class DocsTests(unittest.TestCase):
         self.assertIn("existing safe innovation demo", content)
         self.assertIn("behavior", content)
 
+        self.assertIn("post-tag approval hardening-line checkpoint", content)
+        self.assertIn("POST_TAG_APPROVAL_HARDENING_LINE.md", content)
         self.assertIn(
-            "No new next safe slice is recorded in this handoff", content
+            "recommended direction is consolidation", content
+        )
+        self.assertIn(
+            "do not add new validators\nunless an explicit, reviewed safety "
+            "need is identified",
+            content,
         )
 
         for boundary in (
@@ -1929,6 +1939,81 @@ class DocsTests(unittest.TestCase):
             "do not add broker execution or fake broker interface yet", content
         )
 
+    def test_post_tag_approval_hardening_line_doc_exists_and_records_checkpoint(
+        self,
+    ) -> None:
+        self.assertTrue(POST_TAG_APPROVAL_HARDENING_LINE_PATH.exists())
+        content = POST_TAG_APPROVAL_HARDENING_LINE_PATH.read_text(
+            encoding="utf-8"
+        )
+
+        # Status/scope: docs/tests only; no behavior/canonical/runtime change.
+        self.assertIn("Docs/tests only.", content)
+        self.assertIn("No behavior change.", content)
+        self.assertIn("No canonical JSON/hashing change.", content)
+        self.assertIn("No runtime/execution change.", content)
+        self.assertIn("No new validator added in this slice.", content)
+
+        # Milestone tag stays pinned to 0131572; HEAD intentionally ahead.
+        self.assertIn("v0.1.0-safe-noop-governance-cockpit", content)
+        self.assertIn("V1 Safe\n  No-Op Governance Cockpit", content)
+        self.assertIn("0131572", content)
+        self.assertIn("It must not be moved.", content)
+        self.assertIn("intentionally ahead", content)
+
+        # The two post-tag commits.
+        self.assertIn(
+            "```text\n"
+            "4f98ced Reject unsupported approval scope claims\n"
+            "927bb7d Reject unsupported approval identity claims\n"
+            "```",
+            content,
+        )
+
+        # Hardened approval invariants.
+        self.assertIn("Approval-scope invariant.", content)
+        self.assertIn(
+            "reusable, persistent, global, inherited, valid across runs, or "
+            "valid across\n  requests",
+            content,
+        )
+        self.assertIn("Approval-identity invariant.", content)
+        self.assertIn(
+            "identity, proof, receipt, signature, subject, run, or request "
+            "identifiers",
+            content,
+        )
+        self.assertIn(
+            "fail-closed static validation hardening changes only", content
+        )
+
+        # Explicit non-implementations.
+        for non_goal in (
+            "reusable approval",
+            "approval carryover",
+            "authority subsumption",
+            "real approval binding",
+            "real execution",
+            "broker behavior",
+            "fake/no-op broker interface",
+            "sandbox behavior",
+            "verifier behavior",
+            "evidence generation",
+            "tool/MCP/model/network/credential behavior",
+        ):
+            self.assertIn(non_goal, content)
+
+        # Trust boundary unchanged.
+        self.assertIn("The planner remains non-authoritative.", content)
+        self.assertIn(
+            "The compiler remains the sole authority boundary.", content
+        )
+        self.assertIn(
+            "Operator approval remains explicit and current-run/request scoped.",
+            content,
+        )
+        self.assertIn("The runtime remains safe no-op.", content)
+
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())
         content = DOCS_INDEX_PATH.read_text(encoding="utf-8")
@@ -1961,6 +2046,7 @@ class DocsTests(unittest.TestCase):
             "OPERATOR_COCKPIT_CONTRACT.md",
             "STATIC_VALIDATION_ORDERING_CONTRACT.md",
             "V1_SAFE_NOOP_GOVERNANCE_COCKPIT_CHECKPOINT.md",
+            "POST_TAG_APPROVAL_HARDENING_LINE.md",
         ):
             self.assertIn(doc_name, content)
 
