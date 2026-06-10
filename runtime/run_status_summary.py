@@ -609,6 +609,7 @@ def _build_operator_review_packet(
     review_required: bool | None,
     blocked_by_review: bool,
     review_gate: dict[str, Any] | None,
+    governance_readiness_checklist: list[dict[str, str]] | None,
     candidate_workflow: dict[str, Any] | None,
     fixture_lineage: dict[str, Any] | None,
     proposed_tool_access: dict[str, Any] | None,
@@ -625,6 +626,8 @@ def _build_operator_review_packet(
     included_sections: list[str] = []
     if review_gate is not None:
         included_sections.append("Review Gate")
+    if governance_readiness_checklist is not None:
+        included_sections.append("Governance Readiness Checklist")
     if candidate_workflow is not None:
         included_sections.append("Candidate Workflow")
     if fixture_lineage is not None:
@@ -647,6 +650,180 @@ def _build_operator_review_packet(
         "execution_mode": "safe_noop_only",
         "included_sections": included_sections,
     }
+
+
+def _build_governance_readiness_checklist(
+    compilation_status: str,
+    review_required: bool | None,
+    blocked_by_review: bool,
+    governance_lifecycle_stage: dict[str, Any],
+    review_gate: dict[str, Any] | None,
+    approval_binding_summary: dict[str, Any] | None,
+    verifier_evidence_status: dict[str, Any] | None,
+    broker_boundary_status: dict[str, Any] | None,
+) -> list[dict[str, str]] | None:
+    """Return a display-only readiness checklist derived from summary fields only."""
+
+    lifecycle_stage = _get_str(governance_lifecycle_stage, "stage")
+    if lifecycle_stage not in {
+        "blocked_awaiting_operator_approval",
+        "compile_failed",
+        "completed_safe_noop",
+        "compiled_no_review_required",
+    }:
+        return None
+
+    checklist: list[dict[str, str]] = []
+
+    if compilation_status == "compiled":
+        checklist.append(
+            {
+                "label": "Compiler static validation",
+                "status": "satisfied",
+                "reason": "Compilation status is compiled.",
+            }
+        )
+    elif compilation_status == "failed":
+        checklist.append(
+            {
+                "label": "Compiler static validation",
+                "status": "blocked",
+                "reason": "Compilation status is failed; the proposal was not authorized.",
+            }
+        )
+    else:
+        checklist.append(
+            {
+                "label": "Compiler static validation",
+                "status": "missing",
+                "reason": (
+                    "Compilation status is unknown from the available run artifacts."
+                ),
+            }
+        )
+
+    if blocked_by_review and review_required is True:
+        reason = _get_str(review_gate, "guidance") or (
+            "Review is required and the run remains blocked pending a "
+            "current-run approval decision."
+        )
+        checklist.append(
+            {
+                "label": "Operator approval gate",
+                "status": "missing",
+                "reason": reason,
+            }
+        )
+    elif review_required is False:
+        checklist.append(
+            {
+                "label": "Operator approval gate",
+                "status": "satisfied",
+                "reason": "Review is not required for this run/request.",
+            }
+        )
+
+    lifecycle_status = {
+        "blocked_awaiting_operator_approval": "blocked",
+        "compile_failed": "blocked",
+        "completed_safe_noop": "inspect-only",
+        "compiled_no_review_required": "satisfied",
+        "unknown": "missing",
+    }.get(lifecycle_stage or "unknown", "missing")
+    lifecycle_reason = _get_str(
+        governance_lifecycle_stage, "next_operator_action"
+    ) or (
+        "The governance lifecycle stage could not be determined from the "
+        "available summary fields."
+    )
+    checklist.append(
+        {
+            "label": "Governance lifecycle stage",
+            "status": lifecycle_status,
+            "reason": lifecycle_reason,
+        }
+    )
+
+    execution_mode = _get_str(governance_lifecycle_stage, "execution_mode")
+    if execution_mode is not None:
+        checklist.append(
+            {
+                "label": "Safe no-op execution posture",
+                "status": "inspect-only" if execution_mode == "safe_noop_only" else "missing",
+                "reason": (
+                    "Execution mode is safe_noop_only; the run is safe to inspect only."
+                    if execution_mode == "safe_noop_only"
+                    else f"Execution mode is {execution_mode}."
+                ),
+            }
+        )
+
+    if isinstance(approval_binding_summary, dict):
+        binding_flags = (
+            approval_binding_summary.get("current_run_scope_only") is True
+            and approval_binding_summary.get("current_request_scope_only") is True
+            and approval_binding_summary.get("no_approval_carryover") is True
+            and approval_binding_summary.get("not_reusable_authority") is True
+        )
+        checklist.append(
+            {
+                "label": "Approval binding scope",
+                "status": "satisfied" if binding_flags else "missing",
+                "reason": (
+                    "Any approval remains current run/request only; no approval "
+                    "carryover or reusable authority is reported."
+                    if binding_flags
+                    else (
+                        "Approval binding scope could not be confirmed from the "
+                        "available summary fields."
+                    )
+                ),
+            }
+        )
+
+    if isinstance(verifier_evidence_status, dict):
+        reason = "Verification status is unknown."
+        findings = verifier_evidence_status.get("findings")
+        if isinstance(findings, list):
+            for finding in findings:
+                if isinstance(finding, str):
+                    reason = finding
+                    break
+        checklist.append(
+            {
+                "label": "Verifier / evidence status",
+                "status": (
+                    "inspect-only"
+                    if _get_str(verifier_evidence_status, "verification_status")
+                    == "not_implemented"
+                    else "missing"
+                ),
+                "reason": reason,
+            }
+        )
+
+    if isinstance(broker_boundary_status, dict):
+        reason = "Broker boundary status is unknown."
+        findings = broker_boundary_status.get("findings")
+        if isinstance(findings, list):
+            for finding in findings:
+                if isinstance(finding, str):
+                    reason = finding
+                    break
+        checklist.append(
+            {
+                "label": "Broker / sandbox boundary",
+                "status": (
+                    "inspect-only"
+                    if broker_boundary_status.get("no_broker_implementation") is True
+                    and broker_boundary_status.get("no_sandbox_implementation") is True
+                    else "missing"
+                ),
+                "reason": reason,
+            }
+        )
+
+    return checklist
 
 
 def _build_governance_lifecycle_stage(
@@ -769,6 +946,22 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         review_required,
         blocked_by_review,
     )
+    governance_lifecycle_stage = _build_governance_lifecycle_stage(
+        compilation_status,
+        execution_status,
+        review_required,
+        blocked_by_review,
+    )
+    governance_readiness_checklist = _build_governance_readiness_checklist(
+        compilation_status,
+        review_required,
+        blocked_by_review,
+        governance_lifecycle_stage,
+        review_gate,
+        approval_binding_summary,
+        verifier_evidence_status,
+        broker_boundary_status,
+    )
 
     return {
         "run_dir": str(run_path),
@@ -783,12 +976,8 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "approval_request_count": approval_request_count,
         "approval_requests_path": approval_requests_path,
         "review_gate": review_gate,
-        "governance_lifecycle_stage": _build_governance_lifecycle_stage(
-            compilation_status,
-            execution_status,
-            review_required,
-            blocked_by_review,
-        ),
+        "governance_lifecycle_stage": governance_lifecycle_stage,
+        "governance_readiness_checklist": governance_readiness_checklist,
         "candidate_workflow": candidate_workflow,
         "fixture_lineage": fixture_lineage,
         "proposed_tool_access": proposed_tool_access,
@@ -800,6 +989,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
             review_required,
             blocked_by_review,
             review_gate,
+            governance_readiness_checklist,
             candidate_workflow,
             fixture_lineage,
             proposed_tool_access,

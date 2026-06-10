@@ -96,6 +96,66 @@ class RunStatusSummaryViewTests(unittest.TestCase):
         self.assertLess(review_gate_idx, stage_idx)
         self.assertLess(stage_idx, candidate_idx)
 
+    def test_render_includes_governance_readiness_checklist_section(self) -> None:
+        summary = self._summary_with_candidate_workflow()
+        summary["governance_readiness_checklist"] = [
+            {
+                "label": "Compiler static validation",
+                "status": "satisfied",
+                "reason": "Compilation status is compiled.",
+            },
+            {
+                "label": "Operator approval gate",
+                "status": "missing",
+                "reason": (
+                    "Explicit current-run approval is required to unblock this "
+                    "safe no-op run."
+                ),
+            },
+        ]
+
+        rendered = render_run_status_summary_view(summary)
+
+        self.assertIn("Governance Readiness Checklist:", rendered)
+        self.assertIn("- Compiler static validation: satisfied", rendered)
+        self.assertIn("  Reason: Compilation status is compiled.", rendered)
+        self.assertIn("- Operator approval gate: missing", rendered)
+        self.assertIn(
+            "  Reason: Explicit current-run approval is required to unblock this "
+            "safe no-op run.",
+            rendered,
+        )
+
+    def test_governance_readiness_checklist_renders_after_stage_and_before_candidate(
+        self,
+    ) -> None:
+        summary = self._summary_with_candidate_workflow()
+        summary["review_gate"] = {"blocked_reason": "review_required"}
+        summary["approval_request_count"] = 1
+        summary["governance_lifecycle_stage"] = {
+            "stage": "blocked_awaiting_operator_approval",
+            "display_only": True,
+        }
+        summary["governance_readiness_checklist"] = [
+            {
+                "label": "Compiler static validation",
+                "status": "satisfied",
+                "reason": "Compilation status is compiled.",
+            }
+        ]
+
+        rendered = render_run_status_summary_view(summary)
+
+        stage_idx = rendered.index("Governance Lifecycle Stage:")
+        checklist_idx = rendered.index("Governance Readiness Checklist:")
+        candidate_idx = rendered.index("Candidate Workflow:")
+        self.assertLess(stage_idx, checklist_idx)
+        self.assertLess(checklist_idx, candidate_idx)
+
+    def test_render_without_governance_readiness_checklist_has_no_section(self) -> None:
+        rendered = render_run_status_summary_view(_sample_summary())
+        self.assertNotIn("Governance Readiness Checklist:", rendered)
+
     def test_render_without_governance_lifecycle_stage_has_no_section(self) -> None:
         # The base sample summary has no governance_lifecycle_stage key.
         rendered = render_run_status_summary_view(_sample_summary())
