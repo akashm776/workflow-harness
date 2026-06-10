@@ -72,6 +72,9 @@ BROKER_RESULT_FIXTURE_PATH = (
 OPERATOR_COCKPIT_CONTRACT_PATH = (
     ROOT / "docs" / "OPERATOR_COCKPIT_CONTRACT.md"
 )
+STATIC_VALIDATION_ORDERING_CONTRACT_PATH = (
+    ROOT / "docs" / "STATIC_VALIDATION_ORDERING_CONTRACT.md"
+)
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
@@ -173,7 +176,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("542 tests", content)
+        self.assertIn("543 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -1084,7 +1087,7 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("542 tests passing", content)
+        self.assertIn("543 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -1698,6 +1701,101 @@ class DocsTests(unittest.TestCase):
         ):
             self.assertIn(non_goal, content)
 
+    def test_static_validation_ordering_contract_doc_exists_and_records_order(
+        self,
+    ) -> None:
+        self.assertTrue(STATIC_VALIDATION_ORDERING_CONTRACT_PATH.exists())
+        content = STATIC_VALIDATION_ORDERING_CONTRACT_PATH.read_text(
+            encoding="utf-8"
+        )
+        lowered = content.lower()
+
+        # Status/scope: docs/tests only; no behavior/canonical/runtime change.
+        self.assertIn("Docs/tests only.", content)
+        self.assertIn("No behavior change.", content)
+        self.assertIn("No canonical JSON/hashing change.", content)
+        self.assertIn("No runtime/execution change.", content)
+
+        # Exact 9-step Phase 3 order.
+        self.assertIn(
+            "```text\n"
+            "1. secret-field\n"
+            "2. capability-envelope\n"
+            "3. safeguard-authority-claim\n"
+            "4. authority-artifact-ownership\n"
+            "5. approval-binding\n"
+            "6. execution-binding\n"
+            "7. runtime-reporting-boundary\n"
+            "8. audit-evidence-authority\n"
+            "9. graph/scope/approval\n"
+            "```",
+            content,
+        )
+
+        # Ownership boundaries: each diagnostic listed.
+        for diagnostic in (
+            "UNSUPPORTED_SECRET_FIELD",
+            "UNSUPPORTED_CAPABILITY_ENVELOPE",
+            "UNSUPPORTED_SAFEGUARD_AUTHORITY_CLAIM",
+            "UNSUPPORTED_AUTHORITY_ARTIFACT",
+            "UNSUPPORTED_APPROVAL_BINDING",
+            "UNSUPPORTED_EXECUTION_BINDING",
+            "UNSUPPORTED_RUNTIME_REPORTING_CLAIM",
+            "UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM",
+        ):
+            self.assertIn(diagnostic, content)
+        self.assertIn("evidence_lineage", content)
+        self.assertIn("verifier_output", content)
+        self.assertIn("audit_log", content)
+        self.assertIn("approval_decisions", content)
+        self.assertIn("structural graph/scope/approval", content)
+
+        # Scanner scope: planner-controlled artifacts only; not ApprovalDecisions.
+        self.assertIn("WorkflowSpec.json", content)
+        self.assertIn("RequestedAuth.json", content)
+        self.assertIn("ApprovalRequests.json", content)
+        self.assertIn(
+            "must not scan `ApprovalDecisions.json` unless a validator is "
+            "explicitly",
+            content,
+        )
+        self.assertIn(
+            "Operator approval decisions are not planner-authored proposals.",
+            content,
+        )
+
+        # Matching rule: exact object keys, no fuzzy string matching.
+        self.assertIn(
+            "Unsupported claim validators reject exact object keys.", content
+        )
+        self.assertIn("must not fuzzy-match arbitrary string values", content)
+        self.assertIn(
+            "Benign strings are not rejected merely because they contain a "
+            "reserved term.",
+            content,
+        )
+
+        # Fail-closed guarantees.
+        self.assertIn("Unsupported planner claims fail closed.", content)
+        self.assertIn("Planner remains non-authoritative.", content)
+        self.assertIn("Compiler remains the authority boundary.", content)
+        self.assertIn("Runtime remains safe no-op.", content)
+        self.assertIn("Diagnostics do not grant authority.", content)
+        self.assertIn("do not approve, authorize,", content)
+        self.assertIn("enable authority subsumption", content)
+        self.assertIn("create reusable authority.", content)
+
+        # Non-goals.
+        for non_goal in (
+            "no real execution",
+            "no broker/sandbox",
+            "no fake/no-op broker interface",
+            "no verifier implementation",
+            "no evidence generation implementation",
+            "no canonical JSON/hashing changes",
+        ):
+            self.assertIn(non_goal, content)
+
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())
         content = DOCS_INDEX_PATH.read_text(encoding="utf-8")
@@ -1728,6 +1826,7 @@ class DocsTests(unittest.TestCase):
             "EVIDENCE_LINEAGE_VERIFIER_OUTPUT_CONTRACT.md",
             "NOOP_BROKER_BOUNDARY_CONTRACT.md",
             "OPERATOR_COCKPIT_CONTRACT.md",
+            "STATIC_VALIDATION_ORDERING_CONTRACT.md",
         ):
             self.assertIn(doc_name, content)
 

@@ -142,6 +142,15 @@ design gates. The design-only documents in this section are not implementations.
   each section's responsibility, and the read-only/no-execution safety boundary.
   Planner stays non-authoritative, the compiler remains the sole authority
   boundary, and the sections grant no authority and write no artifacts.
+- [`STATIC_VALIDATION_ORDERING_CONTRACT.md`](STATIC_VALIDATION_ORDERING_CONTRACT.md) -
+  the current contract for compiler static validation ordering: it records the
+  exact Phase 3 hardening order (secret-field → capability-envelope →
+  safeguard-authority-claim → authority-artifact-ownership → approval-binding →
+  execution-binding → runtime-reporting-boundary → audit-evidence-authority →
+  graph/scope/approval), each diagnostic's exclusive ownership boundary, the
+  planner-input scanner scope (planner-controlled artifacts only, never
+  `ApprovalDecisions.json`), exact-object-key matching, and the fail-closed
+  guarantees. It is docs/tests only and changes no behavior.
 
 ## 3. Implementation Checkpoints / Safe Code Surfaces
 
