@@ -53,6 +53,13 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(review_gate_lines)
 
+    governance_lifecycle_stage_lines = _governance_lifecycle_stage_lines(
+        summary.get("governance_lifecycle_stage")
+    )
+    if governance_lifecycle_stage_lines:
+        lines.append("")
+        lines.extend(governance_lifecycle_stage_lines)
+
     candidate_lines = _candidate_workflow_lines(summary.get("candidate_workflow"))
     if candidate_lines:
         lines.append("")
@@ -144,6 +151,40 @@ def _review_gate_lines(review_gate: Any, approval_request_count: Any) -> list[st
 
     lines.append(
         "unblock: supply a matching ApprovalDecisions.json for this run/request only"
+    )
+    return lines
+
+
+def _governance_lifecycle_stage_lines(
+    governance_lifecycle_stage: Any,
+) -> list[str]:
+    if not isinstance(governance_lifecycle_stage, Mapping):
+        return []
+
+    lines = ["Governance Lifecycle Stage:"]
+    lines.append(
+        f"stage: {_field_text(governance_lifecycle_stage.get('stage'))}"
+    )
+
+    next_operator_action = governance_lifecycle_stage.get("next_operator_action")
+    if isinstance(next_operator_action, str):
+        lines.append(f"next_operator_action: {next_operator_action}")
+
+    authority_boundary = governance_lifecycle_stage.get("authority_boundary")
+    if isinstance(authority_boundary, str):
+        lines.append(f"authority_boundary: {authority_boundary}")
+
+    approval_scope = governance_lifecycle_stage.get("approval_scope")
+    if isinstance(approval_scope, str):
+        lines.append(f"approval_scope: {approval_scope}")
+
+    execution_mode = governance_lifecycle_stage.get("execution_mode")
+    if isinstance(execution_mode, str):
+        lines.append(f"execution_mode: {execution_mode}")
+
+    lines.append(
+        "display_only: "
+        f"{_bool_text(governance_lifecycle_stage.get('display_only'))}"
     )
     return lines
 

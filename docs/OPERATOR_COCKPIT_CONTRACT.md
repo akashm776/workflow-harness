@@ -28,6 +28,7 @@ data-shape module or future broker-related code surface is added.
 
 ```text
 Review Gate:
+Governance Lifecycle Stage:
 Candidate Workflow:
 Fixture Lineage:
 Proposed Tool Access:
@@ -41,6 +42,13 @@ Operator Review Packet:
 ## Section Responsibilities
 
 - **Review Gate:** blocked review status and current approval requirement.
+- **Governance Lifecycle Stage:** display-only projection of where the run sits
+  in the governed workflow flow and the next safe operator action, derived only
+  from existing status fields (`compilation_status`, `execution_status`,
+  `review_required`, `blocked_by_review`). Stages are a small fixed vocabulary
+  (`compiled_no_review_required`, `blocked_awaiting_operator_approval`,
+  `completed_safe_noop`, `compile_failed`, `unknown`). It is not authoritative,
+  loads no new artifacts, and grants nothing.
 - **Candidate Workflow:** display-only candidate graph summary.
 - **Fixture Lineage:** display-only future fixture path lineage, not fixture
   loading.

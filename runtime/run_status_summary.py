@@ -649,6 +649,64 @@ def _build_operator_review_packet(
     }
 
 
+def _build_governance_lifecycle_stage(
+    compilation_status: str,
+    execution_status: str,
+    review_required: bool | None,
+    blocked_by_review: bool,
+) -> dict[str, Any]:
+    """Return a display-only governance lifecycle stage projection.
+
+    Derived only from already-computed status fields (no new artifact reads). It
+    maps the run onto the governed workflow flow (planner proposal -> compiler
+    authorization -> operator approval -> safe no-op run -> reporting) and states
+    the next safe operator action. It is display-only: it creates no authority,
+    approval, evidence, execution capability, or runtime behavior, and the stage
+    itself is not authoritative.
+    """
+
+    if compilation_status == "failed":
+        stage = "compile_failed"
+        next_operator_action = (
+            "review compiler diagnostics; the proposal was not authorized and "
+            "nothing was executed"
+        )
+    elif blocked_by_review:
+        stage = "blocked_awaiting_operator_approval"
+        next_operator_action = (
+            "review and approve or deny requested access for the current "
+            "run/request"
+        )
+    elif execution_status == "completed":
+        stage = "completed_safe_noop"
+        next_operator_action = (
+            "inspect status/audit output; no real execution was performed"
+        )
+    elif compilation_status == "compiled" and review_required is False:
+        stage = "compiled_no_review_required"
+        next_operator_action = (
+            "proceed to the safe no-op run; no operator approval is required for "
+            "this run/request"
+        )
+    else:
+        stage = "unknown"
+        next_operator_action = (
+            "inspect run-status output; the lifecycle stage could not be "
+            "determined from the available run artifacts"
+        )
+
+    return {
+        "stage": stage,
+        "next_operator_action": next_operator_action,
+        "authority_boundary": (
+            "compiler-owned authorization only; planner is non-authoritative"
+        ),
+        "approval_scope": "current run/request only",
+        "execution_mode": "safe_noop_only",
+        "display_only": True,
+    }
+
+
 def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
     run_path = Path(run_dir)
     inspection = inspect_run_directory(run_path)
@@ -725,6 +783,12 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "approval_request_count": approval_request_count,
         "approval_requests_path": approval_requests_path,
         "review_gate": review_gate,
+        "governance_lifecycle_stage": _build_governance_lifecycle_stage(
+            compilation_status,
+            execution_status,
+            review_required,
+            blocked_by_review,
+        ),
         "candidate_workflow": candidate_workflow,
         "fixture_lineage": fixture_lineage,
         "proposed_tool_access": proposed_tool_access,
