@@ -20,6 +20,7 @@ SANDBOX_BACKEND_STRATEGY_PATH = ROOT / "docs" / "SANDBOX_BACKEND_STRATEGY.md"
 WORKFLOW_PATTERN_SELECTION_PATH = (
     ROOT / "docs" / "WORKFLOW_PATTERN_SELECTION_DESIGN.md"
 )
+REPO_TERMINOLOGY_MAP_PATH = ROOT / "docs" / "REPO_TERMINOLOGY_MAP.md"
 CAPABILITY_ENVELOPE_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_DESIGN.md"
 CAPABILITY_ENVELOPE_V1_PATH = ROOT / "docs" / "CAPABILITY_ENVELOPE_V1_DESIGN.md"
 AUTHORITY_ARTIFACT_OWNERSHIP_PATH = (
@@ -2521,6 +2522,131 @@ class DocsTests(unittest.TestCase):
             lowered_normalized,
         )
         self.assertIn("does not implement real execution", lowered_normalized)
+
+    def test_repo_terminology_map_doc_exists_and_preserves_boundaries(
+        self,
+    ) -> None:
+        self.assertTrue(REPO_TERMINOLOGY_MAP_PATH.exists())
+        content = REPO_TERMINOLOGY_MAP_PATH.read_text(encoding="utf-8")
+        lowered = content.lower()
+        normalized = " ".join(content.split())
+        lowered_normalized = normalized.lower()
+        normalized_no_ticks = normalized.replace("`", "")
+        lowered_normalized_no_ticks = lowered_normalized.replace("`", "")
+
+        self.assertIn("Repo Terminology Map", content)
+        self.assertIn("documentation only", lowered)
+        self.assertIn(
+            "schemas/ is the control-plane artifact contract layer",
+            lowered_normalized_no_ticks,
+        )
+        self.assertIn("schemas/ is not execution", lowered_normalized_no_ticks)
+        self.assertIn(
+            "planner/ currently contains a deterministic planner skeleton",
+            lowered_normalized_no_ticks,
+        )
+        self.assertIn(
+            "planner output is non-authoritative until compiler validation",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "compiler/ is the authority boundary",
+            lowered_normalized_no_ticks,
+        )
+        self.assertIn(
+            "orchestrator/ currently means the safe-noop local harness coordinator",
+            lowered_normalized_no_ticks,
+        )
+        self.assertIn(
+            "orchestrator/ is not claude-style workflow orchestration",
+            lowered_normalized_no_ticks,
+        )
+        self.assertIn(
+            "orchestrator/ is not hermes agent integration",
+            lowered_normalized_no_ticks,
+        )
+        self.assertIn(
+            "orchestrator/ is not kubernetes orchestration",
+            lowered_normalized_no_ticks,
+        )
+        self.assertIn(
+            "broker/ currently contains future sandbox/broker data-shape helpers only",
+            lowered_normalized_no_ticks,
+        )
+        self.assertIn("broker helpers are build-only", lowered_normalized)
+        self.assertIn("broker helpers execute nothing", lowered_normalized)
+        self.assertIn("broker helpers authorize nothing", lowered_normalized)
+        self.assertIn(
+            "broker helpers are not a broker implementation",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "runtime/ currently owns safe-noop runtime surfaces",
+            lowered_normalized_no_ticks,
+        )
+        self.assertIn(
+            "run-status summary never writes anything",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "run-status summary reads only known local run artifacts",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "tui/ renders display/operator status",
+            lowered_normalized_no_ticks,
+        )
+        self.assertIn(
+            "design docs must not be interpreted as implemented behavior",
+            lowered_normalized,
+        )
+        self.assertIn("view raw proposed orchestration", lowered_normalized)
+        self.assertIn("token budget", lowered_normalized)
+        self.assertIn("concurrency limits", lowered_normalized)
+        self.assertIn("loop stop condition", lowered_normalized)
+        self.assertIn(
+            "trust nothing / verify everything / assume breach",
+            lowered_normalized,
+        )
+        self.assertIn("current-run/request approval scope", normalized_no_ticks)
+        self.assertIn("canonical artifact identity", lowered_normalized)
+        self.assertIn(
+            "compiler-owned capability requests",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "this document does not implement runtime behavior",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "this document does not implement compiler behavior",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "this document does not implement schema behavior",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "this document does not implement broker behavior",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "this document does not implement sandbox behavior",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "this document does not implement kubernetes integration",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "this document does not implement hermes agent integration",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "this document does not change canonical json",
+            lowered_normalized,
+        )
+        self.assertIn("this document does not change hashing", lowered_normalized)
 
 
 if __name__ == "__main__":
