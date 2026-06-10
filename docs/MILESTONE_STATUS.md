@@ -4,9 +4,16 @@
 
 `V1 Safe No-Op Harness`
 
+The coherent product state is recorded as a named checkpoint in
+`V1_SAFE_NOOP_GOVERNANCE_COCKPIT_CHECKPOINT.md` (the V1 Safe No-Op Governance
+Cockpit): safe no-op runtime, non-authoritative planner, compiler authority
+boundary, explicit current-run/request operator approval, the display-only
+operator cockpit order, the Phase 3 validator order, and fail-closed
+unsupported-claim hardening. It is docs/tests only and changes no behavior.
+
 ## Test Status
 
-- `543 tests` passing
+- `544 tests` passing
 
 ## Major Implemented Layers
 

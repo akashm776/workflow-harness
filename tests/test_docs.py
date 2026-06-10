@@ -75,6 +75,9 @@ OPERATOR_COCKPIT_CONTRACT_PATH = (
 STATIC_VALIDATION_ORDERING_CONTRACT_PATH = (
     ROOT / "docs" / "STATIC_VALIDATION_ORDERING_CONTRACT.md"
 )
+V1_GOVERNANCE_COCKPIT_CHECKPOINT_PATH = (
+    ROOT / "docs" / "V1_SAFE_NOOP_GOVERNANCE_COCKPIT_CHECKPOINT.md"
+)
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
@@ -176,7 +179,7 @@ class DocsTests(unittest.TestCase):
         content = MILESTONE_STATUS_PATH.read_text(encoding="utf-8")
 
         self.assertIn("V1 Safe No-Op Harness", content)
-        self.assertIn("543 tests", content)
+        self.assertIn("544 tests", content)
         self.assertIn("planner skeleton", content)
         self.assertIn("planner/workflow_spec_planner.py", content)
         self.assertIn("cli/planner_check_cli.py", content)
@@ -1087,7 +1090,7 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn("V1 remains safe no-op only", content)
-        self.assertIn("543 tests passing", content)
+        self.assertIn("544 tests passing", content)
         self.assertIn("proposal-only skill/prompt registry design", content)
         self.assertIn("explicit deterministic `innovation_review` template", content)
         self.assertIn("inert future-only innovation context fixtures", content)
@@ -1796,6 +1799,124 @@ class DocsTests(unittest.TestCase):
         ):
             self.assertIn(non_goal, content)
 
+    def test_v1_governance_cockpit_checkpoint_doc_exists_and_records_milestone(
+        self,
+    ) -> None:
+        self.assertTrue(V1_GOVERNANCE_COCKPIT_CHECKPOINT_PATH.exists())
+        content = V1_GOVERNANCE_COCKPIT_CHECKPOINT_PATH.read_text(
+            encoding="utf-8"
+        )
+
+        # Milestone status: named checkpoint, docs/tests only, no behavior change.
+        self.assertIn("V1 Safe No-Op Governance Cockpit", content)
+        self.assertIn(
+            "Named checkpoint, not a release tag unless separately tagged in git.",
+            content,
+        )
+        self.assertIn("Docs/tests only.", content)
+        self.assertIn("No behavior change in this slice.", content)
+        self.assertIn("measured, not guessed", content)
+
+        # Exact cockpit order block.
+        self.assertIn(
+            "```text\n"
+            "Review Gate:\n"
+            "Candidate Workflow:\n"
+            "Fixture Lineage:\n"
+            "Proposed Tool Access:\n"
+            "Compiler Authorization Projection:\n"
+            "Approval Binding Summary:\n"
+            "Verifier / Evidence Status:\n"
+            "Broker Boundary Status:\n"
+            "Operator Review Packet:\n"
+            "```",
+            content,
+        )
+
+        # Exact Phase 3 validator order block.
+        self.assertIn(
+            "```text\n"
+            "1. secret-field\n"
+            "2. capability-envelope\n"
+            "3. safeguard-authority-claim\n"
+            "4. authority-artifact-ownership\n"
+            "5. approval-binding\n"
+            "6. execution-binding\n"
+            "7. runtime-reporting-boundary\n"
+            "8. audit-evidence-authority\n"
+            "9. graph/scope/approval\n"
+            "```",
+            content,
+        )
+
+        # Trust boundary.
+        self.assertIn("Planner proposes only.", content)
+        self.assertIn("Planner is non-authoritative.", content)
+        self.assertIn(
+            "Compiler validates and owns the authority boundary.", content
+        )
+        self.assertIn(
+            "Operator approval is explicit and current-run/request scoped.",
+            content,
+        )
+        self.assertIn("Runtime is safe no-op.", content)
+        self.assertIn(
+            "do not authorize, approve, grant, execute, or", content
+        )
+        self.assertIn("Diagnostics fail closed.", content)
+
+        # Included pieces.
+        for included in (
+            "safe no-op runtime",
+            "operator cockpit contract",
+            "compiler authorization projection",
+            "approval binding contract/summary",
+            "evidence/verifier reporting contract/status",
+            "broker boundary contract/status",
+            "static validation ordering contract",
+            "unsupported-claim hardening validators",
+        ):
+            self.assertIn(included, content)
+
+        # Non-goals.
+        for non_goal in (
+            "real execution",
+            "broker implementation",
+            "fake/no-op broker interface",
+            "sandbox implementation",
+            "model inference",
+            "verifier implementation",
+            "evidence generation implementation",
+            "approval carryover",
+            "reusable approvals",
+            "authority subsumption",
+            "real approval binding",
+        ):
+            self.assertIn(non_goal, content)
+
+        # Boundary protection lists each unsupported-claim rejection.
+        for rejection in (
+            "unsupported secret fields rejected",
+            "unsupported capability envelopes rejected",
+            "unsupported safeguard authority claims rejected",
+            "unsupported authority artifacts rejected",
+            "unsupported approval-binding claims rejected",
+            "unsupported execution-binding claims rejected",
+            "unsupported runtime-reporting/broker/sandbox claims rejected",
+            "unsupported audit/evidence authority claims rejected",
+        ):
+            self.assertIn(rejection, content)
+
+        # Next safe directions.
+        self.assertIn("milestone tag or release note", content)
+        self.assertIn("final V1 no-op threat-model review", content)
+        self.assertIn(
+            "current-run approval scope invariant tightening", content
+        )
+        self.assertIn(
+            "do not add broker execution or fake broker interface yet", content
+        )
+
     def test_docs_index_exists_and_organizes_docs(self) -> None:
         self.assertTrue(DOCS_INDEX_PATH.exists())
         content = DOCS_INDEX_PATH.read_text(encoding="utf-8")
@@ -1827,6 +1948,7 @@ class DocsTests(unittest.TestCase):
             "NOOP_BROKER_BOUNDARY_CONTRACT.md",
             "OPERATOR_COCKPIT_CONTRACT.md",
             "STATIC_VALIDATION_ORDERING_CONTRACT.md",
+            "V1_SAFE_NOOP_GOVERNANCE_COCKPIT_CHECKPOINT.md",
         ):
             self.assertIn(doc_name, content)
 
