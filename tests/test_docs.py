@@ -92,6 +92,7 @@ PHASE3_VALIDATOR_OWNERSHIP_MAP_PATH = (
 NEXT_SAFE_SLICES_PATH = ROOT / "docs" / "NEXT_SAFE_SLICES.md"
 DOCS_INDEX_PATH = ROOT / "docs" / "README.md"
 SAFE_INNOVATION_DEMO_PATH = ROOT / "docs" / "SAFE_INNOVATION_DEMO.md"
+SAFE_NOOP_DEMO_SCRIPT_PATH = ROOT / "docs" / "SAFE_NOOP_DEMO_SCRIPT.md"
 
 
 class DocsTests(unittest.TestCase):
@@ -1113,6 +1114,70 @@ class DocsTests(unittest.TestCase):
         self.assertIn("current-request only", content)
         self.assertIn("demo-local", content)
         self.assertIn("not a general auto-approval", content)
+
+    def test_safe_noop_demo_script_doc_exists_and_preserves_safety_claims(
+        self,
+    ) -> None:
+        self.assertTrue(SAFE_NOOP_DEMO_SCRIPT_PATH.exists())
+        content = SAFE_NOOP_DEMO_SCRIPT_PATH.read_text(encoding="utf-8")
+        normalized = " ".join(content.split())
+        lowered = content.lower()
+        lowered_normalized = normalized.lower()
+
+        self.assertIn("Safe No-Op Demo Script", content)
+        self.assertIn("demo script only", lowered)
+        self.assertIn("safe-noop governance/control-plane proof", lowered)
+        self.assertIn("not real agent execution", lowered)
+        self.assertIn("Most agent demos show capability", content)
+        self.assertIn("controlled capability", lowered)
+        self.assertIn("Planner suggests.", normalized)
+        self.assertIn("Compiler authorizes.", normalized)
+        self.assertIn("Operator approves.", normalized)
+        self.assertIn(
+            "Runtime executes only what was compiler-authorized and operator-approved.",
+            normalized,
+        )
+        self.assertIn("Verifier reports.", normalized)
+        self.assertIn("Audit preserves lineage.", normalized)
+        self.assertIn("planner proposal is non-authoritative", lowered)
+        self.assertIn("compiler remains the authority boundary", lowered)
+        self.assertIn("Approval is current-run/request scoped", content)
+        self.assertIn("Runtime remains safe no-op", content)
+        self.assertIn(
+            "No tools, connectors, MCP calls, network calls, model calls, broker calls, or sandbox execution",
+            normalized,
+        )
+        self.assertIn("python -m examples.safe_innovation_demo", content)
+        self.assertIn("--planner-template innovation_review", content)
+        self.assertIn("--demo-approve-current-request", content)
+        self.assertIn("python -m cli.run_status_cli", content)
+        self.assertIn("--summary", content)
+        self.assertIn("Review Gate", content)
+        self.assertIn("Candidate Workflow", content)
+        self.assertIn("Proposed Tool Access", content)
+        self.assertIn("Compiler Authorization Projection", content)
+        self.assertIn("Approval Binding Summary", content)
+        self.assertIn("Verifier / Evidence Status", content)
+        self.assertIn("Broker Boundary Status", content)
+        self.assertIn("Governance Lifecycle Stage", content)
+        self.assertIn("Governance Readiness Checklist", content)
+        self.assertIn("display-only", lowered)
+        self.assertIn("do not grant authority", lowered_normalized)
+        self.assertIn("This integrates Hermes Agent", content)
+        self.assertIn("This integrates Kubernetes or kagent", content)
+        self.assertIn("This integrates NemoClaw/OpenShell", content)
+        self.assertIn("This has a real broker", content)
+        self.assertIn("This has a real sandbox", content)
+        self.assertIn("This executes tools or connectors", content)
+        self.assertIn("This performs MCP calls", content)
+        self.assertIn("This performs network calls", content)
+        self.assertIn("This performs model inference", content)
+        self.assertIn("This implements verifier/evidence generation", content)
+        self.assertIn("This supports reusable approvals", content)
+        self.assertIn(
+            "bounded product-facing development slice",
+            lowered_normalized,
+        )
 
     def test_next_safe_slices_doc_exists_and_preserves_boundaries(self) -> None:
         self.assertTrue(NEXT_SAFE_SLICES_PATH.exists())
