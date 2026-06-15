@@ -115,6 +115,16 @@ Operator Review Packet:
 - Operator Review Notes do not change compiler validation.
 - Operator Review Notes do not change approval matching.
 - Operator Review Notes do not feed replanning yet.
+- `python -m cli.operator_approval_decisions_cli` writes a local
+  current-run/request-scoped `ApprovalDecisions.json` artifact only.
+- Operator approval decision CLI does not authorize by itself.
+- Operator approval decision CLI does not change compiler validation.
+- Operator approval decision CLI does not change approval matching.
+- Operator approval decision CLI does not create reusable approvals.
+- Operator approval decision CLI does not create approval carryover.
+- Operator approval decision CLI does not execute anything.
+- Operator approval decision CLI does not call tools, connectors, MCP, network,
+  broker, sandbox, or model APIs.
 - Summary sections do not override compiler diagnostics.
 - Summary sections do not override operator approval.
 - Governance Readiness Checklist is display-only.

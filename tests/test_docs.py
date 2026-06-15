@@ -1149,9 +1149,12 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn("python -m examples.safe_innovation_demo", content)
         self.assertIn("python -m cli.operator_review_notes_cli", content)
+        self.assertIn("python -m cli.operator_approval_decisions_cli", content)
         self.assertIn("--planner-template innovation_review", content)
         self.assertIn("--node-id retrieve-2", content)
         self.assertIn("--note-type scope_too_broad", content)
+        self.assertIn("--request-id <request-id-from-review-gate>", content)
+        self.assertIn("--decision approved", content)
         self.assertIn("--demo-approve-current-request", content)
         self.assertIn("python -m cli.run_status_cli", content)
         self.assertIn("--summary", content)
@@ -1177,7 +1180,19 @@ class DocsTests(unittest.TestCase):
         self.assertIn("do not change approval matching", lowered)
         self.assertIn("do not feed replanning yet", lowered)
         self.assertIn(
+            "writes a local current-run/request-scoped `approvaldecisions.json` artifact only",
+            lowered_normalized,
+        )
+        self.assertIn("does not authorize by itself", lowered)
+        self.assertIn("does not create reusable approvals", lowered)
+        self.assertIn("does not create approval carryover", lowered)
+        self.assertIn("does not execute anything", lowered)
+        self.assertIn(
             "does not execute tools, connectors, brokers, sandboxes, MCP, network calls, or model calls",
+            normalized,
+        )
+        self.assertIn(
+            "does not call tools, connectors, MCP, network, broker, sandbox, or model APIs",
             normalized,
         )
         self.assertIn("This integrates Hermes Agent", content)
@@ -1857,6 +1872,7 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn("Operator Review Notes are current-run scoped notes", content)
         self.assertIn("python -m cli.operator_review_notes_cli", content)
+        self.assertIn("python -m cli.operator_approval_decisions_cli", content)
         self.assertIn("writes local operator-authored", content)
         self.assertIn("current run only", content)
         self.assertIn("Operator Review Notes do not approve anything.", content)
@@ -1869,6 +1885,36 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn(
             "Operator Review Notes do not feed replanning yet.", content
+        )
+        self.assertIn(
+            "current-run/request-scoped `ApprovalDecisions.json` artifact only.",
+            content,
+        )
+        self.assertIn(
+            "Operator approval decision CLI does not authorize by itself.", content
+        )
+        self.assertIn(
+            "Operator approval decision CLI does not change compiler validation.",
+            content,
+        )
+        self.assertIn(
+            "Operator approval decision CLI does not change approval matching.",
+            content,
+        )
+        self.assertIn(
+            "Operator approval decision CLI does not create reusable approvals.",
+            content,
+        )
+        self.assertIn(
+            "Operator approval decision CLI does not create approval carryover.",
+            content,
+        )
+        self.assertIn(
+            "Operator approval decision CLI does not execute anything.", content
+        )
+        self.assertIn(
+            "Operator approval decision CLI does not call tools, connectors, MCP, network,",
+            content,
         )
         self.assertIn("do not authorize, approve, grant", content)
         self.assertIn("capabilities, or execute.", content)
