@@ -33,6 +33,16 @@ This is a safe-noop governance/control-plane proof, not real agent execution.
 - Operator Review Notes do not change compiler validation.
 - Operator Review Notes do not change approval matching.
 - Operator Review Notes do not feed replanning yet.
+- `python -m cli.operator_approval_decisions_cli` writes a local
+  current-run/request-scoped `ApprovalDecisions.json` artifact only.
+- Operator approval decision CLI does not authorize by itself.
+- Operator approval decision CLI does not change compiler validation.
+- Operator approval decision CLI does not change approval matching.
+- Operator approval decision CLI does not create reusable approvals.
+- Operator approval decision CLI does not create approval carryover.
+- Operator approval decision CLI does not execute anything.
+- Operator approval decision CLI does not call tools, connectors, MCP, network,
+  broker, sandbox, or model APIs.
 
 Current trust boundary:
 
@@ -108,6 +118,24 @@ That summary call will show `Compiler Governance Timeline:` and
 
 Call out that the proposal exists, the compiler evaluated it, and the run stays
 blocked until the current request is explicitly approved.
+
+Optionally write a local operator approval decision artifact for the current
+request only:
+
+```bash
+python -m cli.operator_approval_decisions_cli \
+  --run-dir runs/manual-review/innovation-demo \
+  --request-id <request-id-from-review-gate> \
+  --decision approved \
+  --reviewer operator \
+  --reason "Approved current request for safe no-op demo only."
+```
+
+This writes a current-run/request-scoped `ApprovalDecisions.json` artifact
+only. It does not authorize by itself. It does not change compiler validation.
+It does not change approval matching. It does not create reusable approvals. It
+does not create approval carryover. It does not execute anything. It does not
+call tools, connectors, MCP, network, broker, sandbox, or model APIs.
 
 ## Approved Safe-Noop Demo
 
