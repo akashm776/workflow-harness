@@ -1148,8 +1148,13 @@ class DocsTests(unittest.TestCase):
             normalized,
         )
         self.assertIn("python -m examples.safe_innovation_demo", content)
+        self.assertIn("python -m cli.workflow_strategy_preview_cli", content)
         self.assertIn("python -m cli.operator_review_notes_cli", content)
         self.assertIn("python -m cli.operator_approval_decisions_cli", content)
+        self.assertIn(
+            '--goal "Find AI innovation opportunities from program docs and repo context"',
+            content,
+        )
         self.assertIn("--planner-template innovation_review", content)
         self.assertIn("--node-id retrieve-2", content)
         self.assertIn("--note-type scope_too_broad", content)
@@ -1172,6 +1177,70 @@ class DocsTests(unittest.TestCase):
         self.assertIn("Governance Lifecycle Stage", content)
         self.assertIn("Governance Readiness Checklist", content)
         self.assertIn("display-only", lowered)
+        self.assertIn(
+            "workflow proposal strategy preview is deterministic and display-only",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "workflow proposal strategy preview uses deterministic keyword matching only as a baseline preview and audit scaffold for future llm/hermes workflow selection",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "the future planner llm/hermes may choose different workflow strategies or pattern families using richer context",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "the preview does not replace intelligent workflow planning",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "any future intelligent selection must still produce compiler-validatable candidate artifacts and remain subject to current-run operator approval",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "workflow proposal strategy preview previews strategy type, pattern family, expected phases, expected future candidate artifacts, and expected governance surfaces",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "workflow proposal strategy preview does not create candidate artifacts",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "workflow proposal strategy preview does not authorize anything",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "workflow proposal strategy preview does not approve anything",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "workflow proposal strategy preview does not execute anything",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "workflow proposal strategy preview does not create a broker request",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "workflow proposal strategy preview does not launch a sandbox/backend",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "workflow proposal strategy preview does not call models, tools, connectors, mcp, network, broker, sandbox, compiler, runtime, or planner artifact-generation apis",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "workflow proposal strategy preview does not change compiler validation",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "workflow proposal strategy preview does not change approval matching",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "compiler validation remains required before approval/runtime surfaces",
+            lowered_normalized,
+        )
         self.assertIn("reports observed/local governance status only", lowered)
         self.assertIn("operator-authored", lowered)
         self.assertIn("current-run scoped", lowered)
@@ -1821,6 +1890,8 @@ class DocsTests(unittest.TestCase):
         self.assertTrue(OPERATOR_COCKPIT_CONTRACT_PATH.exists())
         content = OPERATOR_COCKPIT_CONTRACT_PATH.read_text(encoding="utf-8")
         lowered = content.lower()
+        normalized = " ".join(content.split())
+        lowered_normalized = normalized.lower()
 
         # Status/scope: V1 safe no-op only; display-only/read-only; no artifacts.
         self.assertIn("V1 remains safe no-op only.", content)
@@ -1849,6 +1920,67 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn(
             "Approved runs do not show blocked-review cockpit sections", content
+        )
+        self.assertIn("Related Preview Helpers", content)
+        self.assertIn("python -m cli.workflow_strategy_preview_cli", content)
+        self.assertIn(
+            "workflow proposal strategy preview helper",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "it uses deterministic keyword matching only as a baseline preview and audit scaffold for future llm/hermes workflow selection",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "the future planner llm/hermes may choose different workflow strategies or pattern families using richer context",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "the preview does not replace intelligent workflow planning",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "any future intelligent selection must still produce compiler-validatable candidate artifacts and remain subject to current-run operator approval",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "previews strategy type, pattern family, expected phases, expected future candidate artifacts, and expected governance surfaces",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "it is planner-side only and is not a current run-status summary section or run artifact",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "it does not create candidate artifacts",
+            lowered_normalized,
+        )
+        self.assertIn("it does not authorize anything", lowered_normalized)
+        self.assertIn("it does not approve anything", lowered_normalized)
+        self.assertIn("it does not execute anything", lowered_normalized)
+        self.assertIn(
+            "it does not create a broker request",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "it does not launch a sandbox/backend",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "it does not call models, tools, connectors, mcp, network, broker, sandbox, compiler, runtime, or planner artifact-generation apis",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "it does not change compiler validation",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "it does not change approval matching",
+            lowered_normalized,
+        )
+        self.assertIn(
+            "compiler validation remains required before approval/runtime surfaces",
+            lowered_normalized,
         )
 
         # Exact current section order.

@@ -26,6 +26,34 @@ data-shape module or future broker-related code surface is added.
   behavior already does so.
 - The cockpit is operator guidance only.
 
+## Related Preview Helpers
+
+- `python -m cli.workflow_strategy_preview_cli` is a deterministic,
+  display-only workflow proposal strategy preview helper.
+- It uses deterministic keyword matching only as a baseline preview and audit
+  scaffold for future LLM/Hermes workflow selection.
+- The future planner LLM/Hermes may choose different workflow strategies or
+  pattern families using richer context.
+- The preview does not replace intelligent workflow planning.
+- Any future intelligent selection must still produce
+  compiler-validatable candidate artifacts and remain subject to current-run
+  operator approval.
+- It previews strategy type, pattern family, expected phases, expected future
+  candidate artifacts, and expected governance surfaces.
+- It is planner-side only and is not a current run-status summary section or
+  run artifact.
+- It does not create candidate artifacts.
+- It does not authorize anything.
+- It does not approve anything.
+- It does not execute anything.
+- It does not create a broker request.
+- It does not launch a sandbox/backend.
+- It does not call models, tools, connectors, MCP, network, broker, sandbox,
+  compiler, runtime, or planner artifact-generation APIs.
+- It does not change compiler validation.
+- It does not change approval matching.
+- Compiler validation remains required before approval/runtime surfaces.
+
 ## Current Section Order
 
 ```text
