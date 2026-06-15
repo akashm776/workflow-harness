@@ -807,11 +807,236 @@ def _build_compiler_governance_timeline(
     ]
 
 
+def _extract_request_ids_from_approval_requests(payload: Any) -> list[str] | None:
+    if not isinstance(payload, dict):
+        return None
+
+    raw_requests = payload.get("requests")
+    if not isinstance(raw_requests, list):
+        return None
+
+    request_ids: list[str] = []
+    for raw_request in raw_requests:
+        request_id = _get_str(raw_request, "request_id")
+        if request_id is not None:
+            request_ids.append(request_id)
+    return request_ids
+
+
+def _extract_approved_request_ids(payload: Any) -> set[str] | None:
+    if not isinstance(payload, dict):
+        return None
+
+    raw_decisions = payload.get("decisions")
+    if not isinstance(raw_decisions, list):
+        return None
+
+    approved_request_ids: set[str] = set()
+    for raw_decision in raw_decisions:
+        request_id = _get_str(raw_decision, "request_id")
+        decision = _get_str(raw_decision, "decision")
+        if request_id is None or decision is None:
+            continue
+        if decision == "approved":
+            approved_request_ids.add(request_id)
+    return approved_request_ids
+
+
+def _build_broker_handoff_readiness_preview(
+    run_path: Path,
+    candidate_workflow: dict[str, Any] | None,
+    approval_requests_present: bool,
+    approval_request_count: int,
+    review_required: bool | None,
+    blocked_by_review: bool,
+    review_gate: dict[str, Any] | None,
+    execution_status: str,
+) -> dict[str, Any] | None:
+    """Return a display-only local readiness preview for a future broker handoff.
+
+    This is a read-only projection over existing local artifacts and already-built
+    status facts only. It does not authorize, approve, execute, create a broker
+    request, launch a sandbox, or call any external system.
+    """
+
+    workflow_spec_path = run_path / "candidate" / "WorkflowSpec.json"
+    approval_requests_path = run_path / "candidate" / "ApprovalRequests.json"
+    approval_decisions_path = run_path / "ApprovalDecisions.json"
+
+    candidate_workflow_present = workflow_spec_path.exists() or isinstance(
+        candidate_workflow, dict
+    )
+    approval_decisions_present = approval_decisions_path.exists()
+
+    if not (
+        candidate_workflow_present
+        or approval_requests_present
+        or approval_decisions_present
+        or review_gate is not None
+    ):
+        return None
+
+    items: list[dict[str, str]] = []
+    items.append(
+        {
+            "name": "candidate_workflow",
+            "status": "present" if candidate_workflow_present else "missing",
+            "detail": (
+                "Candidate workflow artifact was observed."
+                if candidate_workflow_present
+                else "No local candidate workflow artifact was observed."
+            ),
+        }
+    )
+
+    approval_request_ids: list[str] | None = None
+    approval_requests_status = "missing"
+    approval_requests_detail = "No local candidate/ApprovalRequests.json artifact was observed."
+    if approval_requests_present:
+        approval_requests_payload = _safe_load_json(approval_requests_path)
+        approval_request_ids = _extract_request_ids_from_approval_requests(
+            approval_requests_payload
+        )
+        if approval_request_ids is None:
+            approval_requests_status = "malformed"
+            approval_requests_detail = (
+                "Local candidate/ApprovalRequests.json was observed but could not "
+                "be read as a request list."
+            )
+        else:
+            approval_requests_status = "present"
+            approval_requests_detail = (
+                f"{approval_request_count} approval request"
+                f"{'' if approval_request_count == 1 else 's'} observed."
+            )
+    items.append(
+        {
+            "name": "approval_requests",
+            "status": approval_requests_status,
+            "detail": approval_requests_detail,
+        }
+    )
+
+    approval_decisions_status = "not_observed"
+    approval_decisions_detail = (
+        "No readable approval-request/decision relationship was observed."
+    )
+    approved_request_ids: set[str] | None = None
+    if approval_request_ids:
+        if not approval_decisions_present:
+            approval_decisions_status = "missing"
+            approval_decisions_detail = (
+                "No local ApprovalDecisions.json artifact was observed."
+            )
+        else:
+            approval_decisions_payload = _safe_load_json(approval_decisions_path)
+            approved_request_ids = _extract_approved_request_ids(
+                approval_decisions_payload
+            )
+            if approved_request_ids is None:
+                approval_decisions_status = "malformed"
+                approval_decisions_detail = (
+                    "Local ApprovalDecisions.json was observed but could not be "
+                    "read as a decision list."
+                )
+            else:
+                approved_count = sum(
+                    1 for request_id in approval_request_ids if request_id in approved_request_ids
+                )
+                if approved_count == len(approval_request_ids):
+                    approval_decisions_status = "approved"
+                    approval_decisions_detail = (
+                        f"All {approved_count} approval request"
+                        f"{'' if approved_count == 1 else 's'} have local approved "
+                        "decisions."
+                    )
+                else:
+                    approval_decisions_status = "partial"
+                    approval_decisions_detail = (
+                        f"{approved_count} of {len(approval_request_ids)} approval "
+                        "requests have local approved decisions."
+                    )
+    elif approval_decisions_present:
+        approval_decisions_payload = _safe_load_json(approval_decisions_path)
+        approved_request_ids = _extract_approved_request_ids(approval_decisions_payload)
+        if approved_request_ids is None:
+            approval_decisions_status = "malformed"
+            approval_decisions_detail = (
+                "Local ApprovalDecisions.json was observed but could not be read as "
+                "a decision list."
+            )
+        else:
+            approval_decisions_status = "not_observed"
+            approval_decisions_detail = (
+                "ApprovalDecisions.json was observed without a readable local "
+                "ApprovalRequests.json dependency."
+            )
+    elif review_required is False and not approval_requests_present:
+        approval_decisions_status = "not_required"
+        approval_decisions_detail = (
+            "No local approval requests were observed for this run summary."
+        )
+
+    items.append(
+        {
+            "name": "approval_decisions",
+            "status": approval_decisions_status,
+            "detail": approval_decisions_detail,
+        }
+    )
+
+    runtime_mode_status = "safe_noop"
+    items.append(
+        {
+            "name": "runtime_mode",
+            "status": runtime_mode_status,
+            "detail": (
+                "Runtime remains safe no-op; no broker/sandbox/tool execution is "
+                "performed."
+            ),
+        }
+    )
+    items.append(
+        {
+            "name": "future_broker",
+            "status": "not_implemented",
+            "detail": (
+                "No broker request is created and no sandbox/backend is launched."
+            ),
+        }
+    )
+
+    if approval_request_ids:
+        if approval_decisions_status == "approved" and candidate_workflow_present:
+            status = "ready_for_future_broker_contract"
+        elif approval_decisions_status == "approved":
+            status = "blocked_missing_candidate_workflow"
+        else:
+            status = "blocked_missing_approval"
+    elif blocked_by_review or review_gate is not None:
+        status = "blocked_missing_approval"
+    else:
+        status = "not_observed"
+
+    return {
+        "display_only": True,
+        "future_broker_not_implemented": True,
+        "not_authority": True,
+        "not_approval": True,
+        "not_execution": True,
+        "not_broker_request": True,
+        "current_run_scope_only": True,
+        "status": status,
+        "items": items,
+    }
+
+
 def _build_operator_review_packet(
     review_required: bool | None,
     blocked_by_review: bool,
     review_gate: dict[str, Any] | None,
     compiler_governance_timeline: list[dict[str, str]] | None,
+    broker_handoff_readiness_preview: dict[str, Any] | None,
     governance_readiness_checklist: list[dict[str, str]] | None,
     candidate_workflow: dict[str, Any] | None,
     operator_review_notes: dict[str, Any] | None,
@@ -832,6 +1057,8 @@ def _build_operator_review_packet(
         included_sections.append("Review Gate")
     if compiler_governance_timeline is not None:
         included_sections.append("Compiler Governance Timeline")
+    if broker_handoff_readiness_preview is not None:
+        included_sections.append("Broker Handoff Readiness Preview")
     if governance_readiness_checklist is not None:
         included_sections.append("Governance Readiness Checklist")
     if candidate_workflow is not None:
@@ -1165,6 +1392,16 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         review_gate,
         execution_status,
     )
+    broker_handoff_readiness_preview = _build_broker_handoff_readiness_preview(
+        run_path,
+        candidate_workflow,
+        approval_requests_present,
+        approval_request_count,
+        review_required,
+        blocked_by_review,
+        review_gate,
+        execution_status,
+    )
     governance_lifecycle_stage = _build_governance_lifecycle_stage(
         compilation_status,
         execution_status,
@@ -1196,6 +1433,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "approval_requests_path": approval_requests_path,
         "review_gate": review_gate,
         "compiler_governance_timeline": compiler_governance_timeline,
+        "broker_handoff_readiness_preview": broker_handoff_readiness_preview,
         "governance_lifecycle_stage": governance_lifecycle_stage,
         "governance_readiness_checklist": governance_readiness_checklist,
         "candidate_workflow": candidate_workflow,
@@ -1211,6 +1449,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
             blocked_by_review,
             review_gate,
             compiler_governance_timeline,
+            broker_handoff_readiness_preview,
             governance_readiness_checklist,
             candidate_workflow,
             operator_review_notes,

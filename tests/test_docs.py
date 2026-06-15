@@ -1160,6 +1160,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("--summary", content)
         self.assertIn("Review Gate", content)
         self.assertIn("Compiler Governance Timeline", content)
+        self.assertIn("Broker Handoff Readiness Preview", content)
         self.assertIn("Candidate Workflow", content)
         self.assertIn("Operator Review Notes", content)
         self.assertIn("Proposed Tool Access", content)
@@ -1192,8 +1193,22 @@ class DocsTests(unittest.TestCase):
             normalized,
         )
         self.assertIn(
+            "reports local artifact readiness for a future broker contract only",
+            lowered_normalized,
+        )
+        self.assertIn("does not create a broker request", lowered_normalized)
+        self.assertIn("does not launch a sandbox/backend", lowered_normalized)
+        self.assertIn(
             "does not call tools, connectors, MCP, network, broker, sandbox, or model APIs",
             normalized,
+        )
+        self.assertIn(
+            "After writing `ApprovalDecisions.json`, the cockpit can show whether local",
+            content,
+        )
+        self.assertIn(
+            "artifacts appear ready for a future broker contract handoff",
+            content,
         )
         self.assertIn("This integrates Hermes Agent", content)
         self.assertIn("This integrates Kubernetes or kagent", content)
@@ -1822,6 +1837,7 @@ class DocsTests(unittest.TestCase):
             "```text\n"
             "Review Gate:\n"
             "Compiler Governance Timeline:\n"
+            "Broker Handoff Readiness Preview:\n"
             "Governance Lifecycle Stage:\n"
             "Governance Readiness Checklist:\n"
             "Candidate Workflow:\n"
@@ -1864,6 +1880,46 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn(
             "Compiler Governance Timeline does not execute tools, connectors, brokers,",
+            content,
+        )
+        self.assertIn(
+            "Broker Handoff Readiness Preview is display-only.", content
+        )
+        self.assertIn(
+            "Broker Handoff Readiness Preview reports local artifact readiness for a",
+            content,
+        )
+        self.assertIn(
+            "future broker contract only.",
+            content,
+        )
+        self.assertIn(
+            "Broker Handoff Readiness Preview does not create a broker request.",
+            content,
+        )
+        self.assertIn(
+            "Broker Handoff Readiness Preview does not launch a sandbox/backend.",
+            content,
+        )
+        self.assertIn(
+            "Broker Handoff Readiness Preview does not authorize anything.", content
+        )
+        self.assertIn(
+            "Broker Handoff Readiness Preview does not approve anything.", content
+        )
+        self.assertIn(
+            "Broker Handoff Readiness Preview does not execute anything.", content
+        )
+        self.assertIn(
+            "Broker Handoff Readiness Preview does not change compiler validation.",
+            content,
+        )
+        self.assertIn(
+            "Broker Handoff Readiness Preview does not change approval matching.",
+            content,
+        )
+        self.assertIn(
+            "Broker Handoff Readiness Preview does not call tools, connectors, MCP,",
             content,
         )
         self.assertIn(

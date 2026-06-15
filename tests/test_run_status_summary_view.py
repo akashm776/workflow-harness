@@ -201,6 +201,140 @@ class RunStatusSummaryViewTests(unittest.TestCase):
 
         self.assertEqual(summary, original)
 
+    def _summary_with_broker_handoff_readiness_preview(self) -> dict:
+        summary = _sample_summary()
+        summary["broker_handoff_readiness_preview"] = {
+            "display_only": True,
+            "future_broker_not_implemented": True,
+            "not_authority": True,
+            "not_approval": True,
+            "not_execution": True,
+            "not_broker_request": True,
+            "current_run_scope_only": True,
+            "status": "blocked_missing_approval",
+            "items": [
+                {
+                    "name": "candidate_workflow",
+                    "status": "present",
+                    "detail": "Candidate workflow artifact was observed.",
+                },
+                {
+                    "name": "approval_requests",
+                    "status": "present",
+                    "detail": "1 approval request observed.",
+                },
+                {
+                    "name": "approval_decisions",
+                    "status": "missing",
+                    "detail": "No local ApprovalDecisions.json artifact was observed.",
+                },
+                {
+                    "name": "runtime_mode",
+                    "status": "safe_noop",
+                    "detail": (
+                        "Runtime remains safe no-op; no broker/sandbox/tool "
+                        "execution is performed."
+                    ),
+                },
+                {
+                    "name": "future_broker",
+                    "status": "not_implemented",
+                    "detail": (
+                        "No broker request is created and no sandbox/backend is launched."
+                    ),
+                },
+            ],
+        }
+        return summary
+
+    def test_render_includes_broker_handoff_readiness_preview(self) -> None:
+        rendered = render_run_status_summary_view(
+            self._summary_with_broker_handoff_readiness_preview()
+        )
+
+        self.assertIn("Broker Handoff Readiness Preview:", rendered)
+        self.assertIn("Status: blocked_missing_approval", rendered)
+        self.assertIn("Display-only: yes", rendered)
+        self.assertIn("Future broker implemented: no", rendered)
+        self.assertIn("Authority: no", rendered)
+        self.assertIn("Approval: no", rendered)
+        self.assertIn("Execution: no", rendered)
+        self.assertIn("- candidate_workflow: present", rendered)
+        self.assertIn("  Candidate workflow artifact was observed.", rendered)
+        self.assertIn("- approval_requests: present", rendered)
+        self.assertIn("- approval_decisions: missing", rendered)
+        self.assertIn("- runtime_mode: safe_noop", rendered)
+        self.assertIn("- future_broker: not_implemented", rendered)
+
+    def test_broker_handoff_readiness_preview_renders_after_timeline_and_before_stage(
+        self,
+    ) -> None:
+        summary = self._summary_with_compiler_governance_timeline()
+        summary["review_gate"] = {"blocked_reason": "review_required"}
+        summary["approval_request_count"] = 1
+        summary["broker_handoff_readiness_preview"] = (
+            self._summary_with_broker_handoff_readiness_preview()[
+                "broker_handoff_readiness_preview"
+            ]
+        )
+        summary["governance_lifecycle_stage"] = {
+            "stage": "blocked_awaiting_operator_approval",
+            "display_only": True,
+        }
+
+        rendered = render_run_status_summary_view(summary)
+
+        review_gate_idx = rendered.index("Review Gate:")
+        timeline_idx = rendered.index("Compiler Governance Timeline:")
+        preview_idx = rendered.index("Broker Handoff Readiness Preview:")
+        stage_idx = rendered.index("Governance Lifecycle Stage:")
+        self.assertLess(review_gate_idx, timeline_idx)
+        self.assertLess(timeline_idx, preview_idx)
+        self.assertLess(preview_idx, stage_idx)
+
+    def test_broker_handoff_readiness_preview_renders_after_review_gate_when_timeline_missing(
+        self,
+    ) -> None:
+        summary = self._summary_with_broker_handoff_readiness_preview()
+        summary["review_gate"] = {"blocked_reason": "review_required"}
+        summary["approval_request_count"] = 1
+        summary["governance_lifecycle_stage"] = {
+            "stage": "blocked_awaiting_operator_approval",
+            "display_only": True,
+        }
+
+        rendered = render_run_status_summary_view(summary)
+
+        review_gate_idx = rendered.index("Review Gate:")
+        preview_idx = rendered.index("Broker Handoff Readiness Preview:")
+        stage_idx = rendered.index("Governance Lifecycle Stage:")
+        self.assertLess(review_gate_idx, preview_idx)
+        self.assertLess(preview_idx, stage_idx)
+
+    def test_render_without_broker_handoff_readiness_preview_has_no_section(self) -> None:
+        rendered = render_run_status_summary_view(_sample_summary())
+        self.assertNotIn("Broker Handoff Readiness Preview:", rendered)
+
+    def test_render_with_malformed_broker_handoff_readiness_preview_has_no_section(
+        self,
+    ) -> None:
+        summary = _sample_summary()
+        summary["broker_handoff_readiness_preview"] = {"items": "bad-shape"}
+
+        rendered = render_run_status_summary_view(summary)
+
+        self.assertNotIn("Broker Handoff Readiness Preview:", rendered)
+
+    def test_render_does_not_mutate_input_with_broker_handoff_readiness_preview(
+        self,
+    ) -> None:
+        summary = self._summary_with_broker_handoff_readiness_preview()
+        original = copy.deepcopy(summary)
+
+        render_run_status_summary_view(summary)
+
+        self.assertEqual(summary, original)
+
     def test_render_includes_governance_readiness_checklist_section(self) -> None:
         summary = self._summary_with_candidate_workflow()
         summary["governance_readiness_checklist"] = [

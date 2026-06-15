@@ -19,6 +19,7 @@ from tests.test_temp_utils import temporary_test_directory, writable_test_root
 
 ROOT = Path(__file__).resolve().parent.parent
 TIMELINE_TEST_RUN_ROOT = writable_test_root("compiler-governance-timeline-tests")
+BROKER_HANDOFF_TEST_RUN_ROOT = writable_test_root("broker-handoff-readiness-tests")
 _temporary_test_directory = temporary_test_directory
 
 
@@ -206,6 +207,7 @@ INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET = {
     "included_sections": [
         "Review Gate",
         "Compiler Governance Timeline",
+        "Broker Handoff Readiness Preview",
         "Governance Readiness Checklist",
         "Candidate Workflow",
         "Fixture Lineage",
@@ -628,6 +630,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                     "included_sections": [
                         "Review Gate",
                         "Compiler Governance Timeline",
+                        "Broker Handoff Readiness Preview",
                         "Governance Readiness Checklist",
                         "Candidate Workflow",
                     ],
@@ -1424,6 +1427,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 [
                     "Review Gate",
                     "Compiler Governance Timeline",
+                    "Broker Handoff Readiness Preview",
                     "Governance Readiness Checklist",
                     "Candidate Workflow",
                     "Fixture Lineage",
@@ -1455,6 +1459,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 [
                     "Review Gate",
                     "Compiler Governance Timeline",
+                    "Broker Handoff Readiness Preview",
                     "Governance Readiness Checklist",
                     "Candidate Workflow",
                     "Fixture Lineage",
@@ -1685,6 +1690,216 @@ class CompilerGovernanceTimelineSummaryTests(unittest.TestCase):
             str(path.relative_to(run_dir))
             for path in run_dir.rglob("*")
         )
+        self.assertEqual(before, after)
+
+
+class BrokerHandoffReadinessPreviewSummaryTests(unittest.TestCase):
+    def _new_run_dir(self) -> Path:
+        run_dir = BROKER_HANDOFF_TEST_RUN_ROOT / uuid.uuid4().hex
+        if run_dir.exists():
+            shutil.rmtree(run_dir, ignore_errors=True)
+        run_dir.mkdir(parents=True)
+        self.addCleanup(lambda: shutil.rmtree(run_dir, ignore_errors=True))
+        return run_dir
+
+    def _write_json(self, path: Path, payload: object) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+    def _write_candidate_workflow(self, run_dir: Path) -> None:
+        self._write_json(
+            run_dir / "candidate" / "WorkflowSpec.json",
+            {
+                "workflow_id": "minimal-workflow",
+                "workflow_revision_id": "minimal-workflow-rev",
+                "nodes": [
+                    {
+                        "node_id": "n1",
+                        "node_type": "retrieve",
+                    }
+                ],
+                "edges": [],
+            },
+        )
+
+    def _write_approval_requests(self, run_dir: Path, request_ids: list[str]) -> None:
+        self._write_json(
+            run_dir / "candidate" / "ApprovalRequests.json",
+            {
+                "requests": [
+                    {
+                        "request_id": request_id,
+                        "node_id": f"node-{index}",
+                        "approval_subject_hash": f"subject-{index}",
+                    }
+                    for index, request_id in enumerate(request_ids, start=1)
+                ]
+            },
+        )
+
+    def _write_approval_decisions(self, run_dir: Path, request_ids: list[str]) -> None:
+        self._write_json(
+            run_dir / "ApprovalDecisions.json",
+            {
+                "decisions": [
+                    {
+                        "request_id": request_id,
+                        "decision": "approved",
+                        "approved_by": "operator",
+                        "approved_at": "2026-06-15T12:00:00Z",
+                    }
+                    for request_id in request_ids
+                ]
+            },
+        )
+
+    def _preview_items_by_name(
+        self,
+        summary: dict[str, object],
+    ) -> dict[str, dict[str, str]]:
+        preview = summary["broker_handoff_readiness_preview"]
+        self.assertIsInstance(preview, dict)
+        items = preview["items"]
+        self.assertIsInstance(items, list)
+        return {
+            item["name"]: item
+            for item in items
+            if isinstance(item, dict) and isinstance(item.get("name"), str)
+        }
+
+    def test_broker_handoff_readiness_preview_missing_run_dir_returns_none(self) -> None:
+        run_dir = self._new_run_dir() / "missing-run"
+
+        summary = summarize_run_directory(run_dir)
+
+        self.assertIsNone(summary["broker_handoff_readiness_preview"])
+
+    def test_broker_handoff_readiness_preview_blocked_missing_approval(self) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_workflow(run_dir)
+        self._write_approval_requests(run_dir, ["req-1"])
+        self._write_json(run_dir / "EffectivePolicy.json", {"review_required": True})
+        self._write_json(
+            run_dir / "ExecutionManifest.json",
+            {"execution_status": "blocked"},
+        )
+
+        summary = summarize_run_directory(run_dir)
+        preview = summary["broker_handoff_readiness_preview"]
+        self.assertIsInstance(preview, dict)
+        self.assertEqual(preview["status"], "blocked_missing_approval")
+        for flag_name in (
+            "display_only",
+            "future_broker_not_implemented",
+            "not_authority",
+            "not_approval",
+            "not_execution",
+            "not_broker_request",
+            "current_run_scope_only",
+        ):
+            self.assertIs(preview[flag_name], True)
+
+        items = self._preview_items_by_name(summary)
+        self.assertEqual(items["candidate_workflow"]["status"], "present")
+        self.assertEqual(items["approval_requests"]["status"], "present")
+        self.assertEqual(items["approval_decisions"]["status"], "missing")
+        self.assertEqual(items["runtime_mode"]["status"], "safe_noop")
+        self.assertEqual(items["future_broker"]["status"], "not_implemented")
+
+        included_sections = summary["operator_review_packet"]["included_sections"]
+        self.assertIn("Broker Handoff Readiness Preview", included_sections)
+        self.assertGreater(
+            included_sections.index("Broker Handoff Readiness Preview"),
+            included_sections.index("Compiler Governance Timeline"),
+        )
+        self.assertLess(
+            included_sections.index("Broker Handoff Readiness Preview"),
+            included_sections.index("Governance Readiness Checklist"),
+        )
+
+    def test_broker_handoff_readiness_preview_ready_for_future_broker_contract(
+        self,
+    ) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_workflow(run_dir)
+        self._write_approval_requests(run_dir, ["req-1"])
+        self._write_approval_decisions(run_dir, ["req-1"])
+        self._write_json(
+            run_dir / "ExecutionManifest.json",
+            {"execution_status": "ready_to_execute"},
+        )
+
+        summary = summarize_run_directory(run_dir)
+        preview = summary["broker_handoff_readiness_preview"]
+        self.assertIsInstance(preview, dict)
+        self.assertEqual(preview["status"], "ready_for_future_broker_contract")
+
+        items = self._preview_items_by_name(summary)
+        self.assertEqual(items["approval_requests"]["status"], "present")
+        self.assertEqual(items["approval_decisions"]["status"], "approved")
+        self.assertEqual(items["runtime_mode"]["status"], "safe_noop")
+
+    def test_broker_handoff_readiness_preview_approved_requests_still_block_without_candidate_workflow(
+        self,
+    ) -> None:
+        run_dir = self._new_run_dir()
+        self._write_approval_requests(run_dir, ["req-1"])
+        self._write_approval_decisions(run_dir, ["req-1"])
+
+        summary = summarize_run_directory(run_dir)
+        preview = summary["broker_handoff_readiness_preview"]
+        self.assertIsInstance(preview, dict)
+        self.assertEqual(preview["status"], "blocked_missing_candidate_workflow")
+
+        items = self._preview_items_by_name(summary)
+        self.assertEqual(items["candidate_workflow"]["status"], "missing")
+        self.assertEqual(items["approval_requests"]["status"], "present")
+        self.assertEqual(items["approval_decisions"]["status"], "approved")
+        self.assertEqual(items["future_broker"]["status"], "not_implemented")
+
+    def test_broker_handoff_readiness_preview_partial_approval_is_not_ready(self) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_workflow(run_dir)
+        self._write_approval_requests(run_dir, ["req-1", "req-2"])
+        self._write_approval_decisions(run_dir, ["req-1"])
+
+        summary = summarize_run_directory(run_dir)
+        preview = summary["broker_handoff_readiness_preview"]
+        self.assertIsInstance(preview, dict)
+        self.assertEqual(preview["status"], "blocked_missing_approval")
+
+        items = self._preview_items_by_name(summary)
+        self.assertEqual(items["approval_decisions"]["status"], "partial")
+        self.assertIn("1 of 2 approval requests", items["approval_decisions"]["detail"])
+
+    def test_broker_handoff_readiness_preview_malformed_approval_decisions_is_fail_soft(
+        self,
+    ) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_workflow(run_dir)
+        self._write_approval_requests(run_dir, ["req-1"])
+        (run_dir / "ApprovalDecisions.json").write_text(
+            "{ not valid json", encoding="utf-8"
+        )
+
+        summary = summarize_run_directory(run_dir)
+        preview = summary["broker_handoff_readiness_preview"]
+        self.assertIsInstance(preview, dict)
+        self.assertEqual(preview["status"], "blocked_missing_approval")
+
+        items = self._preview_items_by_name(summary)
+        self.assertEqual(items["approval_decisions"]["status"], "malformed")
+        self.assertIn("could not be read as a decision list", items["approval_decisions"]["detail"])
+
+    def test_broker_handoff_readiness_preview_summary_writes_no_files(self) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_workflow(run_dir)
+        self._write_approval_requests(run_dir, ["req-1"])
+        before = sorted(str(path.relative_to(run_dir)) for path in run_dir.rglob("*"))
+
+        summarize_run_directory(run_dir)
+
+        after = sorted(str(path.relative_to(run_dir)) for path in run_dir.rglob("*"))
         self.assertEqual(before, after)
 
 
