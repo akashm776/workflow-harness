@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -46,7 +46,7 @@ class UnsupportedCapabilityEnvelopeValidationTests(unittest.TestCase):
                     self.assertIsNone(result["diagnostic"])
 
     def test_workflow_spec_capability_envelope_field_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-capability-envelope-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["capability_envelope"] = {
                 "display_only": True
@@ -74,7 +74,7 @@ class UnsupportedCapabilityEnvelopeValidationTests(unittest.TestCase):
         )
 
     def test_requested_auth_approved_capabilities_field_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-capability-envelope-tests') as tmp:
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             requested_auth["approved_capabilities"] = ["future-only"]
             path = _write_json(Path(tmp) / "RequestedAuth.json", requested_auth)
@@ -93,7 +93,7 @@ class UnsupportedCapabilityEnvelopeValidationTests(unittest.TestCase):
     def test_aggregate_static_validation_surfaces_capability_envelope_rejection(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-capability-envelope-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(

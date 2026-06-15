@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -46,7 +46,7 @@ class UnsupportedAuthorityArtifactValidationTests(unittest.TestCase):
                     self.assertIsNone(result["diagnostic"])
 
     def test_workflow_spec_compiled_execution_plan_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-authority-artifact-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["compiled_execution_plan"] = {
                 "display_only": True
@@ -78,7 +78,7 @@ class UnsupportedAuthorityArtifactValidationTests(unittest.TestCase):
         )
 
     def test_requested_auth_execution_manifest_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-authority-artifact-tests') as tmp:
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             requested_auth["execution_manifest"] = {"display_only": True}
             path = _write_json(Path(tmp) / "RequestedAuth.json", requested_auth)
@@ -95,7 +95,7 @@ class UnsupportedAuthorityArtifactValidationTests(unittest.TestCase):
         self.assertIn("$.execution_manifest", diagnostic["message"])
 
     def test_approval_requests_approval_decisions_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-authority-artifact-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -116,7 +116,7 @@ class UnsupportedAuthorityArtifactValidationTests(unittest.TestCase):
     def test_benign_string_mentioning_execution_manifest_is_not_rejected(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-authority-artifact-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["display_name"] = "Display execution manifest only"
             path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
@@ -132,7 +132,7 @@ class UnsupportedAuthorityArtifactValidationTests(unittest.TestCase):
     def test_aggregate_static_validation_surfaces_authority_artifact_rejection(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-authority-artifact-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(

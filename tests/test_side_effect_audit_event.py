@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from audit.audit_log_writer import append_audit_events
@@ -107,7 +107,7 @@ class SideEffectAuditEventTests(unittest.TestCase):
         self.assertNotIn("reason_code", permitted["details"])
 
     def test_helpers_do_not_write_files(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('side-effect-audit-event-tests') as tmp:
             tmp_path = Path(tmp)
             side_effect_proposed(**COMMON)
             side_effect_permitted(**COMMON)
@@ -123,7 +123,7 @@ class SideEffectAuditEventTests(unittest.TestCase):
             side_effect_denied(reason_code="UNDECLARED_TOOL", **COMMON),
             side_effect_failed(reason_code="SANDBOX_UNVERIFIABLE", **COMMON),
         ]
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('side-effect-audit-event-tests') as tmp:
             audit_log_path = Path(tmp) / "AuditLog.jsonl"
             result = append_audit_events(audit_log_path, events)
 

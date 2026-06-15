@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -40,7 +40,7 @@ class WorkflowSpecSchemaValidatorTests(unittest.TestCase):
                 self.assertIsNone(result["diagnostic"])
 
     def _validate_modified(self, modify) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-workflow-spec-schema-tests') as tmp:
             workflow_spec = _valid_workflow_spec()
             modify(workflow_spec)
             path = _write_temp_workflow_spec(Path(tmp), workflow_spec)
@@ -113,7 +113,7 @@ class WorkflowSpecSchemaOrderingTests(unittest.TestCase):
     def _validate_inputs_with_workflow_spec(
         self, workflow_spec: object, *, stop_on_first_error: bool = True
     ) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-workflow-spec-schema-tests') as tmp:
             path = _write_temp_workflow_spec(Path(tmp), workflow_spec)
             return validate_static_inputs(
                 path,

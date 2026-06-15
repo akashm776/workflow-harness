@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import shutil
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.authority_value_validator import (
@@ -84,7 +84,7 @@ class AuthorityValueValidatorUnitTests(unittest.TestCase):
 
 class AuthorityValueCompileIntegrationTests(unittest.TestCase):
     def _compile_with_modified_input(self, file_name: str, modify) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('authority-value-validator-tests') as tmp:
             tmp_dir = Path(tmp)
             for name in INPUT_FILES:
                 shutil.copy(SIMPLE_FIXTURE_INPUT / name, tmp_dir / name)
@@ -183,7 +183,7 @@ class AuthorityValueCompileIntegrationTests(unittest.TestCase):
         self.assertTrue(result["ok"])
 
     def _compile_with_modified_approval_decisions(self, modify) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('authority-value-validator-tests') as tmp:
             tmp_dir = Path(tmp)
             for name in (*INPUT_FILES, "ApprovalDecisions.json"):
                 shutil.copy(SIMPLE_FIXTURE_INPUT / name, tmp_dir / name)

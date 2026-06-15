@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -46,7 +46,7 @@ class UnsupportedSecretFieldValidationTests(unittest.TestCase):
                     self.assertIsNone(result["diagnostic"])
 
     def test_workflow_spec_nested_secret_field_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-secret-field-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["metadata"] = {"secret": "forbidden"}
             path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
@@ -71,7 +71,7 @@ class UnsupportedSecretFieldValidationTests(unittest.TestCase):
         )
 
     def test_requested_auth_credentials_field_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-secret-field-tests') as tmp:
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             requested_auth["credentials"] = {"mode": "forbidden"}
             path = _write_json(Path(tmp) / "RequestedAuth.json", requested_auth)
@@ -88,7 +88,7 @@ class UnsupportedSecretFieldValidationTests(unittest.TestCase):
         self.assertIn("$.credentials", diagnostic["message"])
 
     def test_approval_requests_api_keys_field_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-secret-field-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -107,7 +107,7 @@ class UnsupportedSecretFieldValidationTests(unittest.TestCase):
         self.assertIn("$.requests[0].api_keys", diagnostic["message"])
 
     def test_benign_string_mentioning_secret_is_not_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-secret-field-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["display_name"] = "Review secret field policy"
             path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
@@ -123,7 +123,7 @@ class UnsupportedSecretFieldValidationTests(unittest.TestCase):
     def test_aggregate_static_validation_surfaces_secret_field_rejection(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-secret-field-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(

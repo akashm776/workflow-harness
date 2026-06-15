@@ -4,7 +4,7 @@ import contextlib
 import io
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from cli import workflow_demo_cli
@@ -52,7 +52,7 @@ class WorkflowDemoCliTests(unittest.TestCase):
         return return_code, json.loads(stdout.getvalue())
 
     def test_end_to_end_demo_produces_safe_noop_run(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-demo-cli-tests') as tmp:
             run_dir = Path(tmp) / "demo"
             return_code, summary = self._run(
                 "generate innovation ideas from program data", run_dir
@@ -90,7 +90,7 @@ class WorkflowDemoCliTests(unittest.TestCase):
             )
 
     def test_execution_is_safe_noop_not_real_execution(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-demo-cli-tests') as tmp:
             run_dir = Path(tmp) / "demo"
             _, summary = self._run("safe noop goal", run_dir)
 
@@ -107,7 +107,7 @@ class WorkflowDemoCliTests(unittest.TestCase):
 
     def test_goal_not_written_into_candidate_authority_artifacts(self) -> None:
         goal = "SENTINEL-DEMO-GOAL-DO-NOT-LEAK"
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-demo-cli-tests') as tmp:
             run_dir = Path(tmp) / "demo"
             self._run(goal, run_dir)
             for file_name in CANDIDATE_FILES:
@@ -117,7 +117,7 @@ class WorkflowDemoCliTests(unittest.TestCase):
                 self.assertNotIn(goal, content)
 
     def test_deterministic_candidate_for_same_goal(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-demo-cli-tests') as tmp:
             run_a = Path(tmp) / "a"
             run_b = Path(tmp) / "b"
             self._run("same goal", run_a)
@@ -132,7 +132,7 @@ class WorkflowDemoCliTests(unittest.TestCase):
             self.assertEqual(spec_a, spec_b)
 
     def test_rerun_without_allow_overwrite_fails_closed(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-demo-cli-tests') as tmp:
             run_dir = Path(tmp) / "demo"
             self._run("first run", run_dir)
 
@@ -154,7 +154,7 @@ class WorkflowDemoCliTests(unittest.TestCase):
             )
 
     def test_rerun_with_allow_overwrite_succeeds(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-demo-cli-tests') as tmp:
             run_dir = Path(tmp) / "demo"
             self._run("first run", run_dir)
             return_code, summary = self._run(
@@ -164,7 +164,7 @@ class WorkflowDemoCliTests(unittest.TestCase):
             self.assertTrue(summary["ok"])
 
     def test_innovation_goal_summary_reports_innovation_template(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-demo-cli-tests') as tmp:
             run_dir = Path(tmp) / "demo"
             _, summary = self._run(
                 "generate innovation ideas from program data", run_dir
@@ -172,13 +172,13 @@ class WorkflowDemoCliTests(unittest.TestCase):
             self.assertEqual(summary["planner_template"], "innovation")
 
     def test_unrelated_goal_summary_reports_stub_template(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-demo-cli-tests') as tmp:
             run_dir = Path(tmp) / "demo"
             _, summary = self._run("summarize the quarterly report", run_dir)
             self.assertEqual(summary["planner_template"], "stub")
 
     def test_explicit_innovation_review_template_reports_selected_template(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-demo-cli-tests') as tmp:
             run_dir = Path(tmp) / "demo"
             _, summary = self._run(
                 "summarize the quarterly report",
@@ -190,7 +190,7 @@ class WorkflowDemoCliTests(unittest.TestCase):
             self.assertEqual(summary["execution_status"], "blocked")
 
     def test_explicit_template_does_not_change_default_innovation_behavior(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-demo-cli-tests') as tmp:
             run_dir = Path(tmp) / "demo"
             _, summary = self._run(
                 "generate innovation ideas from program data",

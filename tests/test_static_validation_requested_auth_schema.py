@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -41,7 +41,7 @@ class RequestedAuthSchemaValidatorTests(unittest.TestCase):
                 self.assertIsNone(result["diagnostic"])
 
     def _validate_modified(self, modify) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-requested-auth-schema-tests') as tmp:
             requested_auth = _valid_requested_auth()
             modify(requested_auth)
             path = _write_temp_requested_auth(Path(tmp), requested_auth)
@@ -141,7 +141,7 @@ class RequestedAuthSchemaPhasingTests(unittest.TestCase):
     def _validate_inputs_with_requested_auth(
         self, requested_auth: object, *, stop_on_first_error: bool = True
     ) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-requested-auth-schema-tests') as tmp:
             path = _write_temp_requested_auth(Path(tmp), requested_auth)
             return validate_static_inputs(
                 SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json",

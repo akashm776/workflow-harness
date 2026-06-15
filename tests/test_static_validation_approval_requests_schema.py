@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -45,7 +45,7 @@ class ApprovalRequestsSchemaValidatorTests(unittest.TestCase):
                 self.assertIsNone(result["diagnostic"])
 
     def _validate_modified(self, modify) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-approval-requests-schema-tests') as tmp:
             approval_requests = _valid_approval_requests()
             modify(approval_requests)
             path = _write_temp_approval_requests(Path(tmp), approval_requests)
@@ -134,7 +134,7 @@ class ApprovalRequestsSchemaPhasingTests(unittest.TestCase):
         )
 
     def test_aggregate_mode_schema_failure_gates_interpretation(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-approval-requests-schema-tests') as tmp:
             approval_requests = _valid_approval_requests()
             approval_requests["requests"] = "not-a-list"
             path = _write_temp_approval_requests(Path(tmp), approval_requests)
@@ -153,7 +153,7 @@ class ApprovalRequestsSchemaPhasingTests(unittest.TestCase):
         )
 
     def test_float_fails_in_authority_phase_before_schema(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-approval-requests-schema-tests') as tmp:
             approval_requests = _valid_approval_requests()
             approval_requests["requests"][0]["weight"] = 1.0
             path = _write_temp_approval_requests(Path(tmp), approval_requests)

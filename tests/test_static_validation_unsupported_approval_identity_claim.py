@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -69,7 +69,7 @@ class UnsupportedApprovalIdentityClaimValidationTests(unittest.TestCase):
     def test_workflow_spec_each_unsupported_key_is_rejected(self) -> None:
         for key in UNSUPPORTED_APPROVAL_IDENTITY_CLAIM_KEYS:
             with self.subTest(key=key):
-                with tempfile.TemporaryDirectory() as tmp:
+                with temporary_test_directory('static-validation-unsupported-approval-identity-claim-tests') as tmp:
                     workflow_spec = _load_json(
                         SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json"
                     )
@@ -95,7 +95,7 @@ class UnsupportedApprovalIdentityClaimValidationTests(unittest.TestCase):
                 self.assertIn(f"$.nodes[0].{key}", diagnostic["message"])
 
     def test_workflow_spec_approval_id_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-identity-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["approval_id"] = "example-approval-id"
             path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
@@ -123,7 +123,7 @@ class UnsupportedApprovalIdentityClaimValidationTests(unittest.TestCase):
         )
 
     def test_workflow_spec_approval_subject_override_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-identity-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["approval_subject_override"] = {
                 "display_only": True
@@ -144,7 +144,7 @@ class UnsupportedApprovalIdentityClaimValidationTests(unittest.TestCase):
         self.assertIn("$.nodes[0].approval_subject_override", diagnostic["message"])
 
     def test_requested_auth_approval_receipt_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-identity-claim-tests') as tmp:
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             requested_auth["approval_receipt"] = {"display_only": True}
             path = _write_json(Path(tmp) / "RequestedAuth.json", requested_auth)
@@ -165,7 +165,7 @@ class UnsupportedApprovalIdentityClaimValidationTests(unittest.TestCase):
     def test_approval_token_is_owned_by_approval_binding(self) -> None:
         # approval_token is owned by the approval-binding validator and must not
         # be claimed by this validator; this validator leaves it alone.
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-identity-claim-tests') as tmp:
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             requested_auth["approval_token"] = "example-token"
             path = _write_json(Path(tmp) / "RequestedAuth.json", requested_auth)
@@ -179,7 +179,7 @@ class UnsupportedApprovalIdentityClaimValidationTests(unittest.TestCase):
         self.assertIsNone(result["diagnostic"])
 
     def test_approval_requests_approval_run_id_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-identity-claim-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -200,7 +200,7 @@ class UnsupportedApprovalIdentityClaimValidationTests(unittest.TestCase):
         self.assertIn("$.requests[0].approval_run_id", diagnostic["message"])
 
     def test_approval_requests_approval_request_id_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-identity-claim-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -223,7 +223,7 @@ class UnsupportedApprovalIdentityClaimValidationTests(unittest.TestCase):
     def test_approval_requests_approval_subject_digest_override_key_is_rejected(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-identity-claim-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -249,7 +249,7 @@ class UnsupportedApprovalIdentityClaimValidationTests(unittest.TestCase):
 
     def test_benign_string_mentioning_approval_id_is_not_rejected(self) -> None:
         # The words appear only inside a string value, not as object keys.
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-identity-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["display_name"] = (
                 "Explain approval_id and operator_signature policy"
@@ -267,7 +267,7 @@ class UnsupportedApprovalIdentityClaimValidationTests(unittest.TestCase):
     def test_aggregate_static_validation_surfaces_approval_identity_rejection(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-identity-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -308,7 +308,7 @@ class UnsupportedApprovalIdentityClaimValidationTests(unittest.TestCase):
         # ApprovalDecisions.json is operator-authored, not a planner proposal;
         # this validator does not scan it, and approval-identity-like fields
         # there pass aggregate static validation.
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-identity-claim-tests') as tmp:
             fixture_input = (
                 ROOT / "fixtures" / "valid" / "approval-required-workflow" / "input"
             )
