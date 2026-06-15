@@ -16,6 +16,31 @@ This is a safe-noop governance/control-plane proof, not real agent execution.
 - Approval is current-run/request scoped.
 - Runtime remains safe no-op.
 - Operator-facing status surfaces are display-only and do not grant authority.
+- Workflow Proposal Strategy Preview is deterministic and display-only.
+- Workflow Proposal Strategy Preview uses deterministic keyword matching only as
+  a baseline preview and audit scaffold for future LLM/Hermes workflow
+  selection.
+- The future planner LLM/Hermes may choose different workflow strategies or
+  pattern families using richer context.
+- The preview does not replace intelligent workflow planning.
+- Any future intelligent selection must still produce
+  compiler-validatable candidate artifacts and remain subject to current-run
+  operator approval.
+- Workflow Proposal Strategy Preview previews strategy type, pattern family,
+  expected phases, expected future candidate artifacts, and expected governance
+  surfaces.
+- Workflow Proposal Strategy Preview does not create candidate artifacts.
+- Workflow Proposal Strategy Preview does not authorize anything.
+- Workflow Proposal Strategy Preview does not approve anything.
+- Workflow Proposal Strategy Preview does not execute anything.
+- Workflow Proposal Strategy Preview does not create a broker request.
+- Workflow Proposal Strategy Preview does not launch a sandbox/backend.
+- Workflow Proposal Strategy Preview does not call models, tools, connectors,
+  MCP, network, broker, sandbox, compiler, runtime, or planner
+  artifact-generation APIs.
+- Workflow Proposal Strategy Preview does not change compiler validation.
+- Workflow Proposal Strategy Preview does not change approval matching.
+- Compiler validation remains required before approval/runtime surfaces.
 - Compiler Governance Timeline is display-only.
 - Compiler Governance Timeline reports observed/local governance status only.
 - Compiler Governance Timeline does not authorize anything.
@@ -85,6 +110,30 @@ sandbox execution happen in this demo.
 - Present the demo as governance/control-plane behavior over existing artifacts.
 - If you inspect run summaries, describe them as operator-facing, display-only
   status surfaces.
+
+Optionally preview the likely workflow proposal strategy before any candidate
+artifacts exist:
+
+```bash
+python -m cli.workflow_strategy_preview_cli \
+  --goal "Find AI innovation opportunities from program docs and repo context"
+```
+
+This preview is deterministic and display-only. It previews strategy type,
+pattern family, expected phases, expected future candidate artifacts, and
+expected governance surfaces. It uses deterministic keyword matching only as a
+baseline preview and audit scaffold for future LLM/Hermes workflow selection.
+The future planner LLM/Hermes may choose different workflow strategies or
+pattern families using richer context. The preview does not replace
+intelligent workflow planning. Any future intelligent selection must still
+produce compiler-validatable candidate artifacts and remain subject to
+current-run operator approval. It does not create candidate artifacts. It does
+not authorize anything. It does not approve anything. It does not execute
+anything. It does not create a broker request. It does not launch a
+sandbox/backend. It does not call models, tools, connectors, MCP, network,
+broker, sandbox, compiler, runtime, or planner artifact-generation APIs. It
+does not change compiler validation. It does not change approval matching.
+Compiler validation remains required before approval/runtime surfaces.
 
 ## Blocked-Run Demo
 
