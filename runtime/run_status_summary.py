@@ -823,6 +823,41 @@ def _extract_request_ids_from_approval_requests(payload: Any) -> list[str] | Non
     return request_ids
 
 
+def _extract_approval_request_entries(
+    payload: Any,
+) -> list[dict[str, str]] | None:
+    if not isinstance(payload, dict):
+        return None
+
+    raw_requests = payload.get("requests")
+    if not isinstance(raw_requests, list):
+        return None
+
+    request_entries: list[dict[str, str]] = []
+    for raw_request in raw_requests:
+        request_id = _get_str(raw_request, "request_id")
+        node_id = _get_str(raw_request, "node_id")
+        approval_subject_hash = _get_str(raw_request, "approval_subject_hash")
+        if (
+            request_id is None
+            or node_id is None
+            or approval_subject_hash is None
+        ):
+            continue
+        entry = {
+            "request_id": request_id,
+            "node_id": node_id,
+            "approval_subject_hash": approval_subject_hash,
+        }
+        reason = _get_str(raw_request, "reason")
+        if reason is not None:
+            entry["reason"] = reason
+        request_entries.append(entry)
+    if len(request_entries) != len(raw_requests):
+        return None
+    return request_entries
+
+
 def _extract_approved_request_ids(payload: Any) -> set[str] | None:
     if not isinstance(payload, dict):
         return None
@@ -840,6 +875,26 @@ def _extract_approved_request_ids(payload: Any) -> set[str] | None:
         if decision == "approved":
             approved_request_ids.add(request_id)
     return approved_request_ids
+
+
+def _approved_capability_handoff_projection(
+    status: str,
+    entries: list[dict[str, Any]],
+    blocked_entries: list[dict[str, str]],
+) -> dict[str, Any]:
+    return {
+        "display_only": True,
+        "current_run_scope_only": True,
+        "not_authority": True,
+        "not_approval": True,
+        "not_execution": True,
+        "not_broker_request": True,
+        "future_broker_not_implemented": True,
+        "status": status,
+        "approved_count": len(entries),
+        "entries": entries,
+        "blocked_entries": blocked_entries,
+    }
 
 
 def _build_broker_handoff_readiness_preview(
@@ -1031,12 +1086,127 @@ def _build_broker_handoff_readiness_preview(
     }
 
 
+def _build_approved_capability_handoff_projection(
+    run_path: Path,
+    candidate_workflow: dict[str, Any] | None,
+    approval_requests_present: bool,
+) -> dict[str, Any] | None:
+    """Return a display-only current-run approval/decision projection only.
+
+    This is a read-only cockpit/status view over local ApprovalRequests and
+    ApprovalDecisions artifacts. It is not approval resolution, authority,
+    execution, or broker behavior and it creates no broker request.
+    """
+
+    workflow_spec_path = run_path / "candidate" / "WorkflowSpec.json"
+    approval_requests_path = run_path / "candidate" / "ApprovalRequests.json"
+    approval_decisions_path = run_path / "ApprovalDecisions.json"
+
+    candidate_workflow_present = workflow_spec_path.exists() or isinstance(
+        candidate_workflow, dict
+    )
+    approval_decisions_present = approval_decisions_path.exists()
+
+    if not approval_requests_present and not approval_decisions_present:
+        return None
+
+    request_entries: list[dict[str, str]] | None = None
+    if approval_requests_present:
+        request_entries = _extract_approval_request_entries(
+            _safe_load_json(approval_requests_path)
+        )
+        if request_entries is None:
+            return _approved_capability_handoff_projection(
+                "malformed",
+                [],
+                [],
+            )
+
+    approved_request_ids: set[str] = set()
+    if approval_decisions_present:
+        extracted_approved_request_ids = _extract_approved_request_ids(
+            _safe_load_json(approval_decisions_path)
+        )
+        if extracted_approved_request_ids is None:
+            return _approved_capability_handoff_projection(
+                "malformed",
+                [],
+                [],
+            )
+        approved_request_ids = extracted_approved_request_ids
+
+    if not request_entries:
+        return _approved_capability_handoff_projection(
+            "not_observed",
+            [],
+            [],
+        )
+
+    entries: list[dict[str, Any]] = []
+    blocked_entries: list[dict[str, str]] = []
+    for request_entry in request_entries:
+        request_id = request_entry["request_id"]
+        node_id = request_entry["node_id"]
+        approval_subject_hash = request_entry["approval_subject_hash"]
+
+        if not candidate_workflow_present:
+            blocked_entries.append(
+                {
+                    "request_id": request_id,
+                    "node_id": node_id,
+                    "approval_subject_hash": approval_subject_hash,
+                    "reason": "missing_candidate_workflow",
+                }
+            )
+            continue
+
+        if request_id in approved_request_ids:
+            entries.append(
+                {
+                    "request_id": request_id,
+                    "node_id": node_id,
+                    "approval_subject_hash": approval_subject_hash,
+                    "decision": "approved",
+                    "scope": "current_run_request_only",
+                    "eligible_for_future_broker_contract": True,
+                    "detail": (
+                        "Local approved decision observed for this current-run "
+                        "request; no broker request is created."
+                    ),
+                }
+            )
+            continue
+
+        blocked_entries.append(
+            {
+                "request_id": request_id,
+                "node_id": node_id,
+                "approval_subject_hash": approval_subject_hash,
+                "reason": "missing_local_approved_decision",
+            }
+        )
+
+    if not candidate_workflow_present:
+        status = "blocked_missing_candidate_workflow"
+    elif entries:
+        status = "approved_capabilities_observed"
+    else:
+        status = "no_approved_capabilities"
+
+    return _approved_capability_handoff_projection(
+        status,
+        entries,
+        blocked_entries,
+    )
+
+
 def _build_operator_review_packet(
     review_required: bool | None,
     blocked_by_review: bool,
     review_gate: dict[str, Any] | None,
     compiler_governance_timeline: list[dict[str, str]] | None,
     broker_handoff_readiness_preview: dict[str, Any] | None,
+    approved_capability_handoff_projection: dict[str, Any] | None,
     governance_readiness_checklist: list[dict[str, str]] | None,
     candidate_workflow: dict[str, Any] | None,
     operator_review_notes: dict[str, Any] | None,
@@ -1059,6 +1229,15 @@ def _build_operator_review_packet(
         included_sections.append("Compiler Governance Timeline")
     if broker_handoff_readiness_preview is not None:
         included_sections.append("Broker Handoff Readiness Preview")
+    if (
+        isinstance(approved_capability_handoff_projection, dict)
+        and approved_capability_handoff_projection.get("status") != "malformed"
+        and (
+            approved_capability_handoff_projection.get("entries")
+            or approved_capability_handoff_projection.get("blocked_entries")
+        )
+    ):
+        included_sections.append("Approved Capability Handoff Projection")
     if governance_readiness_checklist is not None:
         included_sections.append("Governance Readiness Checklist")
     if candidate_workflow is not None:
@@ -1402,6 +1581,13 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         review_gate,
         execution_status,
     )
+    approved_capability_handoff_projection = (
+        _build_approved_capability_handoff_projection(
+            run_path,
+            candidate_workflow,
+            approval_requests_present,
+        )
+    )
     governance_lifecycle_stage = _build_governance_lifecycle_stage(
         compilation_status,
         execution_status,
@@ -1434,6 +1620,9 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "review_gate": review_gate,
         "compiler_governance_timeline": compiler_governance_timeline,
         "broker_handoff_readiness_preview": broker_handoff_readiness_preview,
+        "approved_capability_handoff_projection": (
+            approved_capability_handoff_projection
+        ),
         "governance_lifecycle_stage": governance_lifecycle_stage,
         "governance_readiness_checklist": governance_readiness_checklist,
         "candidate_workflow": candidate_workflow,
@@ -1450,6 +1639,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
             review_gate,
             compiler_governance_timeline,
             broker_handoff_readiness_preview,
+            approved_capability_handoff_projection,
             governance_readiness_checklist,
             candidate_workflow,
             operator_review_notes,

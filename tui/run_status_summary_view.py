@@ -67,6 +67,15 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(broker_handoff_readiness_preview_lines)
 
+    approved_capability_handoff_projection_lines = (
+        _approved_capability_handoff_projection_lines(
+            summary.get("approved_capability_handoff_projection")
+        )
+    )
+    if approved_capability_handoff_projection_lines:
+        lines.append("")
+        lines.extend(approved_capability_handoff_projection_lines)
+
     governance_lifecycle_stage_lines = _governance_lifecycle_stage_lines(
         summary.get("governance_lifecycle_stage")
     )
@@ -288,6 +297,102 @@ def _broker_handoff_readiness_preview_lines(
             lines.append(f"  {detail}")
 
     return lines if rendered_item_count > 0 else []
+
+
+def _approved_capability_handoff_projection_lines(
+    approved_capability_handoff_projection: Any,
+) -> list[str]:
+    if not isinstance(approved_capability_handoff_projection, Mapping):
+        return []
+
+    status = approved_capability_handoff_projection.get("status")
+    entries = approved_capability_handoff_projection.get("entries")
+    blocked_entries = approved_capability_handoff_projection.get("blocked_entries")
+    if (
+        not isinstance(status, str)
+        or status == "malformed"
+        or not isinstance(entries, list)
+        or not isinstance(blocked_entries, list)
+    ):
+        return []
+
+    lines = ["Approved Capability Handoff Projection:"]
+    lines.append(f"Status: {status}")
+    lines.append(
+        "Display-only: "
+        f"{'yes' if approved_capability_handoff_projection.get('display_only') is True else 'no'}"
+    )
+    lines.append(
+        "Current-run scope only: "
+        f"{'yes' if approved_capability_handoff_projection.get('current_run_scope_only') is True else 'no'}"
+    )
+    lines.append(
+        "Authority: "
+        f"{'no' if approved_capability_handoff_projection.get('not_authority') is True else 'yes'}"
+    )
+    lines.append(
+        "Approval: "
+        f"{'no' if approved_capability_handoff_projection.get('not_approval') is True else 'yes'}"
+    )
+    lines.append(
+        "Execution: "
+        f"{'no' if approved_capability_handoff_projection.get('not_execution') is True else 'yes'}"
+    )
+    lines.append(
+        "Broker request: "
+        f"{'no' if approved_capability_handoff_projection.get('not_broker_request') is True else 'yes'}"
+    )
+    lines.append(
+        "Future broker implemented: "
+        f"{'no' if approved_capability_handoff_projection.get('future_broker_not_implemented') is True else 'yes'}"
+    )
+    lines.append(f"Approved entries: {len(entries)}")
+
+    rendered_entry_count = 0
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            continue
+        request_id = entry.get("request_id")
+        node_id = entry.get("node_id")
+        decision = entry.get("decision")
+        if (
+            not isinstance(request_id, str)
+            or not isinstance(node_id, str)
+            or not isinstance(decision, str)
+        ):
+            continue
+        rendered_entry_count += 1
+        lines.append(f"- {request_id} / {node_id}: {decision}")
+        approval_subject_hash = entry.get("approval_subject_hash")
+        if isinstance(approval_subject_hash, str):
+            lines.append(f"  approval_subject_hash: {approval_subject_hash}")
+        scope = entry.get("scope")
+        if isinstance(scope, str):
+            lines.append(f"  scope: {scope}")
+        detail = entry.get("detail")
+        if isinstance(detail, str):
+            lines.append(f"  {detail}")
+
+    lines.append(f"Blocked entries: {len(blocked_entries)}")
+    rendered_blocked_count = 0
+    for blocked_entry in blocked_entries:
+        if not isinstance(blocked_entry, Mapping):
+            continue
+        request_id = blocked_entry.get("request_id")
+        node_id = blocked_entry.get("node_id")
+        reason = blocked_entry.get("reason")
+        if (
+            not isinstance(request_id, str)
+            or not isinstance(node_id, str)
+            or not isinstance(reason, str)
+        ):
+            continue
+        rendered_blocked_count += 1
+        lines.append(f"- {request_id} / {node_id}: {reason}")
+
+    if rendered_entry_count == 0 and rendered_blocked_count == 0:
+        return []
+    return lines
 
 
 def _candidate_workflow_lines(candidate_workflow: Any) -> list[str]:

@@ -247,6 +247,43 @@ class RunStatusSummaryViewTests(unittest.TestCase):
         }
         return summary
 
+    def _summary_with_approved_capability_handoff_projection(self) -> dict:
+        summary = _sample_summary()
+        summary["approved_capability_handoff_projection"] = {
+            "display_only": True,
+            "current_run_scope_only": True,
+            "not_authority": True,
+            "not_approval": True,
+            "not_execution": True,
+            "not_broker_request": True,
+            "future_broker_not_implemented": True,
+            "status": "approved_capabilities_observed",
+            "approved_count": 1,
+            "entries": [
+                {
+                    "request_id": "req-1",
+                    "node_id": "retrieve-1",
+                    "approval_subject_hash": "subject-1",
+                    "decision": "approved",
+                    "scope": "current_run_request_only",
+                    "eligible_for_future_broker_contract": True,
+                    "detail": (
+                        "Local approved decision observed; no broker request is "
+                        "created."
+                    ),
+                }
+            ],
+            "blocked_entries": [
+                {
+                    "request_id": "req-2",
+                    "node_id": "retrieve-2",
+                    "approval_subject_hash": "subject-2",
+                    "reason": "missing_local_approved_decision",
+                }
+            ],
+        }
+        return summary
+
     def test_render_includes_broker_handoff_readiness_preview(self) -> None:
         rendered = render_run_status_summary_view(
             self._summary_with_broker_handoff_readiness_preview()
@@ -329,6 +366,107 @@ class RunStatusSummaryViewTests(unittest.TestCase):
         self,
     ) -> None:
         summary = self._summary_with_broker_handoff_readiness_preview()
+        original = copy.deepcopy(summary)
+
+        render_run_status_summary_view(summary)
+
+        self.assertEqual(summary, original)
+
+    def test_render_includes_approved_capability_handoff_projection(self) -> None:
+        rendered = render_run_status_summary_view(
+            self._summary_with_approved_capability_handoff_projection()
+        )
+
+        self.assertIn("Approved Capability Handoff Projection:", rendered)
+        self.assertIn("Status: approved_capabilities_observed", rendered)
+        self.assertIn("Display-only: yes", rendered)
+        self.assertIn("Current-run scope only: yes", rendered)
+        self.assertIn("Authority: no", rendered)
+        self.assertIn("Approval: no", rendered)
+        self.assertIn("Execution: no", rendered)
+        self.assertIn("Broker request: no", rendered)
+        self.assertIn("Future broker implemented: no", rendered)
+        self.assertIn("Approved entries: 1", rendered)
+        self.assertIn("- req-1 / retrieve-1: approved", rendered)
+        self.assertIn("  approval_subject_hash: subject-1", rendered)
+        self.assertIn("  scope: current_run_request_only", rendered)
+        self.assertIn("Blocked entries: 1", rendered)
+        self.assertIn(
+            "- req-2 / retrieve-2: missing_local_approved_decision",
+            rendered,
+        )
+
+    def test_approved_capability_handoff_projection_renders_after_broker_preview_and_before_stage(
+        self,
+    ) -> None:
+        summary = self._summary_with_compiler_governance_timeline()
+        summary["review_gate"] = {"blocked_reason": "review_required"}
+        summary["approval_request_count"] = 1
+        summary["broker_handoff_readiness_preview"] = (
+            self._summary_with_broker_handoff_readiness_preview()[
+                "broker_handoff_readiness_preview"
+            ]
+        )
+        summary["approved_capability_handoff_projection"] = (
+            self._summary_with_approved_capability_handoff_projection()[
+                "approved_capability_handoff_projection"
+            ]
+        )
+        summary["governance_lifecycle_stage"] = {
+            "stage": "blocked_awaiting_operator_approval",
+            "display_only": True,
+        }
+
+        rendered = render_run_status_summary_view(summary)
+
+        broker_preview_idx = rendered.index("Broker Handoff Readiness Preview:")
+        projection_idx = rendered.index("Approved Capability Handoff Projection:")
+        stage_idx = rendered.index("Governance Lifecycle Stage:")
+        self.assertLess(broker_preview_idx, projection_idx)
+        self.assertLess(projection_idx, stage_idx)
+
+    def test_approved_capability_handoff_projection_renders_after_timeline_when_broker_preview_missing(
+        self,
+    ) -> None:
+        summary = self._summary_with_compiler_governance_timeline()
+        summary["review_gate"] = {"blocked_reason": "review_required"}
+        summary["approval_request_count"] = 1
+        summary["approved_capability_handoff_projection"] = (
+            self._summary_with_approved_capability_handoff_projection()[
+                "approved_capability_handoff_projection"
+            ]
+        )
+        summary["governance_lifecycle_stage"] = {
+            "stage": "blocked_awaiting_operator_approval",
+            "display_only": True,
+        }
+
+        rendered = render_run_status_summary_view(summary)
+
+        timeline_idx = rendered.index("Compiler Governance Timeline:")
+        projection_idx = rendered.index("Approved Capability Handoff Projection:")
+        stage_idx = rendered.index("Governance Lifecycle Stage:")
+        self.assertLess(timeline_idx, projection_idx)
+        self.assertLess(projection_idx, stage_idx)
+
+    def test_render_with_malformed_approved_capability_handoff_projection_has_no_section(
+        self,
+    ) -> None:
+        summary = _sample_summary()
+        summary["approved_capability_handoff_projection"] = {
+            "status": "malformed",
+            "entries": [],
+            "blocked_entries": [],
+        }
+
+        rendered = render_run_status_summary_view(summary)
+
+        self.assertNotIn("Approved Capability Handoff Projection:", rendered)
+
+    def test_render_does_not_mutate_input_with_approved_capability_handoff_projection(
+        self,
+    ) -> None:
+        summary = self._summary_with_approved_capability_handoff_projection()
         original = copy.deepcopy(summary)
 
         render_run_status_summary_view(summary)

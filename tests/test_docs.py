@@ -1161,6 +1161,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("Review Gate", content)
         self.assertIn("Compiler Governance Timeline", content)
         self.assertIn("Broker Handoff Readiness Preview", content)
+        self.assertIn("Approved Capability Handoff Projection", content)
         self.assertIn("Candidate Workflow", content)
         self.assertIn("Operator Review Notes", content)
         self.assertIn("Proposed Tool Access", content)
@@ -1196,8 +1197,14 @@ class DocsTests(unittest.TestCase):
             "reports local artifact readiness for a future broker contract only",
             lowered_normalized,
         )
+        self.assertIn(
+            "reports local current-run approved request/node pairs for a future broker contract layer only",
+            lowered_normalized,
+        )
         self.assertIn("does not create a broker request", lowered_normalized)
         self.assertIn("does not launch a sandbox/backend", lowered_normalized)
+        self.assertIn("does not create reusable approvals", lowered)
+        self.assertIn("does not create approval carryover", lowered)
         self.assertIn(
             "does not call tools, connectors, MCP, network, broker, sandbox, or model APIs",
             normalized,
@@ -1208,6 +1215,18 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn(
             "artifacts appear ready for a future broker contract handoff",
+            content,
+        )
+        self.assertIn(
+            "After writing `ApprovalDecisions.json`, the cockpit can also show the exact",
+            content,
+        )
+        self.assertIn(
+            "current-run request/node pairs that have local approved decisions",
+            content,
+        )
+        self.assertIn(
+            "this is not authority, not execution, and not a broker request",
             content,
         )
         self.assertIn("This integrates Hermes Agent", content)
@@ -1838,6 +1857,7 @@ class DocsTests(unittest.TestCase):
             "Review Gate:\n"
             "Compiler Governance Timeline:\n"
             "Broker Handoff Readiness Preview:\n"
+            "Approved Capability Handoff Projection:\n"
             "Governance Lifecycle Stage:\n"
             "Governance Readiness Checklist:\n"
             "Candidate Workflow:\n"
@@ -1920,6 +1940,58 @@ class DocsTests(unittest.TestCase):
         )
         self.assertIn(
             "Broker Handoff Readiness Preview does not call tools, connectors, MCP,",
+            content,
+        )
+        self.assertIn(
+            "Approved Capability Handoff Projection is display-only.",
+            content,
+        )
+        self.assertIn(
+            "Approved Capability Handoff Projection reports local current-run approved",
+            content,
+        )
+        self.assertIn(
+            "request/node pairs for a future broker contract layer only.",
+            content,
+        )
+        self.assertIn(
+            "Approved Capability Handoff Projection does not authorize anything.",
+            content,
+        )
+        self.assertIn(
+            "Approved Capability Handoff Projection does not approve anything.",
+            content,
+        )
+        self.assertIn(
+            "Approved Capability Handoff Projection does not execute anything.",
+            content,
+        )
+        self.assertIn(
+            "Approved Capability Handoff Projection does not create a broker request.",
+            content,
+        )
+        self.assertIn(
+            "Approved Capability Handoff Projection does not launch a sandbox/backend.",
+            content,
+        )
+        self.assertIn(
+            "Approved Capability Handoff Projection does not change compiler validation.",
+            content,
+        )
+        self.assertIn(
+            "Approved Capability Handoff Projection does not change approval matching.",
+            content,
+        )
+        self.assertIn(
+            "Approved Capability Handoff Projection does not create reusable approvals.",
+            content,
+        )
+        self.assertIn(
+            "Approved Capability Handoff Projection does not create approval carryover.",
+            content,
+        )
+        self.assertIn(
+            "Approved Capability Handoff Projection does not call tools, connectors, MCP,",
             content,
         )
         self.assertIn(
