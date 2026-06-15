@@ -16,6 +16,14 @@ This is a safe-noop governance/control-plane proof, not real agent execution.
 - Approval is current-run/request scoped.
 - Runtime remains safe no-op.
 - Operator-facing status surfaces are display-only and do not grant authority.
+- Compiler Governance Timeline is display-only.
+- Compiler Governance Timeline reports observed/local governance status only.
+- Compiler Governance Timeline does not authorize anything.
+- Compiler Governance Timeline does not approve anything.
+- Compiler Governance Timeline does not change compiler validation.
+- Compiler Governance Timeline does not change approval matching.
+- Compiler Governance Timeline does not execute tools, connectors, brokers,
+  sandboxes, MCP, network calls, or model calls.
 - Operator Review Notes are display-only, operator-authored, current-run scoped
   notes attached to candidate workflow nodes.
 - `python -m cli.operator_review_notes_cli` writes local operator-authored
@@ -95,8 +103,8 @@ python -m cli.run_status_cli \
   --summary
 ```
 
-That summary call will show `Operator Review Notes:` for the noted candidate
-node.
+That summary call will show `Compiler Governance Timeline:` and
+`Operator Review Notes:` for the noted candidate node.
 
 Call out that the proposal exists, the compiler evaluated it, and the run stays
 blocked until the current request is explicitly approved.
@@ -138,6 +146,8 @@ Use language close to this:
   authoritative.
 - The planner proposal is non-authoritative.
 - The compiler remains the authority boundary.
+- The Compiler Governance Timeline is display-only and reports observed/local
+  governance status only.
 - Approval is explicit and limited to the current run/request.
 - Runtime remains safe no-op.
 
@@ -147,6 +157,7 @@ The summary/operator cockpit can show operator-facing, display-only sections
 such as:
 
 - Review Gate
+- Compiler Governance Timeline
 - Candidate Workflow
 - Operator Review Notes
 - Fixture Lineage
@@ -160,6 +171,9 @@ such as:
 - Governance Readiness Checklist
 
 These are display-only status surfaces and do not grant authority.
+Compiler Governance Timeline reports observed/local governance status only. It
+does not authorize anything, does not approve anything, and does not change
+compiler validation or approval matching.
 Operator Review Notes remain operator-authored display-only notes only; they do
 not approve anything and do not change compiler validation or approval
 matching.
@@ -170,6 +184,8 @@ These are safe claims to make during the demo:
 
 - The planner proposal is non-authoritative.
 - The compiler remains the authority boundary.
+- The Compiler Governance Timeline reports observed/local governance status
+  only.
 - Approval is current-run/request scoped.
 - Runtime remains safe no-op.
 - The operator cockpit sections are display-only.

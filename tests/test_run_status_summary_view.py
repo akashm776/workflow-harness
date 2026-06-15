@@ -96,6 +96,111 @@ class RunStatusSummaryViewTests(unittest.TestCase):
         self.assertLess(review_gate_idx, stage_idx)
         self.assertLess(stage_idx, candidate_idx)
 
+    def _summary_with_compiler_governance_timeline(self) -> dict:
+        summary = _sample_summary()
+        summary["compiler_governance_timeline"] = [
+            {
+                "step": "candidate_artifacts",
+                "label": "Candidate artifacts",
+                "status": "present",
+                "detail": (
+                    "Candidate workflow and requested authority artifacts are "
+                    "local planner outputs."
+                ),
+            },
+            {
+                "step": "compilation_report",
+                "label": "Compilation report",
+                "status": "present",
+                "detail": "A local CompilationReport.json artifact was observed.",
+            },
+            {
+                "step": "approval_gate",
+                "label": "Approval gate",
+                "status": "blocked",
+                "detail": (
+                    "Current-run approval is required before safe no-op "
+                    "completion."
+                ),
+            },
+            {
+                "step": "runtime_execution_mode",
+                "label": "Runtime execution mode",
+                "status": "safe_noop",
+                "detail": (
+                    "Runtime remains safe no-op; no broker, sandbox, tool, "
+                    "connector, MCP, network, or model execution is performed."
+                ),
+            },
+        ]
+        return summary
+
+    def test_render_includes_compiler_governance_timeline(self) -> None:
+        rendered = render_run_status_summary_view(
+            self._summary_with_compiler_governance_timeline()
+        )
+
+        self.assertIn("Compiler Governance Timeline:", rendered)
+        self.assertIn("- Candidate artifacts: present", rendered)
+        self.assertIn(
+            "  Candidate workflow and requested authority artifacts are local planner outputs.",
+            rendered,
+        )
+        self.assertIn("- Compilation report: present", rendered)
+        self.assertIn(
+            "  A local CompilationReport.json artifact was observed.",
+            rendered,
+        )
+        self.assertIn("- Approval gate: blocked", rendered)
+        self.assertIn(
+            "  Current-run approval is required before safe no-op completion.",
+            rendered,
+        )
+        self.assertIn("- Runtime execution mode: safe_noop", rendered)
+
+    def test_compiler_governance_timeline_renders_after_review_gate_and_before_stage(
+        self,
+    ) -> None:
+        summary = self._summary_with_compiler_governance_timeline()
+        summary["review_gate"] = {"blocked_reason": "review_required"}
+        summary["approval_request_count"] = 1
+        summary["governance_lifecycle_stage"] = {
+            "stage": "blocked_awaiting_operator_approval",
+            "display_only": True,
+        }
+
+        rendered = render_run_status_summary_view(summary)
+
+        review_gate_idx = rendered.index("Review Gate:")
+        timeline_idx = rendered.index("Compiler Governance Timeline:")
+        stage_idx = rendered.index("Governance Lifecycle Stage:")
+        self.assertLess(review_gate_idx, timeline_idx)
+        self.assertLess(timeline_idx, stage_idx)
+
+    def test_render_without_compiler_governance_timeline_has_no_section(self) -> None:
+        rendered = render_run_status_summary_view(_sample_summary())
+        self.assertNotIn("Compiler Governance Timeline:", rendered)
+
+    def test_render_with_malformed_compiler_governance_timeline_has_no_section(
+        self,
+    ) -> None:
+        summary = _sample_summary()
+        summary["compiler_governance_timeline"] = {"bad": "shape"}
+
+        rendered = render_run_status_summary_view(summary)
+
+        self.assertNotIn("Compiler Governance Timeline:", rendered)
+
+    def test_render_does_not_mutate_input_with_compiler_governance_timeline(
+        self,
+    ) -> None:
+        summary = self._summary_with_compiler_governance_timeline()
+        original = copy.deepcopy(summary)
+
+        render_run_status_summary_view(summary)
+
+        self.assertEqual(summary, original)
+
     def test_render_includes_governance_readiness_checklist_section(self) -> None:
         summary = self._summary_with_candidate_workflow()
         summary["governance_readiness_checklist"] = [

@@ -1156,6 +1156,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("python -m cli.run_status_cli", content)
         self.assertIn("--summary", content)
         self.assertIn("Review Gate", content)
+        self.assertIn("Compiler Governance Timeline", content)
         self.assertIn("Candidate Workflow", content)
         self.assertIn("Operator Review Notes", content)
         self.assertIn("Proposed Tool Access", content)
@@ -1166,6 +1167,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("Governance Lifecycle Stage", content)
         self.assertIn("Governance Readiness Checklist", content)
         self.assertIn("display-only", lowered)
+        self.assertIn("reports observed/local governance status only", lowered)
         self.assertIn("operator-authored", lowered)
         self.assertIn("current-run scoped", lowered)
         self.assertIn("writes local operator-authored display-only notes", lowered)
@@ -1174,6 +1176,10 @@ class DocsTests(unittest.TestCase):
         self.assertIn("do not change compiler validation", lowered)
         self.assertIn("do not change approval matching", lowered)
         self.assertIn("do not feed replanning yet", lowered)
+        self.assertIn(
+            "does not execute tools, connectors, brokers, sandboxes, MCP, network calls, or model calls",
+            normalized,
+        )
         self.assertIn("This integrates Hermes Agent", content)
         self.assertIn("This integrates Kubernetes or kagent", content)
         self.assertIn("This integrates NemoClaw/OpenShell", content)
@@ -1800,6 +1806,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn(
             "```text\n"
             "Review Gate:\n"
+            "Compiler Governance Timeline:\n"
             "Governance Lifecycle Stage:\n"
             "Governance Readiness Checklist:\n"
             "Candidate Workflow:\n"
@@ -1821,6 +1828,29 @@ class DocsTests(unittest.TestCase):
             "Compiler remains the sole authority boundary.", content
         )
         self.assertIn("Runtime remains safe no-op.", content)
+        self.assertIn("Compiler Governance Timeline is display-only.", content)
+        self.assertIn(
+            "Compiler Governance Timeline reports observed/local governance status only.",
+            content,
+        )
+        self.assertIn(
+            "Compiler Governance Timeline does not authorize anything.", content
+        )
+        self.assertIn(
+            "Compiler Governance Timeline does not approve anything.", content
+        )
+        self.assertIn(
+            "Compiler Governance Timeline does not change compiler validation.",
+            content,
+        )
+        self.assertIn(
+            "Compiler Governance Timeline does not change approval matching.",
+            content,
+        )
+        self.assertIn(
+            "Compiler Governance Timeline does not execute tools, connectors, brokers,",
+            content,
+        )
         self.assertIn(
             "Operator Review Notes are display-only and operator-authored.",
             content,
