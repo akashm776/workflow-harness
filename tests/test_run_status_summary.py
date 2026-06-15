@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 import json
+import os
 from pathlib import Path
-import tempfile
+import shutil
 import unittest
+import uuid
 from unittest import mock
 
 from cli.workflow_demo_cli import run_workflow_demo
@@ -16,6 +19,46 @@ from runtime.run_status_summary import (
 
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def _writable_test_root(name: str) -> Path:
+    candidates: list[Path] = []
+
+    explicit_root = os.environ.get("WORKFLOW_HARNESS_TEST_RUN_ROOT")
+    if explicit_root:
+        candidates.append(Path(explicit_root))
+
+    local_appdata = os.environ.get("LOCALAPPDATA")
+    if local_appdata:
+        candidates.append(Path(local_appdata) / "Temp" / "workflow-harness-test-runs")
+
+    candidates.append(Path(os.path.expanduser("~/workflow-harness-test-runs")))
+
+    for candidate in candidates:
+        root = candidate / name
+        try:
+            root.mkdir(parents=True, exist_ok=True)
+            probe = root / f"probe-{uuid.uuid4().hex}"
+            probe.mkdir()
+            shutil.rmtree(probe, ignore_errors=True)
+            return root
+        except OSError:
+            continue
+
+    raise RuntimeError(f"no writable test root for {name}")
+
+
+TIMELINE_TEST_RUN_ROOT = _writable_test_root("compiler-governance-timeline-tests")
+
+
+@contextmanager
+def _temporary_test_directory(name: str):
+    path = _writable_test_root(name) / uuid.uuid4().hex
+    path.mkdir(parents=True, exist_ok=False)
+    try:
+        yield str(path)
+    finally:
+        shutil.rmtree(path, ignore_errors=True)
 SIMPLE_WORKFLOW = ROOT / "fixtures" / "valid" / "simple-workflow" / "input"
 SIMPLE_NODE_TYPE_REGISTRY = SIMPLE_WORKFLOW / "NodeTypeRegistry.json"
 INNOVATION_CONTEXT_FIXTURE_PATHS = (
@@ -199,6 +242,7 @@ INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET = {
     "execution_mode": "safe_noop_only",
     "included_sections": [
         "Review Gate",
+        "Compiler Governance Timeline",
         "Governance Readiness Checklist",
         "Candidate Workflow",
         "Fixture Lineage",
@@ -244,7 +288,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
         )
 
     def test_completed_run_summary(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "run"
             run_dir.mkdir()
             self._completed_run(run_dir)
@@ -279,7 +323,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             )
 
     def test_blocked_demo_run_summary(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="blocked demo",
@@ -363,7 +407,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             )
 
     def test_missing_directory_is_fail_soft(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "does-not-exist"
 
             summary = summarize_run_directory(run_dir)
@@ -384,7 +428,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             )
 
     def test_malformed_json_is_fail_soft(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "run"
             run_dir.mkdir()
             for name in (
@@ -404,7 +448,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["governance_readiness_checklist"])
 
     def test_compile_failed_summary_includes_grounded_readiness_checklist(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "run"
             run_dir.mkdir()
             (run_dir / "CompilationReport.json").write_text(
@@ -428,7 +472,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_compiled_no_review_required_summary_includes_grounded_readiness_checklist(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "run"
             run_dir.mkdir()
             (run_dir / "CompilationReport.json").write_text(
@@ -460,7 +504,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             )
 
     def test_summary_writes_no_files(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "run"
             run_dir.mkdir()
             self._completed_run(run_dir)
@@ -472,7 +516,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertEqual(before, after)
 
     def test_innovation_demo_run_includes_candidate_workflow(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="generate innovation ideas from program data",
@@ -504,7 +548,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_innovation_review_demo_run_includes_candidate_workflow_and_review_gate(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -564,7 +608,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["operator_review_notes"])
 
     def test_default_innovation_demo_run_does_not_include_fixture_lineage(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="generate innovation ideas from program data",
@@ -620,6 +664,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                     "execution_mode": "safe_noop_only",
                     "included_sections": [
                         "Review Gate",
+                        "Compiler Governance Timeline",
                         "Governance Readiness Checklist",
                         "Candidate Workflow",
                     ],
@@ -627,7 +672,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             )
 
     def test_fixture_lineage_is_display_only_and_never_reads_fixture_paths(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -684,7 +729,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_compiler_authorization_projection_is_display_only_and_never_reads_future_fixture_paths(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -749,7 +794,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_compiler_authorization_projection_uses_existing_diagnostics_when_present(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -786,7 +831,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_compiler_authorization_projection_ignores_unrelated_diagnostics(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -825,7 +870,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_approval_binding_summary_present_for_blocked_innovation_review(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -876,7 +921,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_approval_binding_summary_not_present_for_approved_innovation_review_run(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_safe_innovation_demo(
                 run_root=Path(tmp),
                 goal="review innovation options",
@@ -892,7 +937,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
         self.assertIsNone(summary["approval_binding_summary"])
 
     def test_approval_binding_summary_not_present_for_blocked_stub_run(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="generate innovation ideas from program data",
@@ -908,7 +953,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_approval_binding_summary_surfaces_unsupported_binding_diagnostic(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -943,7 +988,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
         )
 
     def test_approval_binding_summary_ignores_unrelated_diagnostics(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -977,7 +1022,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_approval_binding_summary_is_fail_soft_for_missing_approval_requests(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -997,7 +1042,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_verifier_evidence_status_present_for_blocked_innovation_review(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -1046,7 +1091,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_verifier_evidence_status_not_present_for_approved_innovation_review_run(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_safe_innovation_demo(
                 run_root=Path(tmp),
                 goal="review innovation options",
@@ -1062,7 +1107,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
         self.assertIsNone(summary["verifier_evidence_status"])
 
     def test_verifier_evidence_status_not_present_for_blocked_stub_run(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="generate innovation ideas from program data",
@@ -1076,7 +1121,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
         self.assertIsNone(summary["verifier_evidence_status"])
 
     def test_verifier_evidence_status_is_fail_soft_for_missing_audit_log(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -1099,7 +1144,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_broker_boundary_status_present_for_blocked_innovation_review(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -1154,7 +1199,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_broker_boundary_status_not_present_for_approved_innovation_review_run(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_safe_innovation_demo(
                 run_root=Path(tmp),
                 goal="review innovation options",
@@ -1170,7 +1215,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
         self.assertIsNone(summary["broker_boundary_status"])
 
     def test_broker_boundary_status_not_present_for_blocked_stub_run(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="generate innovation ideas from program data",
@@ -1184,7 +1229,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
         self.assertIsNone(summary["broker_boundary_status"])
 
     def test_blocked_innovation_review_summary_writes_no_new_artifacts(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -1206,7 +1251,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertEqual(before, after)
 
     def test_operator_review_notes_missing_is_none(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -1224,7 +1269,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
         )
 
     def test_malformed_operator_review_notes_is_fail_soft(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -1246,7 +1291,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
         )
 
     def test_operator_review_notes_include_only_known_candidate_nodes(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -1315,7 +1360,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_operator_review_notes_return_none_when_only_unknown_nodes_exist(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -1349,7 +1394,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
         )
 
     def test_operator_review_notes_summary_writes_no_files(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -1371,7 +1416,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_compiler_authorization_projection_not_present_for_approved_innovation_review_run(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_safe_innovation_demo(
                 run_root=Path(tmp),
                 goal="review innovation options",
@@ -1394,7 +1439,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["operator_review_packet"])
 
     def test_malformed_requested_auth_is_fail_soft_for_proposed_tool_access(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -1415,6 +1460,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 summary["operator_review_packet"]["included_sections"],
                 [
                     "Review Gate",
+                    "Compiler Governance Timeline",
                     "Governance Readiness Checklist",
                     "Candidate Workflow",
                     "Fixture Lineage",
@@ -1426,7 +1472,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             )
 
     def test_missing_requested_auth_is_fail_soft_for_proposed_tool_access(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="review innovation options",
@@ -1445,6 +1491,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                 summary["operator_review_packet"]["included_sections"],
                 [
                     "Review Gate",
+                    "Compiler Governance Timeline",
                     "Governance Readiness Checklist",
                     "Candidate Workflow",
                     "Fixture Lineage",
@@ -1457,7 +1504,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
 
     def test_missing_candidate_workflow_is_none(self) -> None:
         # A completed safe_noop_run has no candidate/ directory.
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "run"
             run_dir.mkdir()
             self._completed_run(run_dir)
@@ -1471,7 +1518,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["operator_review_packet"])
 
     def test_missing_approval_requests_is_fail_soft_for_blocked_review_gate(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="blocked demo",
@@ -1495,7 +1542,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
     def test_malformed_approval_requests_is_fail_soft_for_blocked_review_gate(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "demo"
             run_workflow_demo(
                 goal="blocked demo",
@@ -1519,7 +1566,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertNotIn("request_id", summary["review_gate"])
 
     def test_malformed_candidate_workflow_is_fail_soft(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with _temporary_test_directory("run-status-summary-tests") as tmp:
             run_dir = Path(tmp) / "run"
             (run_dir / "candidate").mkdir(parents=True)
             (run_dir / "candidate" / "WorkflowSpec.json").write_text(
@@ -1531,6 +1578,151 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
             self.assertIsNone(summary["operator_review_notes"])
             self.assertIsNone(summary["proposed_tool_access"])
             self.assertIsNone(summary["operator_review_packet"])
+
+
+class CompilerGovernanceTimelineSummaryTests(unittest.TestCase):
+    def _new_run_dir(self) -> Path:
+        run_dir = TIMELINE_TEST_RUN_ROOT / uuid.uuid4().hex
+        if run_dir.exists():
+            shutil.rmtree(run_dir, ignore_errors=True)
+        run_dir.mkdir(parents=True)
+        self.addCleanup(lambda: shutil.rmtree(run_dir, ignore_errors=True))
+        return run_dir
+
+    def _write_json(self, path: Path, payload: object) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+    def _write_candidate_artifacts(self, run_dir: Path) -> None:
+        self._write_json(
+            run_dir / "candidate" / "WorkflowSpec.json",
+            {
+                "workflow_id": "minimal-workflow",
+                "workflow_revision_id": "minimal-workflow-rev",
+                "nodes": [
+                    {
+                        "node_id": "n1",
+                        "node_type": "retrieve",
+                    }
+                ],
+                "edges": [],
+            },
+        )
+        self._write_json(
+            run_dir / "candidate" / "RequestedAuth.json",
+            {
+                "requested_tools": [],
+                "requested_connectors": [],
+            },
+        )
+        self._write_json(
+            run_dir / "candidate" / "ApprovalRequests.json",
+            {
+                "requests": [
+                    {
+                        "request_id": "req-1",
+                        "node_id": "n1",
+                        "reason": "review_requested",
+                    }
+                ]
+            },
+        )
+
+    def _timeline_steps_by_name(
+        self,
+        summary: dict[str, object],
+    ) -> dict[str, dict[str, str]]:
+        timeline = summary["compiler_governance_timeline"]
+        self.assertIsInstance(timeline, list)
+        return {
+            step["step"]: step
+            for step in timeline
+            if isinstance(step, dict) and isinstance(step.get("step"), str)
+        }
+
+    def test_compiler_governance_timeline_missing_run_dir_returns_none(self) -> None:
+        run_dir = self._new_run_dir() / "missing-run"
+
+        summary = summarize_run_directory(run_dir)
+
+        self.assertIsNone(summary["compiler_governance_timeline"])
+
+    def test_compiler_governance_timeline_minimal_candidate_artifacts_present(
+        self,
+    ) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_artifacts(run_dir)
+
+        summary = summarize_run_directory(run_dir)
+        steps = self._timeline_steps_by_name(summary)
+
+        self.assertEqual(steps["candidate_artifacts"]["status"], "present")
+        self.assertEqual(steps["compilation_report"]["status"], "missing")
+        self.assertEqual(steps["approval_gate"]["status"], "not_observed")
+        self.assertEqual(steps["runtime_execution_mode"]["status"], "not_observed")
+
+    def test_compiler_governance_timeline_blocked_local_facts(self) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_artifacts(run_dir)
+        self._write_json(run_dir / "CompilationReport.json", {"status": "compiled"})
+        self._write_json(run_dir / "EffectivePolicy.json", {"review_required": True})
+        self._write_json(
+            run_dir / "ExecutionManifest.json",
+            {"execution_status": "blocked"},
+        )
+
+        summary = summarize_run_directory(run_dir)
+        steps = self._timeline_steps_by_name(summary)
+
+        self.assertEqual(steps["candidate_artifacts"]["status"], "present")
+        self.assertEqual(steps["compilation_report"]["status"], "present")
+        self.assertEqual(steps["approval_gate"]["status"], "blocked")
+        self.assertEqual(steps["runtime_execution_mode"]["status"], "safe_noop")
+
+        included_sections = summary["operator_review_packet"]["included_sections"]
+        self.assertIn("Compiler Governance Timeline", included_sections)
+        self.assertGreater(
+            included_sections.index("Compiler Governance Timeline"),
+            included_sections.index("Review Gate"),
+        )
+
+    def test_compiler_governance_timeline_approved_local_facts(self) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_artifacts(run_dir)
+        self._write_json(run_dir / "CompilationReport.json", {"status": "compiled"})
+        self._write_json(run_dir / "EffectivePolicy.json", {"review_required": False})
+        self._write_json(
+            run_dir / "ApprovalDecisions.json",
+            {"decisions": [{"request_id": "req-1", "decision": "approved"}]},
+        )
+        self._write_json(
+            run_dir / "ExecutionResult.json",
+            {"execution_status": "completed"},
+        )
+
+        summary = summarize_run_directory(run_dir)
+        steps = self._timeline_steps_by_name(summary)
+
+        self.assertEqual(steps["approval_gate"]["status"], "approved")
+        self.assertEqual(steps["runtime_execution_mode"]["status"], "safe_noop")
+        self.assertIsNone(summary["operator_review_packet"])
+
+    def test_compiler_governance_timeline_summary_writes_no_files(self) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_artifacts(run_dir)
+        self._write_json(run_dir / "CompilationReport.json", {"status": "compiled"})
+        before = sorted(
+            str(path.relative_to(run_dir))
+            for path in run_dir.rglob("*")
+        )
+
+        summarize_run_directory(run_dir)
+
+        after = sorted(
+            str(path.relative_to(run_dir))
+            for path in run_dir.rglob("*")
+        )
+        self.assertEqual(before, after)
 
 
 class GovernanceLifecycleStageTests(unittest.TestCase):

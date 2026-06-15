@@ -30,6 +30,7 @@ data-shape module or future broker-related code surface is added.
 
 ```text
 Review Gate:
+Compiler Governance Timeline:
 Governance Lifecycle Stage:
 Governance Readiness Checklist:
 Candidate Workflow:
@@ -46,6 +47,12 @@ Operator Review Packet:
 ## Section Responsibilities
 
 - **Review Gate:** blocked review status and current approval requirement.
+- **Compiler Governance Timeline:** display-only timeline of observed/local
+  governance status derived only from existing local run artifacts and summary
+  facts. It does not authorize anything. It does not approve anything. It does
+  not change compiler validation. It does not change approval matching. It does
+  not execute tools, connectors, brokers, sandboxes, MCP, network calls, or
+  model calls.
 - **Governance Lifecycle Stage:** display-only projection of where the run sits
   in the governed workflow flow and the next safe operator action, derived only
   from existing status fields (`compilation_status`, `execution_status`,
@@ -88,6 +95,14 @@ Operator Review Packet:
 - Compiler remains the sole authority boundary.
 - Operator approval remains explicit and current-run/request scoped.
 - Runtime remains safe no-op.
+- Compiler Governance Timeline is display-only.
+- Compiler Governance Timeline reports observed/local governance status only.
+- Compiler Governance Timeline does not authorize anything.
+- Compiler Governance Timeline does not approve anything.
+- Compiler Governance Timeline does not change compiler validation.
+- Compiler Governance Timeline does not change approval matching.
+- Compiler Governance Timeline does not execute tools, connectors, brokers,
+  sandboxes, MCP, network calls, or model calls.
 - The verifier/evidence/broker status sections do not authorize, approve, grant
   capabilities, or execute.
 - Operator Review Notes are display-only and operator-authored.

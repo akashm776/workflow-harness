@@ -53,6 +53,13 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(review_gate_lines)
 
+    compiler_governance_timeline_lines = _compiler_governance_timeline_lines(
+        summary.get("compiler_governance_timeline")
+    )
+    if compiler_governance_timeline_lines:
+        lines.append("")
+        lines.extend(compiler_governance_timeline_lines)
+
     governance_lifecycle_stage_lines = _governance_lifecycle_stage_lines(
         summary.get("governance_lifecycle_stage")
     )
@@ -201,6 +208,28 @@ def _governance_lifecycle_stage_lines(
         f"{_bool_text(governance_lifecycle_stage.get('display_only'))}"
     )
     return lines
+
+
+def _compiler_governance_timeline_lines(
+    compiler_governance_timeline: Any,
+) -> list[str]:
+    if not isinstance(compiler_governance_timeline, list):
+        return []
+
+    lines = ["Compiler Governance Timeline:"]
+    for step in compiler_governance_timeline:
+        if not isinstance(step, Mapping):
+            continue
+        label = step.get("label")
+        status = step.get("status")
+        if not isinstance(label, str) or not isinstance(status, str):
+            continue
+        lines.append(f"- {label}: {status}")
+        detail = step.get("detail")
+        if isinstance(detail, str):
+            lines.append(f"  {detail}")
+
+    return lines if len(lines) > 1 else []
 
 
 def _candidate_workflow_lines(candidate_workflow: Any) -> list[str]:

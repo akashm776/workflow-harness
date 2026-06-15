@@ -689,10 +689,129 @@ def _build_broker_boundary_status(
     }
 
 
+def _build_compiler_governance_timeline(
+    run_path: Path,
+    review_required: bool | None,
+    blocked_by_review: bool,
+    review_gate: dict[str, Any] | None,
+    execution_status: str,
+) -> list[dict[str, str]] | None:
+    """Return a display-only governance timeline from observed local facts only.
+
+    This is a read-only projection over local run artifacts already used by the
+    summary. It does not rerun compiler/runtime logic, writes no files, and
+    intentionally reports only what local artifact presence and current summary
+    fields support.
+    """
+
+    workflow_spec_path = run_path / "candidate" / "WorkflowSpec.json"
+    requested_auth_path = run_path / "candidate" / "RequestedAuth.json"
+    approval_requests_path = run_path / "candidate" / "ApprovalRequests.json"
+    compilation_report_path = run_path / "CompilationReport.json"
+    approval_decisions_path = run_path / "ApprovalDecisions.json"
+    execution_result_path = run_path / "ExecutionResult.json"
+
+    candidate_artifacts_present = any(
+        path.exists()
+        for path in (
+            workflow_spec_path,
+            requested_auth_path,
+            approval_requests_path,
+        )
+    )
+    compilation_report_present = compilation_report_path.exists()
+    approval_requests_present = approval_requests_path.exists()
+    approval_decisions_present = approval_decisions_path.exists()
+    runtime_fact_present = (
+        execution_status in {"blocked", "ready_to_execute", "completed"}
+        or execution_result_path.exists()
+    )
+
+    if not (
+        candidate_artifacts_present
+        or compilation_report_present
+        or approval_requests_present
+        or approval_decisions_present
+        or review_gate is not None
+        or runtime_fact_present
+    ):
+        return None
+
+    candidate_status = "present" if candidate_artifacts_present else "missing"
+    compilation_status = "present" if compilation_report_present else "missing"
+
+    if blocked_by_review or review_gate is not None:
+        approval_status = "blocked"
+        approval_detail = (
+            "Current-run approval is required before safe no-op completion."
+        )
+    elif approval_decisions_present and review_required is False:
+        approval_status = "approved"
+        approval_detail = (
+            "A local ApprovalDecisions.json artifact was observed and the run no "
+            "longer reports review required."
+        )
+    else:
+        approval_status = "not_observed"
+        approval_detail = (
+            "No local blocked/approved approval-gate outcome was observed."
+        )
+
+    runtime_status = "safe_noop" if runtime_fact_present else "not_observed"
+    runtime_detail = (
+        "Runtime remains safe no-op; no broker, sandbox, tool, connector, MCP, "
+        "network, or model execution is performed."
+        if runtime_status == "safe_noop"
+        else (
+            "No local runtime execution-mode fact was observed."
+        )
+    )
+
+    return [
+        {
+            "step": "candidate_artifacts",
+            "label": "Candidate artifacts",
+            "status": candidate_status,
+            "detail": (
+                "Candidate workflow and requested authority artifacts are local "
+                "planner outputs."
+                if candidate_status == "present"
+                else (
+                    "No local candidate workflow or requested authority artifacts "
+                    "were observed."
+                )
+            ),
+        },
+        {
+            "step": "compilation_report",
+            "label": "Compilation report",
+            "status": compilation_status,
+            "detail": (
+                "A local CompilationReport.json artifact was observed."
+                if compilation_status == "present"
+                else "No local CompilationReport.json artifact was observed."
+            ),
+        },
+        {
+            "step": "approval_gate",
+            "label": "Approval gate",
+            "status": approval_status,
+            "detail": approval_detail,
+        },
+        {
+            "step": "runtime_execution_mode",
+            "label": "Runtime execution mode",
+            "status": runtime_status,
+            "detail": runtime_detail,
+        },
+    ]
+
+
 def _build_operator_review_packet(
     review_required: bool | None,
     blocked_by_review: bool,
     review_gate: dict[str, Any] | None,
+    compiler_governance_timeline: list[dict[str, str]] | None,
     governance_readiness_checklist: list[dict[str, str]] | None,
     candidate_workflow: dict[str, Any] | None,
     operator_review_notes: dict[str, Any] | None,
@@ -711,6 +830,8 @@ def _build_operator_review_packet(
     included_sections: list[str] = []
     if review_gate is not None:
         included_sections.append("Review Gate")
+    if compiler_governance_timeline is not None:
+        included_sections.append("Compiler Governance Timeline")
     if governance_readiness_checklist is not None:
         included_sections.append("Governance Readiness Checklist")
     if candidate_workflow is not None:
@@ -1037,6 +1158,13 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         review_required,
         blocked_by_review,
     )
+    compiler_governance_timeline = _build_compiler_governance_timeline(
+        run_path,
+        review_required,
+        blocked_by_review,
+        review_gate,
+        execution_status,
+    )
     governance_lifecycle_stage = _build_governance_lifecycle_stage(
         compilation_status,
         execution_status,
@@ -1067,6 +1195,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
         "approval_request_count": approval_request_count,
         "approval_requests_path": approval_requests_path,
         "review_gate": review_gate,
+        "compiler_governance_timeline": compiler_governance_timeline,
         "governance_lifecycle_stage": governance_lifecycle_stage,
         "governance_readiness_checklist": governance_readiness_checklist,
         "candidate_workflow": candidate_workflow,
@@ -1081,6 +1210,7 @@ def summarize_run_directory(run_dir: str | Path) -> dict[str, Any]:
             review_required,
             blocked_by_review,
             review_gate,
+            compiler_governance_timeline,
             governance_readiness_checklist,
             candidate_workflow,
             operator_review_notes,
