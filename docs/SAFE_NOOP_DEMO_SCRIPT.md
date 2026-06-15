@@ -18,6 +18,8 @@ This is a safe-noop governance/control-plane proof, not real agent execution.
 - Operator-facing status surfaces are display-only and do not grant authority.
 - Operator Review Notes are display-only, operator-authored, current-run scoped
   notes attached to candidate workflow nodes.
+- `python -m cli.operator_review_notes_cli` writes local operator-authored
+  display-only notes only.
 - Operator Review Notes do not approve anything.
 - Operator Review Notes do not grant authority.
 - Operator Review Notes do not change compiler validation.
@@ -66,13 +68,35 @@ python -m examples.safe_innovation_demo \
   --allow-overwrite
 ```
 
-Inspect the blocked run:
+Optionally add local operator review notes before inspecting the blocked run:
+
+```bash
+python -m cli.operator_review_notes_cli \
+  --run-dir runs/manual-review/innovation-demo \
+  --node-id retrieve-2 \
+  --note-type scope_too_broad \
+  --note "Use Bitbucket and Confluence only; do not include SharePoint yet." \
+  --requested-action narrow_scope \
+  --reviewer operator
+```
+
+The operator notes CLI writes local operator-authored display-only notes only.
+It does not approve anything.
+It does not grant authority.
+It does not change compiler validation.
+It does not change approval matching.
+It does not feed replanning yet.
+
+Then inspect the blocked run:
 
 ```bash
 python -m cli.run_status_cli \
   --run-dir runs/manual-review/innovation-demo \
   --summary
 ```
+
+That summary call will show `Operator Review Notes:` for the noted candidate
+node.
 
 Call out that the proposal exists, the compiler evaluated it, and the run stays
 blocked until the current request is explicitly approved.

@@ -1148,7 +1148,10 @@ class DocsTests(unittest.TestCase):
             normalized,
         )
         self.assertIn("python -m examples.safe_innovation_demo", content)
+        self.assertIn("python -m cli.operator_review_notes_cli", content)
         self.assertIn("--planner-template innovation_review", content)
+        self.assertIn("--node-id retrieve-2", content)
+        self.assertIn("--note-type scope_too_broad", content)
         self.assertIn("--demo-approve-current-request", content)
         self.assertIn("python -m cli.run_status_cli", content)
         self.assertIn("--summary", content)
@@ -1165,6 +1168,7 @@ class DocsTests(unittest.TestCase):
         self.assertIn("display-only", lowered)
         self.assertIn("operator-authored", lowered)
         self.assertIn("current-run scoped", lowered)
+        self.assertIn("writes local operator-authored display-only notes", lowered)
         self.assertIn("do not approve anything", lowered)
         self.assertIn("do not grant authority", lowered_normalized)
         self.assertIn("do not change compiler validation", lowered)
@@ -1822,6 +1826,9 @@ class DocsTests(unittest.TestCase):
             content,
         )
         self.assertIn("Operator Review Notes are current-run scoped notes", content)
+        self.assertIn("python -m cli.operator_review_notes_cli", content)
+        self.assertIn("writes local operator-authored", content)
+        self.assertIn("current run only", content)
         self.assertIn("Operator Review Notes do not approve anything.", content)
         self.assertIn("Operator Review Notes do not grant authority.", content)
         self.assertIn(
