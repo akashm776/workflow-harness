@@ -60,6 +60,13 @@ def render_run_status_summary_view(summary: Mapping[str, Any]) -> str:
         lines.append("")
         lines.extend(compiler_governance_timeline_lines)
 
+    broker_handoff_readiness_preview_lines = _broker_handoff_readiness_preview_lines(
+        summary.get("broker_handoff_readiness_preview")
+    )
+    if broker_handoff_readiness_preview_lines:
+        lines.append("")
+        lines.extend(broker_handoff_readiness_preview_lines)
+
     governance_lifecycle_stage_lines = _governance_lifecycle_stage_lines(
         summary.get("governance_lifecycle_stage")
     )
@@ -230,6 +237,57 @@ def _compiler_governance_timeline_lines(
             lines.append(f"  {detail}")
 
     return lines if len(lines) > 1 else []
+
+
+def _broker_handoff_readiness_preview_lines(
+    broker_handoff_readiness_preview: Any,
+) -> list[str]:
+    if not isinstance(broker_handoff_readiness_preview, Mapping):
+        return []
+
+    status = broker_handoff_readiness_preview.get("status")
+    items = broker_handoff_readiness_preview.get("items")
+    if not isinstance(status, str) or not isinstance(items, list):
+        return []
+
+    lines = ["Broker Handoff Readiness Preview:"]
+    lines.append(f"Status: {status}")
+    lines.append(
+        "Display-only: "
+        f"{'yes' if broker_handoff_readiness_preview.get('display_only') is True else 'no'}"
+    )
+    lines.append(
+        "Future broker implemented: "
+        f"{'no' if broker_handoff_readiness_preview.get('future_broker_not_implemented') is True else 'yes'}"
+    )
+    lines.append(
+        "Authority: "
+        f"{'no' if broker_handoff_readiness_preview.get('not_authority') is True else 'yes'}"
+    )
+    lines.append(
+        "Approval: "
+        f"{'no' if broker_handoff_readiness_preview.get('not_approval') is True else 'yes'}"
+    )
+    lines.append(
+        "Execution: "
+        f"{'no' if broker_handoff_readiness_preview.get('not_execution') is True else 'yes'}"
+    )
+
+    rendered_item_count = 0
+    for item in items:
+        if not isinstance(item, Mapping):
+            continue
+        name = item.get("name")
+        item_status = item.get("status")
+        if not isinstance(name, str) or not isinstance(item_status, str):
+            continue
+        rendered_item_count += 1
+        lines.append(f"- {name}: {item_status}")
+        detail = item.get("detail")
+        if isinstance(detail, str):
+            lines.append(f"  {detail}")
+
+    return lines if rendered_item_count > 0 else []
 
 
 def _candidate_workflow_lines(candidate_workflow: Any) -> list[str]:

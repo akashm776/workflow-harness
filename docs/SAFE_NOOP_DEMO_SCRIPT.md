@@ -24,6 +24,18 @@ This is a safe-noop governance/control-plane proof, not real agent execution.
 - Compiler Governance Timeline does not change approval matching.
 - Compiler Governance Timeline does not execute tools, connectors, brokers,
   sandboxes, MCP, network calls, or model calls.
+- Broker Handoff Readiness Preview is display-only.
+- Broker Handoff Readiness Preview reports local artifact readiness for a
+  future broker contract only.
+- Broker Handoff Readiness Preview does not create a broker request.
+- Broker Handoff Readiness Preview does not launch a sandbox/backend.
+- Broker Handoff Readiness Preview does not authorize anything.
+- Broker Handoff Readiness Preview does not approve anything.
+- Broker Handoff Readiness Preview does not execute anything.
+- Broker Handoff Readiness Preview does not change compiler validation.
+- Broker Handoff Readiness Preview does not change approval matching.
+- Broker Handoff Readiness Preview does not call tools, connectors, MCP,
+  network, broker, sandbox, or model APIs.
 - Operator Review Notes are display-only, operator-authored, current-run scoped
   notes attached to candidate workflow nodes.
 - `python -m cli.operator_review_notes_cli` writes local operator-authored
@@ -186,6 +198,7 @@ such as:
 
 - Review Gate
 - Compiler Governance Timeline
+- Broker Handoff Readiness Preview
 - Candidate Workflow
 - Operator Review Notes
 - Fixture Lineage
@@ -202,9 +215,18 @@ These are display-only status surfaces and do not grant authority.
 Compiler Governance Timeline reports observed/local governance status only. It
 does not authorize anything, does not approve anything, and does not change
 compiler validation or approval matching.
+Broker Handoff Readiness Preview is display-only and reports local artifact
+readiness for a future broker contract only. It does not create a broker
+request, launch a sandbox/backend, authorize anything, approve anything,
+execute anything, change compiler validation, change approval matching, or call
+tools, connectors, MCP, network, broker, sandbox, or model APIs.
 Operator Review Notes remain operator-authored display-only notes only; they do
 not approve anything and do not change compiler validation or approval
 matching.
+
+After writing `ApprovalDecisions.json`, the cockpit can show whether local
+artifacts appear ready for a future broker contract handoff, while still making
+clear that broker/sandbox execution is not implemented.
 
 ## Expected Claims
 

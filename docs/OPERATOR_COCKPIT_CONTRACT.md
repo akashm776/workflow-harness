@@ -31,6 +31,7 @@ data-shape module or future broker-related code surface is added.
 ```text
 Review Gate:
 Compiler Governance Timeline:
+Broker Handoff Readiness Preview:
 Governance Lifecycle Stage:
 Governance Readiness Checklist:
 Candidate Workflow:
@@ -53,6 +54,14 @@ Operator Review Packet:
   not change compiler validation. It does not change approval matching. It does
   not execute tools, connectors, brokers, sandboxes, MCP, network calls, or
   model calls.
+- **Broker Handoff Readiness Preview:** display-only local artifact readiness
+  preview for a future broker contract layer only. It reports what local
+  candidate/approval artifacts still appear missing before a future
+  broker/sandbox handoff could safely be contracted. It does not create a
+  broker request. It does not launch a sandbox/backend. It does not authorize
+  anything. It does not approve anything. It does not execute anything. It does
+  not change compiler validation. It does not change approval matching. It does
+  not call tools, connectors, MCP, network, broker, sandbox, or model APIs.
 - **Governance Lifecycle Stage:** display-only projection of where the run sits
   in the governed workflow flow and the next safe operator action, derived only
   from existing status fields (`compilation_status`, `execution_status`,
@@ -103,6 +112,18 @@ Operator Review Packet:
 - Compiler Governance Timeline does not change approval matching.
 - Compiler Governance Timeline does not execute tools, connectors, brokers,
   sandboxes, MCP, network calls, or model calls.
+- Broker Handoff Readiness Preview is display-only.
+- Broker Handoff Readiness Preview reports local artifact readiness for a
+  future broker contract only.
+- Broker Handoff Readiness Preview does not create a broker request.
+- Broker Handoff Readiness Preview does not launch a sandbox/backend.
+- Broker Handoff Readiness Preview does not authorize anything.
+- Broker Handoff Readiness Preview does not approve anything.
+- Broker Handoff Readiness Preview does not execute anything.
+- Broker Handoff Readiness Preview does not change compiler validation.
+- Broker Handoff Readiness Preview does not change approval matching.
+- Broker Handoff Readiness Preview does not call tools, connectors, MCP,
+  network, broker, sandbox, or model APIs.
 - The verifier/evidence/broker status sections do not authorize, approve, grant
   capabilities, or execute.
 - Operator Review Notes are display-only and operator-authored.
