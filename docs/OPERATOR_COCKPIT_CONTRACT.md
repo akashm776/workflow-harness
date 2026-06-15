@@ -65,7 +65,9 @@ Operator Review Packet:
   artifact, not compiler input, and not approval data. They do not approve
   anything. They do not grant authority. They do not change compiler
   validation. They do not change approval matching. They do not feed
-  replanning yet.
+  replanning yet. They may be written locally with
+  `python -m cli.operator_review_notes_cli`, which writes
+  `candidate/OperatorReviewNotes.json` for the current run only.
 - **Fixture Lineage:** display-only future fixture path lineage, not fixture
   loading.
 - **Proposed Tool Access:** display-only requested tool/connector proposal data.
@@ -91,6 +93,8 @@ Operator Review Packet:
 - Operator Review Notes are display-only and operator-authored.
 - Operator Review Notes are current-run scoped notes attached to candidate
   workflow nodes.
+- `python -m cli.operator_review_notes_cli` writes local operator-authored
+  display-only notes for the current run only.
 - Operator Review Notes do not approve anything.
 - Operator Review Notes do not grant authority.
 - Operator Review Notes do not change compiler validation.
