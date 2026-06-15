@@ -20,6 +20,9 @@ from tests.test_temp_utils import temporary_test_directory, writable_test_root
 ROOT = Path(__file__).resolve().parent.parent
 TIMELINE_TEST_RUN_ROOT = writable_test_root("compiler-governance-timeline-tests")
 BROKER_HANDOFF_TEST_RUN_ROOT = writable_test_root("broker-handoff-readiness-tests")
+APPROVED_CAPABILITY_HANDOFF_TEST_RUN_ROOT = writable_test_root(
+    "approved-capability-handoff-tests"
+)
 _temporary_test_directory = temporary_test_directory
 
 
@@ -208,6 +211,7 @@ INNOVATION_REVIEW_OPERATOR_REVIEW_PACKET = {
         "Review Gate",
         "Compiler Governance Timeline",
         "Broker Handoff Readiness Preview",
+        "Approved Capability Handoff Projection",
         "Governance Readiness Checklist",
         "Candidate Workflow",
         "Fixture Lineage",
@@ -631,6 +635,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                         "Review Gate",
                         "Compiler Governance Timeline",
                         "Broker Handoff Readiness Preview",
+                        "Approved Capability Handoff Projection",
                         "Governance Readiness Checklist",
                         "Candidate Workflow",
                     ],
@@ -1428,6 +1433,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                     "Review Gate",
                     "Compiler Governance Timeline",
                     "Broker Handoff Readiness Preview",
+                    "Approved Capability Handoff Projection",
                     "Governance Readiness Checklist",
                     "Candidate Workflow",
                     "Fixture Lineage",
@@ -1460,6 +1466,7 @@ class SummarizeRunDirectoryTests(unittest.TestCase):
                     "Review Gate",
                     "Compiler Governance Timeline",
                     "Broker Handoff Readiness Preview",
+                    "Approved Capability Handoff Projection",
                     "Governance Readiness Checklist",
                     "Candidate Workflow",
                     "Fixture Lineage",
@@ -1892,6 +1899,327 @@ class BrokerHandoffReadinessPreviewSummaryTests(unittest.TestCase):
         self.assertIn("could not be read as a decision list", items["approval_decisions"]["detail"])
 
     def test_broker_handoff_readiness_preview_summary_writes_no_files(self) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_workflow(run_dir)
+        self._write_approval_requests(run_dir, ["req-1"])
+        before = sorted(str(path.relative_to(run_dir)) for path in run_dir.rglob("*"))
+
+        summarize_run_directory(run_dir)
+
+        after = sorted(str(path.relative_to(run_dir)) for path in run_dir.rglob("*"))
+        self.assertEqual(before, after)
+
+
+class ApprovedCapabilityHandoffProjectionSummaryTests(unittest.TestCase):
+    def _new_run_dir(self) -> Path:
+        run_dir = APPROVED_CAPABILITY_HANDOFF_TEST_RUN_ROOT / uuid.uuid4().hex
+        if run_dir.exists():
+            shutil.rmtree(run_dir, ignore_errors=True)
+        run_dir.mkdir(parents=True)
+        self.addCleanup(lambda: shutil.rmtree(run_dir, ignore_errors=True))
+        return run_dir
+
+    def _write_json(self, path: Path, payload: object) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+    def _write_candidate_workflow(self, run_dir: Path) -> None:
+        self._write_json(
+            run_dir / "candidate" / "WorkflowSpec.json",
+            {
+                "workflow_id": "minimal-workflow",
+                "workflow_revision_id": "minimal-workflow-rev",
+                "nodes": [
+                    {
+                        "node_id": "retrieve-1",
+                        "node_type": "retrieve",
+                    },
+                    {
+                        "node_id": "retrieve-2",
+                        "node_type": "retrieve",
+                    },
+                ],
+                "edges": [],
+            },
+        )
+
+    def _write_approval_requests(self, run_dir: Path, request_ids: list[str]) -> None:
+        self._write_json(
+            run_dir / "candidate" / "ApprovalRequests.json",
+            {
+                "requests": [
+                    {
+                        "request_id": request_id,
+                        "node_id": f"retrieve-{index}",
+                        "approval_subject_hash": f"subject-{index}",
+                    }
+                    for index, request_id in enumerate(request_ids, start=1)
+                ]
+            },
+        )
+
+    def _write_approval_decisions(
+        self,
+        run_dir: Path,
+        decisions: list[dict[str, str]],
+    ) -> None:
+        self._write_json(
+            run_dir / "ApprovalDecisions.json",
+            {"decisions": decisions},
+        )
+
+    def _projection(self, summary: dict[str, object]) -> dict[str, object] | None:
+        projection = summary["approved_capability_handoff_projection"]
+        if projection is None:
+            return None
+        self.assertIsInstance(projection, dict)
+        return projection
+
+    def test_approved_capability_handoff_projection_missing_run_dir_returns_none(
+        self,
+    ) -> None:
+        run_dir = self._new_run_dir() / "missing-run"
+
+        summary = summarize_run_directory(run_dir)
+
+        self.assertIsNone(summary["approved_capability_handoff_projection"])
+
+    def test_approved_capability_handoff_projection_matching_approved_decisions(
+        self,
+    ) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_workflow(run_dir)
+        self._write_approval_requests(run_dir, ["req-1"])
+        self._write_approval_decisions(
+            run_dir,
+            [
+                {
+                    "request_id": "req-1",
+                    "decision": "approved",
+                    "approved_by": "operator",
+                    "approved_at": "2026-06-15T12:00:00Z",
+                }
+            ],
+        )
+
+        summary = summarize_run_directory(run_dir)
+        projection = self._projection(summary)
+        self.assertIsNotNone(projection)
+        assert projection is not None
+        self.assertEqual(projection["status"], "approved_capabilities_observed")
+        self.assertEqual(projection["approved_count"], 1)
+        for flag_name in (
+            "display_only",
+            "current_run_scope_only",
+            "not_authority",
+            "not_approval",
+            "not_execution",
+            "not_broker_request",
+            "future_broker_not_implemented",
+        ):
+            self.assertIs(projection[flag_name], True)
+
+        entries = projection["entries"]
+        self.assertIsInstance(entries, list)
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0]["request_id"], "req-1")
+        self.assertEqual(entries[0]["node_id"], "retrieve-1")
+        self.assertEqual(entries[0]["approval_subject_hash"], "subject-1")
+        self.assertEqual(entries[0]["decision"], "approved")
+        self.assertEqual(entries[0]["scope"], "current_run_request_only")
+        self.assertIs(entries[0]["eligible_for_future_broker_contract"], True)
+        self.assertEqual(projection["blocked_entries"], [])
+
+    def test_approved_capability_handoff_projection_partial_approvals_show_approved_and_blocked_entries(
+        self,
+    ) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_workflow(run_dir)
+        self._write_approval_requests(run_dir, ["req-1", "req-2"])
+        self._write_approval_decisions(
+            run_dir,
+            [
+                {
+                    "request_id": "req-1",
+                    "decision": "approved",
+                    "approved_by": "operator",
+                    "approved_at": "2026-06-15T12:00:00Z",
+                }
+            ],
+        )
+
+        summary = summarize_run_directory(run_dir)
+        projection = self._projection(summary)
+        self.assertIsNotNone(projection)
+        assert projection is not None
+        self.assertEqual(projection["status"], "approved_capabilities_observed")
+        self.assertEqual(projection["approved_count"], 1)
+
+        entries = projection["entries"]
+        blocked_entries = projection["blocked_entries"]
+        self.assertIsInstance(entries, list)
+        self.assertIsInstance(blocked_entries, list)
+        self.assertEqual(entries[0]["request_id"], "req-1")
+        self.assertEqual(blocked_entries[0]["request_id"], "req-2")
+        self.assertEqual(
+            blocked_entries[0]["reason"], "missing_local_approved_decision"
+        )
+
+    def test_approved_capability_handoff_projection_is_blocked_without_candidate_workflow(
+        self,
+    ) -> None:
+        run_dir = self._new_run_dir()
+        self._write_approval_requests(run_dir, ["req-1"])
+        self._write_approval_decisions(
+            run_dir,
+            [
+                {
+                    "request_id": "req-1",
+                    "decision": "approved",
+                    "approved_by": "operator",
+                    "approved_at": "2026-06-15T12:00:00Z",
+                }
+            ],
+        )
+
+        summary = summarize_run_directory(run_dir)
+        projection = self._projection(summary)
+        self.assertIsNotNone(projection)
+        assert projection is not None
+        self.assertEqual(
+            projection["status"], "blocked_missing_candidate_workflow"
+        )
+        self.assertEqual(projection["approved_count"], 0)
+        self.assertEqual(projection["entries"], [])
+        blocked_entries = projection["blocked_entries"]
+        self.assertIsInstance(blocked_entries, list)
+        self.assertEqual(blocked_entries[0]["request_id"], "req-1")
+        self.assertEqual(blocked_entries[0]["reason"], "missing_candidate_workflow")
+
+    def test_approved_capability_handoff_projection_malformed_decisions_is_fail_soft(
+        self,
+    ) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_workflow(run_dir)
+        self._write_approval_requests(run_dir, ["req-1"])
+        (run_dir / "ApprovalDecisions.json").write_text(
+            "{ not valid json",
+            encoding="utf-8",
+        )
+
+        summary = summarize_run_directory(run_dir)
+        projection = self._projection(summary)
+        self.assertIsNotNone(projection)
+        assert projection is not None
+        self.assertEqual(projection["status"], "malformed")
+        self.assertEqual(projection["entries"], [])
+        self.assertEqual(projection["blocked_entries"], [])
+
+    def test_approved_capability_handoff_projection_missing_request_fields_is_malformed(
+        self,
+    ) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_workflow(run_dir)
+        self._write_json(
+            run_dir / "candidate" / "ApprovalRequests.json",
+            {
+                "requests": [
+                    {
+                        "request_id": "req-1",
+                    }
+                ]
+            },
+        )
+        self._write_approval_decisions(
+            run_dir,
+            [
+                {
+                    "request_id": "req-1",
+                    "decision": "approved",
+                    "approved_by": "operator",
+                    "approved_at": "2026-06-15T12:00:00Z",
+                }
+            ],
+        )
+
+        summary = summarize_run_directory(run_dir)
+        projection = self._projection(summary)
+        self.assertIsNotNone(projection)
+        assert projection is not None
+        self.assertEqual(projection["status"], "malformed")
+        self.assertEqual(projection["entries"], [])
+        self.assertEqual(projection["blocked_entries"], [])
+
+    def test_approved_capability_handoff_projection_unknown_decision_value_is_not_approved(
+        self,
+    ) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_workflow(run_dir)
+        self._write_approval_requests(run_dir, ["req-1"])
+        self._write_approval_decisions(
+            run_dir,
+            [
+                {
+                    "request_id": "req-1",
+                    "decision": "denied",
+                    "approved_by": "operator",
+                    "approved_at": "2026-06-15T12:00:00Z",
+                }
+            ],
+        )
+
+        summary = summarize_run_directory(run_dir)
+        projection = self._projection(summary)
+        self.assertIsNotNone(projection)
+        assert projection is not None
+        self.assertEqual(projection["status"], "no_approved_capabilities")
+        self.assertEqual(projection["approved_count"], 0)
+        self.assertEqual(projection["entries"], [])
+        blocked_entries = projection["blocked_entries"]
+        self.assertIsInstance(blocked_entries, list)
+        self.assertEqual(
+            blocked_entries[0]["reason"], "missing_local_approved_decision"
+        )
+
+    def test_approved_capability_handoff_projection_operator_review_packet_includes_section(
+        self,
+    ) -> None:
+        run_dir = self._new_run_dir()
+        self._write_candidate_workflow(run_dir)
+        self._write_approval_requests(run_dir, ["req-1"])
+        self._write_approval_decisions(
+            run_dir,
+            [
+                {
+                    "request_id": "req-1",
+                    "decision": "approved",
+                    "approved_by": "operator",
+                    "approved_at": "2026-06-15T12:00:00Z",
+                }
+            ],
+        )
+        self._write_json(run_dir / "EffectivePolicy.json", {"review_required": True})
+        self._write_json(
+            run_dir / "ExecutionManifest.json",
+            {"execution_status": "blocked"},
+        )
+
+        summary = summarize_run_directory(run_dir)
+
+        included_sections = summary["operator_review_packet"]["included_sections"]
+        self.assertIn("Approved Capability Handoff Projection", included_sections)
+        self.assertGreater(
+            included_sections.index("Approved Capability Handoff Projection"),
+            included_sections.index("Broker Handoff Readiness Preview"),
+        )
+        self.assertLess(
+            included_sections.index("Approved Capability Handoff Projection"),
+            included_sections.index("Governance Readiness Checklist"),
+        )
+
+    def test_approved_capability_handoff_projection_summary_writes_no_files(
+        self,
+    ) -> None:
         run_dir = self._new_run_dir()
         self._write_candidate_workflow(run_dir)
         self._write_approval_requests(run_dir, ["req-1"])

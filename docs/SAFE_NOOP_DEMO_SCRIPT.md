@@ -199,6 +199,7 @@ such as:
 - Review Gate
 - Compiler Governance Timeline
 - Broker Handoff Readiness Preview
+- Approved Capability Handoff Projection
 - Candidate Workflow
 - Operator Review Notes
 - Fixture Lineage
@@ -220,6 +221,12 @@ readiness for a future broker contract only. It does not create a broker
 request, launch a sandbox/backend, authorize anything, approve anything,
 execute anything, change compiler validation, change approval matching, or call
 tools, connectors, MCP, network, broker, sandbox, or model APIs.
+Approved Capability Handoff Projection is display-only and reports local
+current-run approved request/node pairs for a future broker contract layer
+only. It does not authorize anything, approve anything, execute anything,
+create a broker request, launch a sandbox/backend, change compiler validation,
+change approval matching, create reusable approvals, create approval carryover,
+or call tools, connectors, MCP, network, broker, sandbox, or model APIs.
 Operator Review Notes remain operator-authored display-only notes only; they do
 not approve anything and do not change compiler validation or approval
 matching.
@@ -227,6 +234,9 @@ matching.
 After writing `ApprovalDecisions.json`, the cockpit can show whether local
 artifacts appear ready for a future broker contract handoff, while still making
 clear that broker/sandbox execution is not implemented.
+After writing `ApprovalDecisions.json`, the cockpit can also show the exact
+current-run request/node pairs that have local approved decisions, while still
+making clear this is not authority, not execution, and not a broker request.
 
 ## Expected Claims
 

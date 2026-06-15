@@ -32,6 +32,7 @@ data-shape module or future broker-related code surface is added.
 Review Gate:
 Compiler Governance Timeline:
 Broker Handoff Readiness Preview:
+Approved Capability Handoff Projection:
 Governance Lifecycle Stage:
 Governance Readiness Checklist:
 Candidate Workflow:
@@ -61,6 +62,15 @@ Operator Review Packet:
   broker request. It does not launch a sandbox/backend. It does not authorize
   anything. It does not approve anything. It does not execute anything. It does
   not change compiler validation. It does not change approval matching. It does
+  not call tools, connectors, MCP, network, broker, sandbox, or model APIs.
+- **Approved Capability Handoff Projection:** display-only local current-run
+  request/node projection for a future broker contract layer only. It reports
+  which current-run approval requests have matching local approved decisions and
+  which remain blocked from that future contract layer. It does not authorize
+  anything. It does not approve anything. It does not execute anything. It does
+  not create a broker request. It does not launch a sandbox/backend. It does
+  not change compiler validation. It does not change approval matching. It does
+  not create reusable approvals. It does not create approval carryover. It does
   not call tools, connectors, MCP, network, broker, sandbox, or model APIs.
 - **Governance Lifecycle Stage:** display-only projection of where the run sits
   in the governed workflow flow and the next safe operator action, derived only
@@ -123,6 +133,20 @@ Operator Review Packet:
 - Broker Handoff Readiness Preview does not change compiler validation.
 - Broker Handoff Readiness Preview does not change approval matching.
 - Broker Handoff Readiness Preview does not call tools, connectors, MCP,
+  network, broker, sandbox, or model APIs.
+- Approved Capability Handoff Projection is display-only.
+- Approved Capability Handoff Projection reports local current-run approved
+  request/node pairs for a future broker contract layer only.
+- Approved Capability Handoff Projection does not authorize anything.
+- Approved Capability Handoff Projection does not approve anything.
+- Approved Capability Handoff Projection does not execute anything.
+- Approved Capability Handoff Projection does not create a broker request.
+- Approved Capability Handoff Projection does not launch a sandbox/backend.
+- Approved Capability Handoff Projection does not change compiler validation.
+- Approved Capability Handoff Projection does not change approval matching.
+- Approved Capability Handoff Projection does not create reusable approvals.
+- Approved Capability Handoff Projection does not create approval carryover.
+- Approved Capability Handoff Projection does not call tools, connectors, MCP,
   network, broker, sandbox, or model APIs.
 - The verifier/evidence/broker status sections do not authorize, approve, grant
   capabilities, or execute.
