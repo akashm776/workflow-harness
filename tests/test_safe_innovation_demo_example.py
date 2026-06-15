@@ -4,7 +4,7 @@ import contextlib
 import io
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from examples import safe_innovation_demo
@@ -41,7 +41,7 @@ class SafeInnovationDemoExampleTests(unittest.TestCase):
         return return_code, json.loads(stdout.getvalue())
 
     def test_no_approval_mode(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('safe-innovation-demo-example-tests') as tmp:
             run_root = Path(tmp)
             return_code, output = self._run(run_root)
 
@@ -60,7 +60,7 @@ class SafeInnovationDemoExampleTests(unittest.TestCase):
             self.assertEqual(output["planner_template"], "innovation")
 
     def test_approval_mode(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('safe-innovation-demo-example-tests') as tmp:
             run_root = Path(tmp)
             return_code, output = self._run(run_root, approve=True)
 
@@ -104,7 +104,7 @@ class SafeInnovationDemoExampleTests(unittest.TestCase):
             self.assertIn("not a general auto-approval", notice)
 
     def test_rerun_without_allow_overwrite_fails_closed(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('safe-innovation-demo-example-tests') as tmp:
             run_root = Path(tmp)
             self._run(run_root)
 
@@ -119,7 +119,7 @@ class SafeInnovationDemoExampleTests(unittest.TestCase):
             self.assertEqual(workflow_spec_path.read_text(encoding="utf-8"), before)
 
     def test_explicit_innovation_review_template_path_works(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('safe-innovation-demo-example-tests') as tmp:
             run_root = Path(tmp)
             return_code, output = self._run(
                 run_root, planner_template="innovation_review"
@@ -132,7 +132,7 @@ class SafeInnovationDemoExampleTests(unittest.TestCase):
             )
 
     def test_default_planner_template_remains_innovation(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('safe-innovation-demo-example-tests') as tmp:
             run_root = Path(tmp)
             _, output = self._run(run_root)
             self.assertEqual(output["planner_template"], "innovation")

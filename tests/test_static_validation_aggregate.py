@@ -3,7 +3,7 @@ from __future__ import annotations
 from contextlib import ExitStack
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 from unittest.mock import patch
 
@@ -652,7 +652,7 @@ class StaticValidationAggregateTests(unittest.TestCase):
     def test_requested_auth_secret_and_capability_keep_documented_order(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-aggregate-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -698,7 +698,7 @@ class StaticValidationAggregateTests(unittest.TestCase):
     def test_requested_auth_capability_and_safeguard_claims_keep_documented_order(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-aggregate-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -744,7 +744,7 @@ class StaticValidationAggregateTests(unittest.TestCase):
     def test_workflow_safeguard_claim_and_execution_binding_keep_documented_order(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-aggregate-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -790,7 +790,7 @@ class StaticValidationAggregateTests(unittest.TestCase):
     def test_requested_auth_safeguard_and_authority_artifact_keep_documented_order(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-aggregate-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -836,7 +836,7 @@ class StaticValidationAggregateTests(unittest.TestCase):
     def test_workflow_authority_artifact_and_execution_binding_keep_documented_order(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-aggregate-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -882,7 +882,7 @@ class StaticValidationAggregateTests(unittest.TestCase):
     def test_workflow_authority_artifact_approval_binding_and_execution_binding_keep_documented_order(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-aggregate-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -933,7 +933,7 @@ class StaticValidationAggregateTests(unittest.TestCase):
     def test_workflow_execution_binding_and_runtime_reporting_keep_documented_order(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-aggregate-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -981,7 +981,7 @@ class StaticValidationAggregateTests(unittest.TestCase):
     def test_workflow_runtime_reporting_and_audit_evidence_keep_documented_order(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-aggregate-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -1029,7 +1029,7 @@ class StaticValidationAggregateTests(unittest.TestCase):
     def test_workflow_audit_evidence_and_approval_scope_keep_documented_order(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-aggregate-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -1077,7 +1077,7 @@ class StaticValidationAggregateTests(unittest.TestCase):
     def test_workflow_approval_scope_and_approval_identity_keep_documented_order(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-aggregate-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(

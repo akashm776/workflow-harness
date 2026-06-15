@@ -5,7 +5,7 @@ import io
 import json
 from pathlib import Path
 import shutil
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from cli import safe_run_cli
@@ -64,7 +64,7 @@ class WorkflowSpecPlannerTests(unittest.TestCase):
 
     def test_candidate_passes_authority_value_and_schema_validation(self) -> None:
         candidate = build_stub_planner_candidate("validate me")
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-spec-planner-tests') as tmp:
             manifest = write_planner_candidate(candidate, tmp)
             tmp_dir = Path(manifest["output_dir"])
 
@@ -87,7 +87,7 @@ class WorkflowSpecPlannerTests(unittest.TestCase):
 
     def test_write_planner_candidate_writes_only_candidate_input_files(self) -> None:
         candidate = build_stub_planner_candidate("write me")
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-spec-planner-tests') as tmp:
             manifest = write_planner_candidate(candidate, tmp)
             written = sorted(p.name for p in Path(tmp).iterdir())
 
@@ -117,7 +117,7 @@ class WorkflowSpecPlannerTests(unittest.TestCase):
 
     def test_compile_check_succeeds_or_returns_stable_diagnostics(self) -> None:
         candidate = build_stub_planner_candidate("compile me")
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-spec-planner-tests') as tmp:
             candidate_dir = Path(tmp) / "candidate"
             output_dir = Path(tmp) / "out"
             output_dir.mkdir()
@@ -139,7 +139,7 @@ class WorkflowSpecPlannerTests(unittest.TestCase):
 
     def test_compile_check_writes_no_runtime_or_execution_artifacts(self) -> None:
         candidate = build_stub_planner_candidate("no runtime artifacts")
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('workflow-spec-planner-tests') as tmp:
             candidate_dir = Path(tmp) / "candidate"
             output_dir = Path(tmp) / "out"
             output_dir.mkdir()

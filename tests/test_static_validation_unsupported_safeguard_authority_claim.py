@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -53,7 +53,7 @@ class UnsupportedSafeguardAuthorityClaimValidationTests(unittest.TestCase):
                     self.assertIsNone(result["diagnostic"])
 
     def test_benign_safeguard_text_is_not_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-safeguard-authority-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["display_name"] = "Run safeguard review only"
             path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
@@ -67,7 +67,7 @@ class UnsupportedSafeguardAuthorityClaimValidationTests(unittest.TestCase):
         self.assertIsNone(result["diagnostic"])
 
     def test_workflow_spec_safeguard_authority_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-safeguard-authority-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["safeguard_approved"] = True
             path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
@@ -99,7 +99,7 @@ class UnsupportedSafeguardAuthorityClaimValidationTests(unittest.TestCase):
         )
 
     def test_requested_auth_unblock_execution_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-safeguard-authority-claim-tests') as tmp:
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             requested_auth["unblock_execution"] = True
             path = _write_json(Path(tmp) / "RequestedAuth.json", requested_auth)
@@ -132,7 +132,7 @@ class UnsupportedSafeguardAuthorityClaimValidationTests(unittest.TestCase):
     def test_aggregate_static_validation_surfaces_safeguard_authority_claim(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-safeguard-authority-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(

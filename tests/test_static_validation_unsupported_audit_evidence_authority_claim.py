@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -70,7 +70,7 @@ class UnsupportedAuditEvidenceAuthorityClaimValidationTests(unittest.TestCase):
     def test_workflow_spec_each_unsupported_key_is_rejected(self) -> None:
         for key in UNSUPPORTED_AUDIT_EVIDENCE_AUTHORITY_CLAIM_KEYS:
             with self.subTest(key=key):
-                with tempfile.TemporaryDirectory() as tmp:
+                with temporary_test_directory('static-validation-unsupported-audit-evidence-authority-claim-tests') as tmp:
                     workflow_spec = _load_json(
                         SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json"
                     )
@@ -97,7 +97,7 @@ class UnsupportedAuditEvidenceAuthorityClaimValidationTests(unittest.TestCase):
                 self.assertIn(f"$.nodes[0].{key}", diagnostic["message"])
 
     def test_workflow_spec_evidence_approval_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-audit-evidence-authority-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["evidence_approval"] = {"display_only": True}
             path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
@@ -116,7 +116,7 @@ class UnsupportedAuditEvidenceAuthorityClaimValidationTests(unittest.TestCase):
         self.assertIn("$.nodes[0].evidence_approval", diagnostic["message"])
 
     def test_workflow_spec_audit_override_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-audit-evidence-authority-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["audit_override"] = {"display_only": True}
             path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
@@ -144,7 +144,7 @@ class UnsupportedAuditEvidenceAuthorityClaimValidationTests(unittest.TestCase):
         )
 
     def test_requested_auth_audit_grant_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-audit-evidence-authority-claim-tests') as tmp:
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             requested_auth["audit_grant"] = {"display_only": True}
             path = _write_json(Path(tmp) / "RequestedAuth.json", requested_auth)
@@ -163,7 +163,7 @@ class UnsupportedAuditEvidenceAuthorityClaimValidationTests(unittest.TestCase):
         self.assertIn("$.audit_grant", diagnostic["message"])
 
     def test_requested_auth_evidence_authorizes_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-audit-evidence-authority-claim-tests') as tmp:
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             requested_auth["evidence_authorizes"] = {"display_only": True}
             path = _write_json(Path(tmp) / "RequestedAuth.json", requested_auth)
@@ -184,7 +184,7 @@ class UnsupportedAuditEvidenceAuthorityClaimValidationTests(unittest.TestCase):
     def test_approval_requests_evidence_satisfies_approval_key_is_rejected(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-audit-evidence-authority-claim-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -209,7 +209,7 @@ class UnsupportedAuditEvidenceAuthorityClaimValidationTests(unittest.TestCase):
     def test_approval_requests_audit_satisfies_authority_key_is_rejected(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-audit-evidence-authority-claim-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -231,7 +231,7 @@ class UnsupportedAuditEvidenceAuthorityClaimValidationTests(unittest.TestCase):
 
     def test_benign_string_mentioning_audit_approval_is_not_rejected(self) -> None:
         # The words appear only inside a string value, not as object keys.
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-audit-evidence-authority-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["display_name"] = (
                 "Explain audit_approval and evidence_override policy"
@@ -249,7 +249,7 @@ class UnsupportedAuditEvidenceAuthorityClaimValidationTests(unittest.TestCase):
     def test_aggregate_static_validation_surfaces_audit_evidence_rejection(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-audit-evidence-authority-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -292,7 +292,7 @@ class UnsupportedAuditEvidenceAuthorityClaimValidationTests(unittest.TestCase):
         # ApprovalDecisions.json is operator-authored, not a planner proposal;
         # this validator does not scan it, and audit/evidence-authority-like
         # fields there pass aggregate static validation.
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-audit-evidence-authority-claim-tests') as tmp:
             fixture_input = (
                 ROOT / "fixtures" / "valid" / "approval-required-workflow" / "input"
             )

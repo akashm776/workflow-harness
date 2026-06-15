@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from contextlib import contextmanager
 import json
-import os
 from pathlib import Path
 import shutil
 import unittest
@@ -16,49 +14,14 @@ from runtime.run_status_summary import (
     _build_governance_lifecycle_stage,
     summarize_run_directory,
 )
+from tests.test_temp_utils import temporary_test_directory, writable_test_root
 
 
 ROOT = Path(__file__).resolve().parent.parent
+TIMELINE_TEST_RUN_ROOT = writable_test_root("compiler-governance-timeline-tests")
+_temporary_test_directory = temporary_test_directory
 
 
-def _writable_test_root(name: str) -> Path:
-    candidates: list[Path] = []
-
-    explicit_root = os.environ.get("WORKFLOW_HARNESS_TEST_RUN_ROOT")
-    if explicit_root:
-        candidates.append(Path(explicit_root))
-
-    local_appdata = os.environ.get("LOCALAPPDATA")
-    if local_appdata:
-        candidates.append(Path(local_appdata) / "Temp" / "workflow-harness-test-runs")
-
-    candidates.append(Path(os.path.expanduser("~/workflow-harness-test-runs")))
-
-    for candidate in candidates:
-        root = candidate / name
-        try:
-            root.mkdir(parents=True, exist_ok=True)
-            probe = root / f"probe-{uuid.uuid4().hex}"
-            probe.mkdir()
-            shutil.rmtree(probe, ignore_errors=True)
-            return root
-        except OSError:
-            continue
-
-    raise RuntimeError(f"no writable test root for {name}")
-
-
-TIMELINE_TEST_RUN_ROOT = _writable_test_root("compiler-governance-timeline-tests")
-
-
-@contextmanager
-def _temporary_test_directory(name: str):
-    path = _writable_test_root(name) / uuid.uuid4().hex
-    path.mkdir(parents=True, exist_ok=False)
-    try:
-        yield str(path)
-    finally:
-        shutil.rmtree(path, ignore_errors=True)
 SIMPLE_WORKFLOW = ROOT / "fixtures" / "valid" / "simple-workflow" / "input"
 SIMPLE_NODE_TYPE_REGISTRY = SIMPLE_WORKFLOW / "NodeTypeRegistry.json"
 INNOVATION_CONTEXT_FIXTURE_PATHS = (

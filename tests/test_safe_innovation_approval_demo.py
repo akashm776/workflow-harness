@@ -4,7 +4,7 @@ import contextlib
 import io
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from cli import run_status_cli, safe_run_cli, workflow_demo_cli
@@ -18,7 +18,7 @@ SIMPLE_NODE_TYPE_REGISTRY = (
 
 class SafeInnovationApprovalDemoSmokeTest(unittest.TestCase):
     def test_blocked_then_explicit_approval_then_completed(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('safe-innovation-approval-demo-tests') as tmp:
             blocked_run_dir = Path(tmp) / "innovation-demo"
             approved_run_dir = Path(tmp) / "innovation-approved"
 

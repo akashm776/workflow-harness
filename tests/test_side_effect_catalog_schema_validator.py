@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.side_effect_catalog_schema_validator import (
@@ -32,7 +32,7 @@ def _valid_catalog() -> dict:
 
 class SideEffectCatalogSchemaValidatorTests(unittest.TestCase):
     def _validate(self, catalog: object) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('side-effect-catalog-schema-validator-tests') as tmp:
             path = Path(tmp) / "SideEffectCatalog.json"
             path.write_text(json.dumps(catalog), encoding="utf-8")
             result = validate_side_effect_catalog_schema(path)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -66,7 +66,7 @@ class UnsupportedApprovalScopeClaimValidationTests(unittest.TestCase):
     def test_workflow_spec_each_unsupported_key_is_rejected(self) -> None:
         for key in UNSUPPORTED_APPROVAL_SCOPE_CLAIM_KEYS:
             with self.subTest(key=key):
-                with tempfile.TemporaryDirectory() as tmp:
+                with temporary_test_directory('static-validation-unsupported-approval-scope-claim-tests') as tmp:
                     workflow_spec = _load_json(
                         SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json"
                     )
@@ -96,7 +96,7 @@ class UnsupportedApprovalScopeClaimValidationTests(unittest.TestCase):
     ) -> None:
         # approval_carryover is owned by the approval-binding validator and must
         # not be claimed by this validator; this validator leaves it alone.
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-scope-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["approval_carryover"] = {"display_only": True}
             path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
@@ -110,7 +110,7 @@ class UnsupportedApprovalScopeClaimValidationTests(unittest.TestCase):
         self.assertIsNone(result["diagnostic"])
 
     def test_workflow_spec_cross_run_approval_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-scope-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["cross_run_approval"] = {"display_only": True}
             path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
@@ -138,7 +138,7 @@ class UnsupportedApprovalScopeClaimValidationTests(unittest.TestCase):
         )
 
     def test_requested_auth_global_approval_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-scope-claim-tests') as tmp:
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             requested_auth["global_approval"] = {"display_only": True}
             path = _write_json(Path(tmp) / "RequestedAuth.json", requested_auth)
@@ -159,7 +159,7 @@ class UnsupportedApprovalScopeClaimValidationTests(unittest.TestCase):
     def test_approval_requests_approval_valid_across_runs_key_is_rejected(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-scope-claim-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -182,7 +182,7 @@ class UnsupportedApprovalScopeClaimValidationTests(unittest.TestCase):
         )
 
     def test_approval_requests_approval_scope_override_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-scope-claim-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -204,7 +204,7 @@ class UnsupportedApprovalScopeClaimValidationTests(unittest.TestCase):
 
     def test_benign_string_mentioning_global_approval_is_not_rejected(self) -> None:
         # The words appear only inside a string value, not as object keys.
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-scope-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["display_name"] = (
                 "Explain global_approval and cross_run_approval policy"
@@ -222,7 +222,7 @@ class UnsupportedApprovalScopeClaimValidationTests(unittest.TestCase):
     def test_aggregate_static_validation_surfaces_approval_scope_rejection(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-scope-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -263,7 +263,7 @@ class UnsupportedApprovalScopeClaimValidationTests(unittest.TestCase):
         # ApprovalDecisions.json is operator-authored, not a planner proposal;
         # this validator does not scan it, and approval-scope-like fields there
         # pass aggregate static validation.
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-scope-claim-tests') as tmp:
             fixture_input = (
                 ROOT / "fixtures" / "valid" / "approval-required-workflow" / "input"
             )

@@ -5,10 +5,12 @@ import io
 import json
 from pathlib import Path
 import shutil
-import tempfile
 import unittest
+import uuid
+from unittest import mock
 
 from cli import planner_check_cli
+from tests.test_temp_utils import temporary_test_directory, writable_test_root
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -28,13 +30,17 @@ FORBIDDEN_ARTIFACTS = (
 
 
 class PlannerCheckCliTests(unittest.TestCase):
+    def _new_repo_root(self) -> Path:
+        repo_root = writable_test_root("planner-check-cli-tests") / uuid.uuid4().hex
+        repo_root.mkdir(parents=True, exist_ok=False)
+        self.addCleanup(shutil.rmtree, repo_root, ignore_errors=True)
+        return repo_root
+
     def _run(
         self, goal: str, *, summary_only: bool = False, dry_run: bool = False
     ):
         """Run the CLI in an isolated repo root; return (rc, parsed_stdout, dirs)."""
-        tmp = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
-        repo_root = tmp
+        repo_root = self._new_repo_root()
         candidate_dir = repo_root / "candidate"
         registry_path = repo_root / "NodeTypeRegistry.json"
         shutil.copy(SIMPLE_NODE_TYPE_REGISTRY, registry_path)
@@ -51,8 +57,18 @@ class PlannerCheckCliTests(unittest.TestCase):
             argv.append("--dry-run")
 
         stdout = io.StringIO()
-        with contextlib.redirect_stdout(stdout):
-            return_code = planner_check_cli.main(argv)
+        if dry_run:
+            with mock.patch(
+                "cli.planner_check_cli.tempfile.TemporaryDirectory",
+                side_effect=lambda: temporary_test_directory(
+                    "planner-check-cli-dry-run-tests"
+                ),
+            ):
+                with contextlib.redirect_stdout(stdout):
+                    return_code = planner_check_cli.main(argv)
+        else:
+            with contextlib.redirect_stdout(stdout):
+                return_code = planner_check_cli.main(argv)
         return (
             return_code,
             json.loads(stdout.getvalue()),
@@ -129,23 +145,28 @@ class PlannerCheckCliTests(unittest.TestCase):
 
     def test_output_is_deterministic_for_same_goal(self) -> None:
         # Same goal + same candidate dir path -> identical default output.
-        tmp = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
-        candidate_dir = tmp / "candidate"
-        registry_path = tmp / "NodeTypeRegistry.json"
+        repo_root = self._new_repo_root()
+        candidate_dir = repo_root / "candidate"
+        registry_path = repo_root / "NodeTypeRegistry.json"
         shutil.copy(SIMPLE_NODE_TYPE_REGISTRY, registry_path)
         argv = [
             "--goal", "stable goal",
             "--node-type-registry", str(registry_path),
-            "--repo-root", str(tmp),
+            "--repo-root", str(repo_root),
             "--candidate-dir", str(candidate_dir),
         ]
 
         outputs = []
         for _ in range(2):
             stdout = io.StringIO()
-            with contextlib.redirect_stdout(stdout):
-                planner_check_cli.main(argv)
+            with mock.patch(
+                "cli.planner_check_cli.tempfile.TemporaryDirectory",
+                side_effect=lambda: temporary_test_directory(
+                    "planner-check-cli-dry-run-tests"
+                ),
+            ):
+                with contextlib.redirect_stdout(stdout):
+                    planner_check_cli.main(argv)
             outputs.append(stdout.getvalue())
 
         self.assertEqual(outputs[0], outputs[1])
@@ -202,15 +223,14 @@ class PlannerCheckCliTests(unittest.TestCase):
         )
 
     def test_dry_run_output_is_deterministic_for_same_goal(self) -> None:
-        tmp = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
-        candidate_dir = tmp / "candidate"
-        registry_path = tmp / "NodeTypeRegistry.json"
+        repo_root = self._new_repo_root()
+        candidate_dir = repo_root / "candidate"
+        registry_path = repo_root / "NodeTypeRegistry.json"
         shutil.copy(SIMPLE_NODE_TYPE_REGISTRY, registry_path)
         argv = [
             "--goal", "stable dry goal",
             "--node-type-registry", str(registry_path),
-            "--repo-root", str(tmp),
+            "--repo-root", str(repo_root),
             "--candidate-dir", str(candidate_dir),
             "--dry-run",
         ]
@@ -218,8 +238,14 @@ class PlannerCheckCliTests(unittest.TestCase):
         outputs = []
         for _ in range(2):
             stdout = io.StringIO()
-            with contextlib.redirect_stdout(stdout):
-                planner_check_cli.main(argv)
+            with mock.patch(
+                "cli.planner_check_cli.tempfile.TemporaryDirectory",
+                side_effect=lambda: temporary_test_directory(
+                    "planner-check-cli-dry-run-tests"
+                ),
+            ):
+                with contextlib.redirect_stdout(stdout):
+                    planner_check_cli.main(argv)
             outputs.append(stdout.getvalue())
 
         self.assertEqual(outputs[0], outputs[1])

@@ -3,7 +3,6 @@ from __future__ import annotations
 import contextlib
 import io
 import json
-import os
 from pathlib import Path
 import shutil
 import unittest
@@ -11,13 +10,11 @@ import uuid
 
 from cli import operator_review_notes_cli
 from runtime.run_status_summary import summarize_run_directory
+from tests.test_temp_utils import writable_test_root
 from tui.run_status_summary_view import render_run_status_summary_view
 
 
-TEST_RUN_ROOT = (
-    Path(os.path.expanduser("~/workflow-harness-pytest-temp"))
-    / "operator-review-notes-cli-tests"
-)
+TEST_RUN_ROOT = writable_test_root("operator-review-notes-cli-tests")
 
 
 class OperatorReviewNotesCliTests(unittest.TestCase):

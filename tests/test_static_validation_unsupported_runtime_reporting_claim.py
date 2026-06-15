@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -62,7 +62,7 @@ class UnsupportedRuntimeReportingClaimValidationTests(unittest.TestCase):
     def test_workflow_spec_each_unsupported_key_is_rejected(self) -> None:
         for key in UNSUPPORTED_RUNTIME_REPORTING_CLAIM_KEYS:
             with self.subTest(key=key):
-                with tempfile.TemporaryDirectory() as tmp:
+                with temporary_test_directory('static-validation-unsupported-runtime-reporting-claim-tests') as tmp:
                     workflow_spec = _load_json(
                         SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json"
                     )
@@ -88,7 +88,7 @@ class UnsupportedRuntimeReportingClaimValidationTests(unittest.TestCase):
                 self.assertIn(f"$.nodes[0].{key}", diagnostic["message"])
 
     def test_workflow_spec_broker_request_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-runtime-reporting-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["broker_request"] = {"display_only": True}
             path = _write_json(Path(tmp) / "WorkflowSpec.json", workflow_spec)
@@ -115,7 +115,7 @@ class UnsupportedRuntimeReportingClaimValidationTests(unittest.TestCase):
         )
 
     def test_requested_auth_broker_decision_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-runtime-reporting-claim-tests') as tmp:
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             requested_auth["broker_decision"] = {"display_only": True}
             path = _write_json(Path(tmp) / "RequestedAuth.json", requested_auth)
@@ -134,7 +134,7 @@ class UnsupportedRuntimeReportingClaimValidationTests(unittest.TestCase):
         self.assertIn("$.broker_decision", diagnostic["message"])
 
     def test_approval_requests_broker_result_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-runtime-reporting-claim-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -157,7 +157,7 @@ class UnsupportedRuntimeReportingClaimValidationTests(unittest.TestCase):
         self.assertIn("$.requests[0].broker_result", diagnostic["message"])
 
     def test_approval_requests_sandbox_attestation_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-runtime-reporting-claim-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -179,7 +179,7 @@ class UnsupportedRuntimeReportingClaimValidationTests(unittest.TestCase):
 
     def test_benign_string_mentioning_broker_request_is_not_rejected(self) -> None:
         # The words appear only inside a string value, not as object keys.
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-runtime-reporting-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["display_name"] = (
                 "Explain broker_request and sandbox_status policy"
@@ -197,7 +197,7 @@ class UnsupportedRuntimeReportingClaimValidationTests(unittest.TestCase):
     def test_aggregate_static_validation_surfaces_runtime_reporting_rejection(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-runtime-reporting-claim-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(
@@ -240,7 +240,7 @@ class UnsupportedRuntimeReportingClaimValidationTests(unittest.TestCase):
         # ApprovalDecisions.json is operator-authored, not a planner proposal;
         # this validator does not scan it, and a broker_result-like field there
         # passes aggregate static validation (no validator rejects it).
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-runtime-reporting-claim-tests') as tmp:
             fixture_input = (
                 ROOT / "fixtures" / "valid" / "approval-required-workflow" / "input"
             )

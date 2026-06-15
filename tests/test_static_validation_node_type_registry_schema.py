@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -41,7 +41,7 @@ class NodeTypeRegistrySchemaValidatorTests(unittest.TestCase):
                 self.assertIsNone(result["diagnostic"])
 
     def _validate_modified(self, modify) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-node-type-registry-schema-tests') as tmp:
             registry = _valid_registry()
             modify(registry)
             path = _write_temp_registry(Path(tmp), registry)
@@ -132,7 +132,7 @@ class NodeTypeRegistrySchemaPhasingTests(unittest.TestCase):
     def _validate_inputs_with_registry(
         self, registry: object, *, stop_on_first_error: bool = True
     ) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-node-type-registry-schema-tests') as tmp:
             path = _write_temp_registry(Path(tmp), registry)
             return validate_static_inputs(
                 SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json",

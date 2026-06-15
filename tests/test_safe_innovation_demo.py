@@ -4,7 +4,7 @@ import contextlib
 import io
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from cli import run_status_cli, workflow_demo_cli
@@ -18,7 +18,7 @@ SIMPLE_NODE_TYPE_REGISTRY = (
 
 class SafeInnovationDemoSmokeTest(unittest.TestCase):
     def test_two_command_safe_innovation_demo(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('safe-innovation-demo-tests') as tmp:
             run_dir = Path(tmp) / "innovation-demo"
 
             # Command 1: run the demo with an innovation goal.

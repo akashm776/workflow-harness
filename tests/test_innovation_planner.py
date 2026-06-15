@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import shutil
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.canonical_json import canonical_json_text
@@ -100,7 +100,7 @@ class InnovationPlannerTests(unittest.TestCase):
 
     def test_compiles_against_simple_registry(self) -> None:
         candidate = build_innovation_planner_candidate("innovation ideas")
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('innovation-planner-tests') as tmp:
             tmp_dir = Path(tmp)
             for file_name in CANDIDATE_ARTIFACT_FILES:
                 (tmp_dir / file_name).write_text(
@@ -176,7 +176,7 @@ class InnovationPlannerTests(unittest.TestCase):
 
     def test_innovation_review_compiles_against_simple_registry(self) -> None:
         candidate = build_innovation_review_planner_candidate("review innovation options")
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('innovation-planner-tests') as tmp:
             tmp_dir = Path(tmp)
             for file_name in CANDIDATE_ARTIFACT_FILES:
                 (tmp_dir / file_name).write_text(

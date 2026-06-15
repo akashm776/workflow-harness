@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -44,14 +44,14 @@ class UnsupportedExecutionBindingValidationTests(unittest.TestCase):
                 self.assertIsNone(result["diagnostic"])
 
     def _validate_modified(self, modify) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-execution-binding-tests') as tmp:
             workflow_spec = _valid_workflow_spec()
             modify(workflow_spec)
             path = _write_temp_workflow_spec(Path(tmp), workflow_spec)
             return validate_unsupported_execution_bindings(path)
 
     def _validate_modified_via_static_inputs(self, modify) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-execution-binding-tests') as tmp:
             workflow_spec = _valid_workflow_spec()
             modify(workflow_spec)
             path = _write_temp_workflow_spec(Path(tmp), workflow_spec)

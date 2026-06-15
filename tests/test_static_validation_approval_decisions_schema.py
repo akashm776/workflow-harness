@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.compile_run import compile_static_artifacts
@@ -46,7 +46,7 @@ class ApprovalDecisionsSchemaValidatorTests(unittest.TestCase):
                 self.assertIsNone(result["diagnostic"])
 
     def _validate_modified(self, modify) -> dict:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-approval-decisions-schema-tests') as tmp:
             decisions = _valid_decisions()
             modify(decisions)
             path = _write_temp_decisions(Path(tmp), decisions)
@@ -148,7 +148,7 @@ class ApprovalDecisionsSchemaPhasingTests(unittest.TestCase):
         self.assertTrue(result["ok"])
 
     def test_aggregate_mode_schema_failure_gates_interpretation(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-approval-decisions-schema-tests') as tmp:
             decisions = _valid_decisions()
             decisions["decisions"] = "not-a-list"
             path = _write_temp_decisions(Path(tmp), decisions)
@@ -167,7 +167,7 @@ class ApprovalDecisionsSchemaPhasingTests(unittest.TestCase):
         )
 
     def test_float_fails_in_authority_phase_before_schema(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-approval-decisions-schema-tests') as tmp:
             decisions = _valid_decisions()
             decisions["decisions"][0]["weight"] = 1.0
             path = _write_temp_decisions(Path(tmp), decisions)

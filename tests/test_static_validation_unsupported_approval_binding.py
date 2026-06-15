@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from compiler.static_validation import (
@@ -60,7 +60,7 @@ class UnsupportedApprovalBindingValidationTests(unittest.TestCase):
     def test_workflow_spec_each_unsupported_key_is_rejected(self) -> None:
         for key in UNSUPPORTED_APPROVAL_BINDING_KEYS:
             with self.subTest(key=key):
-                with tempfile.TemporaryDirectory() as tmp:
+                with temporary_test_directory('static-validation-unsupported-approval-binding-tests') as tmp:
                     workflow_spec = _load_json(
                         SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json"
                     )
@@ -96,7 +96,7 @@ class UnsupportedApprovalBindingValidationTests(unittest.TestCase):
                 )
 
     def test_requested_auth_reusable_approval_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-binding-tests') as tmp:
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             requested_auth["reusable_approvals"] = [{"display_only": True}]
             path = _write_json(Path(tmp) / "RequestedAuth.json", requested_auth)
@@ -113,7 +113,7 @@ class UnsupportedApprovalBindingValidationTests(unittest.TestCase):
         self.assertIn("$.reusable_approvals", diagnostic["message"])
 
     def test_approval_requests_standing_approval_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-binding-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -132,7 +132,7 @@ class UnsupportedApprovalBindingValidationTests(unittest.TestCase):
         self.assertIn("$.requests[0].standing_approval", diagnostic["message"])
 
     def test_approval_requests_approval_carryover_key_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-binding-tests') as tmp:
             approval_requests = _load_json(
                 SIMPLE_FIXTURE_INPUT / "ApprovalRequests.json"
             )
@@ -154,7 +154,7 @@ class UnsupportedApprovalBindingValidationTests(unittest.TestCase):
         self,
     ) -> None:
         # The words appear only inside a string value, not as object keys.
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-binding-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             workflow_spec["nodes"][0]["display_name"] = (
                 "Explain reusable_approval and standing_approval policy"
@@ -172,7 +172,7 @@ class UnsupportedApprovalBindingValidationTests(unittest.TestCase):
     def test_aggregate_static_validation_surfaces_approval_binding_rejection(
         self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('static-validation-unsupported-approval-binding-tests') as tmp:
             workflow_spec = _load_json(SIMPLE_FIXTURE_INPUT / "WorkflowSpec.json")
             requested_auth = _load_json(SIMPLE_FIXTURE_INPUT / "RequestedAuth.json")
             approval_requests = _load_json(

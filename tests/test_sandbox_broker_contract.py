@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-import tempfile
+from tests.test_temp_utils import temporary_test_directory
 import unittest
 
 from broker.sandbox_broker_contract import (
@@ -225,7 +225,7 @@ class BrokerResultTests(unittest.TestCase):
 
 class BrokerContractPurityAndPlacementTests(unittest.TestCase):
     def test_builders_do_not_write_files(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
+        with temporary_test_directory('sandbox-broker-contract-tests') as tmp:
             tmp_path = Path(tmp)
             build_broker_request(tool_name="t", **_request_kwargs())
             build_broker_decision(
